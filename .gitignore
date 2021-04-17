@@ -1,0 +1,11 @@
+# Default ignored files
+/shelf
+/workspace.xml
+/data
+scratch*
+/scripts/scratch*
+latex/*.aux
+latex/*.log
+latex/*.synctex.gz
+lumber_room
+papers
