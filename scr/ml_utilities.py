@@ -33,8 +33,8 @@ def main_folder():
 
 # timezone stuff from
 # https://stackoverflow.com/questions/35057968/get-system-local-timezone-in-python
-def now_filename(title: str, folder: str = None,
-                 the_now: str = STD_NOW) -> str:
+def time_stamp(title: str, folder: str = None,
+               the_now: str = STD_NOW) -> str:
     """ Returns a string giving the filepath with title preceded by the
     the_now's date, time and timezone, and (if folder is not None) in the
     folder.
@@ -51,9 +51,9 @@ def now_filename(title: str, folder: str = None,
 
 
 PROJECT_NAME = main_folder()
-LOG_FILENAME = now_filename(PROJECT_NAME + '.log', c.LOGS_FOLDER)
-LOG_WARNING_FILENAME = now_filename(PROJECT_NAME + 'WARNING.log',
-                                    c.LOGS_FOLDER)
+LOG_FILENAME = time_stamp(PROJECT_NAME + '.log', c.LOGS_FOLDER)
+LOG_WARNING_FILENAME = time_stamp(PROJECT_NAME + 'WARNING.log',
+                                  c.LOGS_FOLDER)
 
 
 def value_code(value, save=True, to_json=False):
@@ -121,7 +121,7 @@ class Constants():
                     with_now=True):
         title = PROJECT_NAME + '_' + title
         if with_now:
-            title = now_filename(title)
+            title = time_stamp(title)
         if folder == None:
             filename = title
         else:
@@ -333,7 +333,7 @@ def div(a, b):
 
 def savefig(title):
     title += '.pdf'
-    fname = now_filename(folder=c.LOGS_FOLDER, title=title)
+    fname = time_stamp(folder=c.LOGS_FOLDER, title=title)
     plt.savefig(fname)
 
 
