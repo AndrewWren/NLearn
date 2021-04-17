@@ -1,8 +1,8 @@
 from collections.abc import Callable
 import random
 import numpy as np
-
 import config
+from scr.ml_utilities import c, h
 
 
 class Code:
@@ -62,7 +62,7 @@ class ElementSpec:
             self,
             domain: Domain or tuple,
             scorer: Scorer = None,
-            fraction: Float = 0.1,
+            fraction: float = 0.1,
             random: Callable = None
     ):
         if isinstance(domain, Domain):
@@ -103,7 +103,7 @@ def flatten_shuffle(ls):
 
 
 def transpose_tuple(a):
-    return list(map(tuple, zip(*a)))
+    return tuple(map(tuple, zip(*a)))
 
 
 class TupleSpec:
@@ -125,6 +125,7 @@ class TupleSpec:
         self.current = None
         self.pick_no = None
         self.current_score = None
+        self.n_iterations = h.N_ITERATIONS
 
     def random(self):
         selection = list()
@@ -142,11 +143,13 @@ class TupleSpec:
         self.current = transpose_tuple(selection)
         return self.current
 
-    def mix_and_pick(self):
-        self.random()
-        self.pick_no = random.randrange(self.select)
-        pick_tuple = self.random()[pick_no]
-        return self.pick_no, pick_tuple
+    def iter(self):
+        print(f'{h.N_ITERATIONS=}')
+        for iteration in range(h.N_ITERATIONS):
+            self.random()
+            self.pick_no = random.randrange(self.select)
+            pick_tuple = self.random()[self.pick_no]
+            yield iteration, self.pick_no, pick_tuple, self.current
 
     def __repr__(self):
         return f'TupleSpec({self.specs})'

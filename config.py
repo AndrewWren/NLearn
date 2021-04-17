@@ -2,8 +2,7 @@ import torch
 
 
 hyperparameters = {
-    'h1': None,
-    'h2': None
+    'N_ITERATIONS': 10
 }
 
 
