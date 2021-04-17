@@ -109,7 +109,7 @@ def transpose_tuple(a):
 class TupleSpec:
     def __init__(
             self,
-            element_specs: list,
+            element_specs: list = c.TUPLE_SPEC,
             pool: int = 100,
             select: int = 10
     ):
@@ -120,6 +120,7 @@ class TupleSpec:
             else:
                 spec_list.append(ElementSpec(*element_spec))
         self.specs = tuple(spec_list)
+        self.n_tuples = len(spec_list)
         self.pool = pool
         self.select = select
         self.current = None
