@@ -2,9 +2,14 @@ from collections.abc import Callable
 import random
 import numpy as np
 
+import config
+
 
 class Code:
     def __init__(self, value: list):
+        if len(value) != config.N_CODE:
+            exit(f'Defining Code instance with length {len(value)} != '
+                 f'config.N_CODE')
         self.tuple = self.binary_list(value)
 
     def to_bit(self, b):

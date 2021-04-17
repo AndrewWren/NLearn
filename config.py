@@ -8,7 +8,11 @@ hyperparameters = {
 
 
 RANDOM_SEED = 42
-TUPLE_SPEC = (((int, 100000), ), ((int, 50000), (10, -1), ),)
+TUPLE_SPEC = (
+    ((int, 100000), ),
+    ((int, 50000), (10, -1), ),
+)
+N_CODE = 10
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
