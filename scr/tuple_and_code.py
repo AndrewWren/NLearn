@@ -32,30 +32,66 @@ class Domain:
         if self.type == int:
             self.range = int(self.range)
 
+    def __repr__(self):
+        return f'Domain({self.__str__()})'
+
+    def __str__(self):
+        return f'({self.type}, {self.range})'
+
 
 class Score:
     def __init__(self, right=1, wrong=0):
         self.right = right
         self.wrong = wrong
+        if (right == 1) and (wrong == 0):
+            self.repr = 'Default'
+        else:
+            self.repr = f'Special({self.right}, {self.wrong})'
+
+    def __repr__(self):
+        return self.repr
 
 
-class TupleSpec:
+class ElementSpec:
     def __init__(
             self,
-            domain: Domain,
-            random: Callable = None,
-            score: Score = None
+            domain: Domain or tuple,
+            score: Score = None,
+            random: Callable = None
     ):
-        self.domain = domain
+        if isinstance(domain, Domain):
+            self.domain = domain
+        else:
+            self.domain = Domain(*domain)
+
+        self.score = score or Score()
+
         default_random = None
         default_score = None
         if (self.domain.type == int) and (self.domain.range != np.inf):
             default_random = self.default_random_selector_int_finite
+            self.random_repr = 'Uniform'
         #default_score =
         self.random = random or default_random
         if self.random is None:
-            exit('Need a random for the TupleSpec initiation.')
-        self.score = score or Score()
+            exit('Need a random for the ElementSpec initiation.')
 
     def default_random_selector_int_finite(self):
-            return random.randrange(self.domain.range)
+        return random.randrange(self.domain.range)
+
+    def __repr__(self):
+        return f'Element({self.domain}, {self.score}, {self.random_repr})'
+
+
+class TupleSpec:
+    def __init__(self, element_specs):
+        spec_list = list()
+        for element_spec in element_specs:
+            if isinstance(element_spec, ElementSpec):
+                spec_list.append(element_spec)
+            else:
+                spec_list.append(ElementSpec(*element_spec))
+        self.specs = tuple(spec_list)
+
+    def __repr__(self):
+        return f'TupleSpec({self.specs})'

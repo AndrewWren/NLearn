@@ -6,9 +6,9 @@ hyperparameters = {
     'h2': None
 }
 
+
 RANDOM_SEED = 42
-TYPE = int
-RANGE = 100000
+TUPLE_SPEC = (((int, 100000), ), ((int, 50000), (10, -1), ),)
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
