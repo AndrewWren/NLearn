@@ -35,7 +35,7 @@ def main_folder():
 # https://stackoverflow.com/questions/35057968/get-system-local-timezone-in-python
 def now_filename(title: str, folder: str = None,
                  the_now: str = STD_NOW) -> str:
-    """ Returns a __str__ giving the filepath with title preceded by the
+    """ Returns a string giving the filepath with title preceded by the
     the_now's date, time and timezone, and (if folder is not None) in the
     folder.
 
