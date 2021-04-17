@@ -62,7 +62,7 @@ class ElementSpec:
             self,
             domain: Domain or tuple,
             scorer: Scorer = None,
-            fraction: float = 0.1,
+            fraction: float = 0.2,
             random: Callable = None
     ):
         if isinstance(domain, Domain):
@@ -137,10 +137,13 @@ class TupleSpec:
                                  for _ in range(n_repetitions)]
             if stub_length > 0:
                 random_selections += [spec.random()] * stub_length
-            random_selections = flatten_shuffle(random_selections)[
-                                : self.select]
+            random_selections = flatten_shuffle(random_selections)
             selection.append(random_selections)
-        self.current = transpose_tuple(selection)
+        selection = transpose_tuple(selection)
+        selection = tuple(set(selection))[: self.select]
+        if len(selection) < self.select:
+            selection = random.choices(selection, k=self.select)
+        self.current = selection
         return self.current
 
     def iter(self):
