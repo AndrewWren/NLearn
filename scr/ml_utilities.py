@@ -7,8 +7,8 @@ from os import path
 import platform
 import shutil
 import sys
-import matplotlib.pyplot as plt
 from time import perf_counter, strftime
+import matplotlib.pyplot as plt
 from dateutil.tz import tzlocal
 import numpy as np
 import torch
