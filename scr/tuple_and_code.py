@@ -152,8 +152,7 @@ class TupleSpec:
         for iteration in range(h.N_ITERATIONS):
             self.random()
             self.pick_no = random.randrange(self.select)
-            pick_tuple = self.random()[self.pick_no]
-            yield iteration, self.pick_no, pick_tuple, self.current
+            yield iteration, self.pick_no, self.current
 
     def __repr__(self):
         return f'TupleSpec({self.specs})'
