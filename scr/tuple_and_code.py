@@ -159,7 +159,6 @@ class TupleSpec:
         return f'TupleSpec({self.specs})'
 
     def score(self, grounds: tuple, guesses: tuple):
-        #TODO Decide scoring method
         score = 0
         for spec, ground, guess in zip(self.specs, grounds, guesses):
             if ground == guess:
