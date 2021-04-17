@@ -2,7 +2,7 @@ import random
 import scr.ml_utilities as mlu
 from scr.ml_utilities import c
 import scr.net_class
-from scr.subject_tuple import Domain, TupleSpec
+from scr.tuple_and_code import Code, Domain, TupleSpec
 
 
 def define_tuple():
@@ -10,7 +10,7 @@ def define_tuple():
     return TupleSpec(domain)
 
 
-def train_a():
+def train_a(tuple_spec: TupleSpec, code: Code):
     pass
 
 
@@ -29,4 +29,7 @@ def understand():
 if __name__ == '__main__':
     random.seed(c.RANDOM_SEED)
     tuple_spec = define_tuple()
-    print(tuple_spec.random())
+    #print(tuple_spec.random())
+    #print(tuple_spec)
+    code = Code([1, 2, -7.3])
+    print(code)

@@ -3,6 +3,28 @@ import random
 import numpy as np
 
 
+class Code:
+    def __init__(self, value: list):
+        self.tuple = self.binary_list(value)
+
+    def to_bit(self, b):
+        if b > 0:
+            return 1
+        elif b < 0:
+            return 0
+        return random.randrange(2)
+
+    def binary_list(self, bb):
+        return [self.to_bit(b) for b in bb]
+
+    def __str__(self):
+        b_list = [str(int(b)) for b in self.tuple]
+        return ''.join(b_list)
+
+    def __repr__(self):
+        return 'Code(' + self.__str__() + ')'
+
+
 class Domain:
     def __init__(self, domain_type: type, domain_range):
         self.type = domain_type
