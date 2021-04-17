@@ -62,6 +62,7 @@ class ElementSpec:
             self,
             domain: Domain or tuple,
             scorer: Scorer = None,
+            fraction: Float = 0.1,
             random: Callable = None
     ):
         if isinstance(domain, Domain):
@@ -70,6 +71,8 @@ class ElementSpec:
             self.domain = Domain(*domain)
 
         self.scorer = scorer or Scorer()
+
+        self.fraction = fraction
 
         default_random = None
         default_score = None
@@ -93,8 +96,23 @@ class ElementSpec:
             return self.scorer.wrong
 
 
+def flatten_shuffle(ls):
+    fl = [item for sublist in ls for item in sublist]
+    random.shuffle(fl)
+    return fl
+
+
+def transpose_tuple(a):
+    return list(map(tuple, zip(*a)))
+
+
 class TupleSpec:
-    def __init__(self, element_specs):
+    def __init__(
+            self,
+            element_specs: list,
+            pool: int = 100,
+            select: int = 10
+    ):
         spec_list = list()
         for element_spec in element_specs:
             if isinstance(element_spec, ElementSpec):
@@ -102,16 +120,38 @@ class TupleSpec:
             else:
                 spec_list.append(ElementSpec(*element_spec))
         self.specs = tuple(spec_list)
+        self.pool = pool
+        self.select = select
+        self.current = None
+        self.pick_no = None
 
     def random(self):
-        return tuple([spec.random() for spec in self.specs])
+        selection = list()
+        for spec in self.specs:
+            reptition = round(spec.fraction * self.pool)
+            n_repetitions = self.pool // reptition
+            stub_length = self.pool % reptition
+            random_selections = [[spec.random()] * reptition
+                                 for _ in range(n_repetitions)]
+            if stub_length > 0:
+                random_selections += [spec.random()] * stub_length
+            random_selections = flatten_shuffle(random_selections)[
+                                : self.select]
+            selection.append(random_selections)
+        self.current = transpose_tuple(selection)
+        return self.current
+
+    def mix_and_pick(self):
+        self.random()
+        self.pick_no = random.randrange(self.select)
+        pick_tuple = self.random()[pick_no]
+        return self.pick_no, pick_tuple
 
     def __repr__(self):
         return f'TupleSpec({self.specs})'
 
     def score(self, ground: tuple, guess: tuple):
-        #TODO Decide scoring method and its implications for choosing
-        # wrongs
+        #TODO Decide scoring method
         if ground == guess:
             return sum([spec.scorer.right in self.specs])
         else:
