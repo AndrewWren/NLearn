@@ -44,7 +44,7 @@ class Domain:
         return f'({self.type}, {self.range})'
 
 
-class Score:
+class Scorer:
     def __init__(self, right=1, wrong=0):
         self.right = right
         self.wrong = wrong
@@ -61,7 +61,7 @@ class ElementSpec:
     def __init__(
             self,
             domain: Domain or tuple,
-            score: Score = None,
+            scorer: Scorer = None,
             random: Callable = None
     ):
         if isinstance(domain, Domain):
@@ -69,14 +69,13 @@ class ElementSpec:
         else:
             self.domain = Domain(*domain)
 
-        self.score = score or Score()
+        self.scorer = scorer or Scorer()
 
         default_random = None
         default_score = None
         if (self.domain.type == int) and (self.domain.range != np.inf):
             default_random = self.default_random_selector_int_finite
             self.random_repr = 'Uniform'
-        #default_score =
         self.random = random or default_random
         if self.random is None:
             exit('Need a random for the ElementSpec initiation.')
@@ -85,7 +84,13 @@ class ElementSpec:
         return random.randrange(self.domain.range)
 
     def __repr__(self):
-        return f'Element({self.domain}, {self.score}, {self.random_repr})'
+        return f'Element({self.domain}, {self.scorer}, {self.random_repr})'
+
+    def score(self, ground: int, guess: int):
+        if ground == guess:
+            return self.scorer.right
+        else:
+            return self.scorer.wrong
 
 
 class TupleSpec:
@@ -103,3 +108,11 @@ class TupleSpec:
 
     def __repr__(self):
         return f'TupleSpec({self.specs})'
+
+    def score(self, ground: tuple, guess: tuple):
+        #TODO Decide scoring method and its implications for choosing
+        # wrongs
+        if ground == guess:
+            return sum([spec.scorer.right in self.specs])
+        else:
+            return sum([spec.scorer.wrong in self.specs])
