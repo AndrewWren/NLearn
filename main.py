@@ -2,11 +2,12 @@ import random
 import scr.ml_utilities as mlu
 from scr.ml_utilities import c
 import scr.net_class
-from scr.subject_tuple import Domain, SubjectTuple
+from scr.subject_tuple import Domain, TupleSpec
 
 
 def define_tuple():
-    pass
+    domain = Domain(c.TYPE, c.RANGE)
+    return TupleSpec(domain)
 
 
 def train_a():
@@ -27,6 +28,5 @@ def understand():
 
 if __name__ == '__main__':
     random.seed(c.RANDOM_SEED)
-    domain = Domain(int, 7)
-    subject_tuple = SubjectTuple(domain)
-    print(subject_tuple.random())
+    tuple_spec = define_tuple()
+    print(tuple_spec.random())

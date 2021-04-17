@@ -1,6 +1,5 @@
 from collections.abc import Callable
 import random
-import typing
 import numpy as np
 
 
@@ -18,7 +17,7 @@ class Score:
         self.wrong = wrong
 
 
-class SubjectTuple:
+class TupleSpec:
     def __init__(
             self,
             domain: Domain,
@@ -33,7 +32,7 @@ class SubjectTuple:
         #default_score =
         self.random = random or default_random
         if self.random is None:
-            exit('Need a random for the SubjectTuple initiation.')
+            exit('Need a random for the TupleSpec initiation.')
         self.score = score or Score()
 
     def default_random_selector_int_finite(self):
