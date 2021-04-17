@@ -124,6 +124,7 @@ class TupleSpec:
         self.select = select
         self.current = None
         self.pick_no = None
+        self.current_score = None
 
     def random(self):
         selection = list()
@@ -150,9 +151,13 @@ class TupleSpec:
     def __repr__(self):
         return f'TupleSpec({self.specs})'
 
-    def score(self, ground: tuple, guess: tuple):
+    def score(self, grounds: tuple, guesses: tuple):
         #TODO Decide scoring method
-        if ground == guess:
-            return sum([spec.scorer.right in self.specs])
-        else:
-            return sum([spec.scorer.wrong in self.specs])
+        score = 0
+        for spec, ground, guess in zip(self.specs, grounds, guesses):
+            if ground == guess:
+                score += spec.scorer.right
+            else:
+                score += spec.scorer.wrong
+        self.current_score = score
+        return self.current_score
