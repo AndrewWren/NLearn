@@ -93,5 +93,8 @@ class TupleSpec:
                 spec_list.append(ElementSpec(*element_spec))
         self.specs = tuple(spec_list)
 
+    def random(self):
+        return tuple([spec.random() for spec in self.specs])
+
     def __repr__(self):
         return f'TupleSpec({self.specs})'

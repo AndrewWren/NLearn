@@ -28,7 +28,8 @@ def understand():
 if __name__ == '__main__':
     random.seed(c.RANDOM_SEED)
     tuple_spec = define_tuple()
-    #print(tuple_spec.random())
     print(tuple_spec)
+    print(tuple_spec.random())
+
     code = Code([1, 2, -7.3])
     #print(code)
