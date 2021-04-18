@@ -52,7 +52,7 @@ class Nets:
         targets = [game_origin.selection[game_origin.target_no]
                    for game_origin in batch]
         targets = torch.FloatTensor(targets).to(c.DEVICE)
-        signals = self.net_a(targets)
+        signals = self.net_a(targets)  #TODO Need to factor in signals
         interpretations = torch.stack(
             [torch.cat([self.net_ri(element.to(c.DEVICE))
             for element in game_origin.selection])
