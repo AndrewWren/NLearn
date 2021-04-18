@@ -48,22 +48,36 @@ class Nets:
         self.net_rd = FFs(input_width=tuple_spec.select * c.N_CODE,
                           output_width=tuple_spec.select)
 
-    def play(self, game_origin: GameOrigin) -> GameReport:
-        target = game_origin.selection[
-            game_origin.target_no]
-        signal = self.net_a(target)  #TODO when make target a Tensor?
-        interpretations = [self.netri(element) for element in
-                           game_origin.selection]
-        estimates = self.net_rd(interpretations)
-        decision = argmax(estimates)
-        score = self.tuple_spec.score(ground=target, guess=decision)
-        game_report = GameReport(game_origin, decision, score)
-        return game_report
+    def play(self, batch: list[GameOrigin]) -> list[GameReport]:
+        targets = [game_origin.selection[game_origin.target_no]
+                   for game_origin in batch]
+        targets = torch.FloatTensor(targets).to(c.DEVICE)
+        signals = self.net_a(targets)
+        interpretations = torch.stack(
+            [torch.cat([self.net_ri(element.to(c.DEVICE))
+            for element in game_origin.selection])
+            for game_origin in batch]
+        )  #TODO Could this be made faster by bigger batching?
+        estimates = self.net_rd(interpretations).cpu().numpy()
+        decisions = [eps_greedy(argmax(estimate)) for estimate in estimates]
+        scores = [self.tuple_spec.score(ground=target, guess=decision)
+                  for target, decision in zip(targets, decisions)]
+        game_reports = [GameReport(game_origin, decision, score)
+        for game_origin, decision, score in zip(batch, decisions, scores)]
+        return game_reports
 
-    def train(self, game_report: GameReport):
+    def eps_greedy(self, greedy):
+        indicator = random.random()
+        epsilon = epsilon_function(iteration)  #TODO Where should epsilon come from?
+        if indicator <= epsilon:
+            return random.randrange(self.select)
+        return greedy
+
+    def train(self, batch: list[GameReport]):
         training_return = exec('self.train_with_' + c.TRAINING_METHOD + '('
-                                                                'game_report)')
+                                                                'batch)')
         return training_return
 
-    def train_with_q(self, game_report: GameReport):
-        pass
+    def train_with_q(self, batch: list[GameReport]):
+        batch = batch.to(c.DEVICE)
+
