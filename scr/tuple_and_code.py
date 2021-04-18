@@ -1,3 +1,4 @@
+from collections import namedtuple
 from collections.abc import Callable
 import random
 import numpy as np
@@ -106,6 +107,18 @@ def transpose_tuple(a):
     return tuple(map(tuple, zip(*a)))
 
 
+GameOrigin = namedtuple('GameOrigin', 'iteration target_no selection')
+
+
+GameReport = namedtuple('GameReport', 'gameorigin decision score')
+class GameReport(GameReport):
+    def __init__(self, gameorigin, decision, score):
+        super().__init__()
+        self.iteration = self.gameorigin.iteration
+        self.target_no = self.gameorigin.target_no
+        self.selection = self.gameorigin.selection
+
+
 class TupleSpec:
     def __init__(
             self,
@@ -120,11 +133,11 @@ class TupleSpec:
             else:
                 spec_list.append(ElementSpec(*element_spec))
         self.specs = tuple(spec_list)
-        self.n_tuples = len(spec_list)
+        self.n_elements = len(spec_list)
         self.pool = pool
         self.select = select
-        self.current = None
-        self.pick_no = None
+        self.selection = None
+        self.target_no = None
         self.current_score = None
         self.n_iterations = h.N_ITERATIONS
 
@@ -144,15 +157,16 @@ class TupleSpec:
         selection = tuple(set(selection))[: self.select]
         if len(selection) < self.select:
             selection = random.choices(selection, k=self.select)
-        self.current = selection
-        return self.current
+        self.selection = selection
+        return self.selection
 
     def iter(self):
         print(f'{h.N_ITERATIONS=}')
         for iteration in range(h.N_ITERATIONS):
             self.random()
-            self.pick_no = random.randrange(self.select)
-            yield iteration, self.pick_no, self.current
+            self.target_no = random.randrange(self.select)
+            game_origin = GameOrigin(iteration, self.target_no, self.selection)
+            yield game_origin
 
     def __repr__(self):
         return f'TupleSpec({self.specs})'

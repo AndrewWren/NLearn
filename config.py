@@ -2,7 +2,8 @@ import torch
 
 
 hyperparameters = {
-    'N_ITERATIONS': 10
+    'N_ITERATIONS': 10,
+    'BUFFER_LENGTH': 100
 }
 
 
@@ -12,6 +13,7 @@ TUPLE_SPEC = (
     ((int, 50000), (10, -1), ),
 )
 N_CODE = 10
+TRAINING_METHOD = 'q'
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
