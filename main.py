@@ -1,12 +1,12 @@
 import random
 import scr.ml_utilities as mlu
-from scr.ml_utilities import c, h
+from scr.ml_utilities import c, h, rng_c
 from scr.nets import FFs, Nets
-from scr.tuple_and_code import Code, Domain, ElementSpec, TupleSpec
+from scr.tuple_and_code import Code, Domain, ElementSpec, TupleSpecs
 
 
 @mlu.over_hp
-def train_ar(tuple_spec: TupleSpec):
+def train_ar(tuple_spec: TupleSpecs):
     nets = Nets(tuple_spec)
     buffer = list()
     for game_origin_for_buffer in tuple_spec.iter():
@@ -40,12 +40,12 @@ def run_tuples():
 
 if __name__ == '__main__':
     random.seed(c.RANDOM_SEED)
-    tuple_spec = TupleSpec()
+    tuple_spec = TupleSpecs()
     print(tuple_spec)
     #run_tuples()
-    train_ar(tuple_spec)
-    """run_tuples()
+    # train_ar(tuple_spec)
+    run_tuples()
 
-    code = Code([1, 2, -7.3, -5, 4, 3, -20.22, 3.145, -2.2, 10.])
+    """code = Code([1, 2, -7.3, -5, 4, 3, -20.22, 3.145, -2.2, 10.])
     print(code)
     """

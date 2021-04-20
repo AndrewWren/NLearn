@@ -3,7 +3,7 @@ from collections.abc import Callable
 import random
 import numpy as np
 import config
-from scr.ml_utilities import c, h
+from scr.ml_utilities import c, h, rng_c
 
 
 class Code:
@@ -74,18 +74,21 @@ class ElementSpec:
         self.scorer = scorer or Scorer()
 
         self.fraction = fraction
+        self.repetition = None
+        self.n_repetitions = None
+        self.stub_length = None
 
         default_random = None
         default_score = None
         if (self.domain.type == int) and (self.domain.range != np.inf):
             default_random = self.default_random_selector_int_finite
             self.random_repr = 'Uniform'
-        self.random = random or default_random
+        self.random = default_random
         if self.random is None:
             exit('Need a random for the ElementSpec initiation.')
 
     def default_random_selector_int_finite(self):
-        return random.randrange(self.domain.range)
+        return h.rng.integers(self.domain.range, size=(h.BATCHSIZE, 1))
 
     def __repr__(self):
         return f'Element({self.domain}, {self.scorer}, {self.random_repr})'
@@ -119,22 +122,24 @@ class GameReport(GameReport):
         self.selection = self.gameorigin.selection
 
 
-class TupleSpec:
+class TupleSpecs:
     def __init__(
             self,
-            element_specs: list = c.TUPLE_SPEC,
+            specs: list = c.TUPLE_SPEC,
             pool: int = 100,
             select: int = 10
     ):
+        self.pool = pool
         spec_list = list()
-        for element_spec in element_specs:
-            if isinstance(element_spec, ElementSpec):
-                spec_list.append(element_spec)
-            else:
-                spec_list.append(ElementSpec(*element_spec))
+        for spec in specs:
+            if not isinstance(spec, ElementSpec):
+                spec = ElementSpec(*spec)
+            spec_list.append(spec)
+            spec.repetition = round(spec.fraction * self.pool)
+            spec.n_repetitions = self.pool // spec.repetition
+            spec.stub_length = self.pool % spec.repetition
         self.specs = tuple(spec_list)
         self.n_elements = len(spec_list)
-        self.pool = pool
         self.select = select
         self.selection = None
         self.target_no = None
@@ -144,19 +149,24 @@ class TupleSpec:
     def random(self):
         selection = list()
         for spec in self.specs:
-            reptition = round(spec.fraction * self.pool)
-            n_repetitions = self.pool // reptition
-            stub_length = self.pool % reptition
-            random_selections = [[spec.random()] * reptition
-                                 for _ in range(n_repetitions)]
-            if stub_length > 0:
-                random_selections += [spec.random()] * stub_length
-            random_selections = flatten_shuffle(random_selections)
-            selection.append(random_selections)
-        selection = transpose_tuple(selection)
-        selection = tuple(set(selection))[: self.select]
-        if len(selection) < self.select:
-            selection = random.choices(selection, k=self.select)
+            random_selections = np.concatenate(
+                [np.repeat(spec.random(), spec.repetition, axis=1)
+                 for _ in range(spec.n_repetitions)],
+                axis=1
+            )
+            if spec.stub_length > 0:
+                random_selections = np.concatenate(
+                    [random_selections,
+                    np.repeat(spec.random(), spec.stub_length, axis=1)],
+                    axis=1
+                )
+            #print(random_selections.shape)
+            h.rng.shuffle(random_selections, axis=1)
+            #print(f'{random_selections[:,: self.select].shape=}')
+            selection.append(random_selections[:,: self.select])
+        #print(selection)
+        selection = np.concatenate(selection, axis=1)
+        #print(f'{selection.shape=}')
         self.selection = selection
         return self.selection
 
@@ -169,7 +179,7 @@ class TupleSpec:
             yield game_origin
 
     def __repr__(self):
-        return f'TupleSpec({self.specs})'
+        return f'TupleSpecs({self.specs})'
 
     def score(self, grounds: tuple, guesses: tuple):
         score = 0

@@ -2,10 +2,10 @@ import random
 import torch
 import torch.nn as nn
 import scr.ml_utilities as mlu
-from scr.ml_utilities import c, h
+from scr.ml_utilities import c, h, rng_c
 from scr.net_class import Net
 from scr.tuple_and_code import Code, Domain, ElementSpec, GameOrigin, \
-    GameReport, TupleSpec
+    GameReport, TupleSpecs
 
 
 class FFs(Net):
@@ -39,7 +39,7 @@ def argmax(ls):
 
 
 class Nets:
-    def __init__(self, tuple_spec: TupleSpec):
+    def __init__(self, tuple_spec: TupleSpecs):
         self.tuple_spec = tuple_spec
         self.net_a = FFs(input_width=tuple_spec.n_elements,
                          output_width=c.N_CODE)

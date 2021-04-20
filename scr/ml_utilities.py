@@ -21,6 +21,10 @@ c. constants can be used as default arguments.
 """
 
 
+try:
+    rng_c = np.random.default_rng(c.RANDOM_SEED)
+except:
+    rng_c = None
 STD_NOW = datetime.datetime.now(tz=tzlocal()).strftime("%y-%m-%d_%H:%M:%S%Z")
 log_lines = ['****WARNING NOT CLOSED - MAY BE DUE TO ERROR***\n'] * 2
 
@@ -289,6 +293,10 @@ def over_hp(func):
             time_elapsed = perf_counter() - over_hp_start
             log_intro_hp_run(n_h, hp_run, time_elapsed)
             set_and_log_h(keys, bundle, last_key)
+            try:
+                h['rng'] = np.random.default_rng(h.RANDOM_SEED)
+            except:
+                h['rng'] = None
             h['hp_run'] = hp_run  # Needed to name saved models
             best_of_this_hp_run, idx = func(*args, **kwargs)
             del h['hp_run']
