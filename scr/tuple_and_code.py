@@ -151,22 +151,13 @@ class TupleSpecs:
         for spec in self.specs:
             random_selections = np.concatenate(
                 [np.repeat(spec.random(), spec.repetition, axis=1)
-                 for _ in range(spec.n_repetitions)],
+                 for _ in range(spec.n_repetitions)]
+                + [np.repeat(spec.random(), spec.stub_length, axis=1)],
                 axis=1
             )
-            if spec.stub_length > 0:
-                random_selections = np.concatenate(
-                    [random_selections,
-                    np.repeat(spec.random(), spec.stub_length, axis=1)],
-                    axis=1
-                )
-            #print(random_selections.shape)
             h.rng.shuffle(random_selections, axis=1)
-            #print(f'{random_selections[:,: self.select].shape=}')
             selection.append(random_selections[:,: self.select])
-        #print(selection)
         selection = np.concatenate(selection, axis=1)
-        #print(f'{selection.shape=}')
         self.selection = selection
         return self.selection
 
