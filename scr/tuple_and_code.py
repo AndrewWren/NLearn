@@ -157,7 +157,7 @@ class TupleSpecs:
             )
             h.rng.shuffle(random_selections, axis=1)
             selection.append(random_selections[:,: self.select])
-        selection = np.concatenate(selection, axis=1)
+        selection = np.stack(selection, axis=-1)
         self.selection = selection
         return self.selection
 

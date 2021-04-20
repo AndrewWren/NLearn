@@ -32,9 +32,9 @@ def understand():
 @mlu.over_hp
 def run_tuples():
     for iteration, pick_no, current_tuples in tuple_spec.iter():
-        pick_tuple = current_tuples[pick_no]
-        print(iteration, pick_no, pick_tuple)
-        print(current_tuples)
+        pick_tuple = current_tuples[:, pick_no]
+        print(iteration, pick_no, pick_tuple.shape)
+        print(current_tuples.shape)
     return [None], 0
 
 
