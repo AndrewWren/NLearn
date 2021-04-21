@@ -1,0 +1,90 @@
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+%\usepackage{mathptmx}  % {mathptmx}  % {tgtermes} 
+
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+
+\usepackage[dayofweek]{datetime}
+\newdateformat{UKvardate}{\THEDAY\ \monthname[\THEMONTH] \THEYEAR}
+\UKvardate
+
+% Narrower margins from https://kb.mit.edu/confluence/pages/viewpage.action?pageId=3907057#HowcanIchangethemarginsinLaTeX%3F-Changingmarginsbyhand
+
+\addtolength{\oddsidemargin}{-.775in}
+\addtolength{\evensidemargin}{-.775in}
+\addtolength{\textwidth}{1.55in}
+
+\addtolength{\topmargin}{-.875in}
+\addtolength{\textheight}{1.75in}
+
+
+\usepackage{hyperref}
+\usepackage{siunitx}
+\sisetup{detect-all}
+
+
+% \newcommand{\eqref}[1]{Eq.~\ref{#1}}
+\newcommand{\sref}[1]{Section~\ref{#1}}
+
+
+% From https://tug.org/FontCatalogue/beramono/
+\usepackage[scaled=0.85]{beramono}
+\usepackage[T1]{fontenc}
+
+
+% From https://stackoverflow.com/questions/3175105/inserting-code-in-this-latex-document-with-indentation
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+%\usepackage{amsmath, amssymb} % not needed (and must be omitted) with newtxmath
+
+\definecolor{offwhite}{HTML}{F8F8F2}
+\definecolor{nearblack}{HTML}{272822}
+\definecolor{stringyellow}{HTML}{E6DB74}
+\definecolor{keywordcyan}{HTML}{66D9EF}
+
+\lstset{frame=tb,
+	language=Python,
+	backgroundcolor=\color{nearblack},
+	aboveskip=3mm,
+	belowskip=3mm,
+	showstringspaces=false,
+	xleftmargin=6pt,
+	xrightmargin=6pt,
+	frame=single,
+	framesep=6pt,
+	framerule=0pt,
+	columns=flexible,
+	basicstyle={\ttfamily\color{offwhite}},
+	numbers=none,
+	numberstyle=\tiny\color{offwhite},
+	keywordstyle=\color{keywordcyan},
+	commentstyle=\color{lightgray},
+	stringstyle=\color{stringyellow},
+	breaklines=true,
+	breakatwhitespace=true,
+	tabsize=4
+}
+
+\usepackage{graphicx}
+
+\newcommand{\entry}[1]{\subsection*{#1}}
+\newcommand{\rentry}[1]{#1}
+
+\newcommand{\eref}[1]{Eq.~\ref{#1}}
+\newcommand{\rcite}[1]{Ref.~\cite{#1}}
+
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\newcommand{\mat}[1]{\mathbf{#1}}
+\newcommand{\abs}[1]{\left\lvert #1 \right\rvert}
+
+
+% https://tex.stackexchange.com/questions/42619/x-mark-to-match-checkmark
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}
+\newcommand{\rt}[1]{r_{#1\text{\tiny \cmark}}}
+\newcommand{\rf}[1]{r_{#1\text{\tiny \xmark}}}
+
+%\usepackage{natbib}

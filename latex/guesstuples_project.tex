@@ -1,0 +1,97 @@
+\documentclass[12pt]{article}
+
+\input{guesstuples_preamble}
+
+%opening
+\title{GuessTuples Project}
+\author{Andrew J. Wren}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+	Notes on GuessTuples project
+\end{abstract}
+
+
+\section{Configuring the nets}
+
+\subsection{Alice}
+
+The input array to guess is $\vec{x}.$  There should be $N_\text{code}$ outputs taking values $\vec{y} = (y_j)_{j=0,...,N_\text{code}}.$
+
+Normalise all the rewards so that for each bit $j,$ $\rt{j} + \left(N_\text{code} - 1\right)\rf{j} = 0.$  In other words
+\begin{equation}
+	r_{jk}
+	\gets
+	r_{jk} - \frac{ \rt{j} + \left(N_\text{code} - 1\right)\rf{j}}{N_\text{code}}
+	.
+\end{equation}
+
+The $Q$ estimate is then taken to be
+\begin{equation}
+	Q(\vec{x})
+	=
+	\sum_j b_j y_j
+	\equiv
+	\sum_j \abs{y_j}
+	,		
+\end{equation}
+where
+\begin{equation}
+	b_j = \operatorname{sgn} (y_j)
+\end{equation}
+is the prediction for the machine value of the $j$th bit.  The loss function is
+\begin{equation}
+	L
+	=
+	\abs{Q(\vec{x}) -r}^2
+	. 
+\end{equation}
+
+\subsection{Bob}
+
+Bob receives a matrix, $\mat{X} = (\vec{X}_{i}) = (X_{ij})$ for $0\leq i < N_\text{select},\ 0\leq j < N_\text{code},$ and a code $\vec{c}=(c_j)_{j=0,...,N_\text{code}}.$  Why not makes his outputs be $Q$-estimates $\vec{z} = (z_i)_{i=0,...,N_\text{select}}.$ Bob's prediction is then
+$
+	\vec{x}_\text{pred}
+=
+\vec{X}_{i_\text{pred}}
+$
+where
+\begin{equation}
+	i_\text{pred}
+	=
+	\operatorname{argmax}_{i}  (z_i)
+	.
+\end{equation}
+The loss function is 
+\begin{equation}	\label{eq:Bob_loss_fn}
+	L
+	=
+	\abs{\vec{z}_{i_\text{pred}} -r}^2
+	. 
+\end{equation}
+
+How do we enforce covariance with respect to the order of $(\vec{X}_{i})$?
+\begin{enumerate}
+	\item Covariance will occur naturally and quickly without any specific intervention.  {\em To be determined.}
+	\item Covariance can be enforced through choosing a set $\left\lbrace \sigma \right\rbrace \subseteq S_{n_\text{code}},$ which could be generated element--by--element by composing randomly--selected basis transpositions $(j\ j+1),$ and then adding to the loss a term
+	\begin{equation}
+		\mu\sum_\sigma\abs{\vec{z} - \sigma^{-1}\left[\vec{z}(\sigma[\mat{X}])\right]}^2
+	\end{equation}
+	for some fixed hyperparameter $\mu > 0.$  Note this the term is still run backward through the original $\vec{x}\mapsto\vec{z}$ net configuration only.  {\em How effective would that be?  How big does $\left\lbrace \sigma \right\rbrace$ have to be? And how much time would the permutation and the additions forward passes cost?}
+	\item Enforce covariance via direct identification of weights in Bob's net.  {\em How?}
+	\item Adopt a different basic set--up where each $\vec(X)_i$ is fed through the net separately, alongside the code $\vec{c},$ resulting in a $Q$-estimate $\vec{z}_i.$  Then find the loss function as in \eref{eq:Bob_loss_fn}.  {\em Seems the most straightforward?} {\bf Adopt this for now.}
+\end{enumerate}
+None of these quite amount to Bob seeks to reproduce the Alice's code vocabulary.  However Bob could additionally set up a net in the same basic configuration as Alice's (he doesn't know the weights of course) and train {\em that} net jointly with his main net.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bibliographystyle{JHEP}
+%\bibliography{guesstuples_project}
+
+\end{document}
+
