@@ -2,6 +2,7 @@ from collections import namedtuple
 from collections.abc import Callable
 import random
 import numpy as np
+import numpy.typing as npt
 import config
 from scr.ml_utilities import c, h, rng_c
 
@@ -45,7 +46,7 @@ class Domain:
         return f'({self.type}, {self.range})'
 
 
-class Scorer:
+class Rewarder:
     def __init__(self, right=1, wrong=0):
         self.right = right
         self.wrong = wrong
@@ -62,7 +63,7 @@ class ElementSpec:
     def __init__(
             self,
             domain: Domain or tuple,
-            scorer: Scorer = None,
+            rewarder: rewarder = None,
             fraction: float = 0.2,
             random: Callable = None
     ):
@@ -71,7 +72,7 @@ class ElementSpec:
         else:
             self.domain = Domain(*domain)
 
-        self.scorer = scorer or Scorer()
+        self.rewarder = rewarder or rewarder()
 
         self.fraction = fraction
         self.repetition = None
@@ -79,7 +80,7 @@ class ElementSpec:
         self.stub_length = None
 
         default_random = None
-        default_score = None
+        default_rewarder = None
         if (self.domain.type == int) and (self.domain.range != np.inf):
             default_random = self.default_random_selector_int_finite
             self.random_repr = 'Uniform'
@@ -91,13 +92,13 @@ class ElementSpec:
         return h.rng.integers(self.domain.range, size=(h.BATCHSIZE, 1))
 
     def __repr__(self):
-        return f'Element({self.domain}, {self.scorer}, {self.random_repr})'
+        return f'Element({self.domain}, {self.rewarder}, {self.random_repr})'
 
-    def score(self, ground: int, guess: int):
+    def reward(self, ground: int, guess: int):
         if ground == guess:
-            return self.scorer.right
+            return self.rewarder.right
         else:
-            return self.scorer.wrong
+            return self.rewarder.wrong
 
 
 def flatten_shuffle(ls):
@@ -113,9 +114,9 @@ def transpose_tuple(a):
 GameOrigin = namedtuple('GameOrigin', 'iteration target_no selection')
 
 
-GameReport = namedtuple('GameReport', 'gameorigin decision score')
+GameReport = namedtuple('GameReport', 'gameorigin decision reward')
 class GameReport(GameReport):
-    def __init__(self, gameorigin, decision, score):
+    def __init__(self, gameorigin, decision, reward):
         super().__init__()
         self.iteration = self.gameorigin.iteration
         self.target_no = self.gameorigin.target_no
@@ -143,7 +144,15 @@ class TupleSpecs:
         self.select = select
         self.selection = None
         self.target_no = None
-        self.current_score = None
+        
+        """ Some attributes related to reward and its calculation
+        """
+        self.current_reward = None
+        right = np.array([spec.rewarder.right for spec in self.specs])
+        wrong = np.array([spec.rewarder.wrong for spec in self.specs])
+        self.factor = right - wrong
+        self.offset = sum(wrong) * np.ones(self.select)
+        
         self.n_iterations = h.N_ITERATIONS
 
     def random(self):
@@ -172,12 +181,12 @@ class TupleSpecs:
     def __repr__(self):
         return f'TupleSpecs({self.specs})'
 
-    def score(self, grounds: tuple, guesses: tuple):
-        score = 0
-        for spec, ground, guess in zip(self.specs, grounds, guesses):
-            if ground == guess:
-                score += spec.scorer.right
-            else:
-                score += spec.scorer.wrong
-        self.current_score = score
-        return self.current_score
+    def reward(self, grounds, guesses):
+        """
+        :param grounds: np.array.shape = (h.batchsize, self.select)
+        :param guesses: np.array.shape = (h.batchsize, self.select)
+        :return: np.array.shape = (h.batchsize, )
+        """
+        self.current_reward = (grounds == guesses).dot(self.factor)\
+                              + self.offset
+        return self.current_reward
