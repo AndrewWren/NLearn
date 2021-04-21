@@ -19,7 +19,7 @@
 
 \subsection{Alice}
 
-The input array to guess is $\vec{x}.$  There should be $N_\text{code}$ outputs taking values $\vec{y} = (y_j)_{j=0,...,N_\text{code}}.$
+The input array to guess is $\vec{x}=(x_j)_{j=0,...,N_\text{elements}}.$  There should be $N_\text{code}$ outputs taking values $\vec{y} = (y_j)_{j=0,...,N_\text{code}}.$
 
 Normalise all the rewards so that for each bit $j,$ $\rt{j} + \left(N_\text{code} - 1\right)\rf{j} = 0.$  In other words
 \begin{equation}
@@ -52,7 +52,7 @@ is the prediction for the machine value of the $j$th bit.  The loss function is
 
 \subsection{Bob}
 
-Bob receives a matrix, $\mat{X} = (\vec{X}_{i}) = (X_{ij})$ for $0\leq i < N_\text{select},\ 0\leq j < N_\text{code},$ and a code $\vec{c}=(c_j)_{j=0,...,N_\text{code}}.$  Why not makes his outputs be $Q$-estimates $\vec{z} = (z_i)_{i=0,...,N_\text{select}}.$ Bob's prediction is then
+Bob receives a matrix, $\mat{X} = (\vec{X}_{i}) = (X_{ij})$ for $0\leq i < N_\text{select},\ 0\leq j < N_\text{elements},$ and a code $\vec{c}=(c_k)_{k=0,...,N_\text{code}}.$  Why not makes his outputs be $Q$-estimates $\vec{z} = (z_i)_{i=0,...,N_\text{select}}.$ Bob's prediction is then
 $
 	\vec{x}_\text{pred}
 =
