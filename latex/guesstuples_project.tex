@@ -83,7 +83,7 @@ How do we enforce covariance with respect to the order of $(\vec{X}_{i})$?
 	for some fixed hyperparameter $\mu > 0.$  Note this the term is still run backward through the original $\vec{x}\mapsto\vec{z}$ net configuration only.  {\em How effective would that be?  How big does $\left\lbrace \sigma \right\rbrace$ have to be? And how much time would the permutation and the additions forward passes cost?}
 	\item Enforce covariance via direct identification of weights in Bob's net.  {\em How?}
 	\item Something related to set transformers. {\em ?}
-	\item Adopt a different basic set--up where each $\vec(X)_i$ is fed through the net separately, alongside the code $\vec{c},$ resulting in a $Q$-estimate $\vec{z}_i.$  Then find the loss function as in \eref{eq:Bob_loss_fn}.  {\em Seems the most straightforward?} {\bf Adopt this for now.}
+	\item Adopt a different basic set--up where each $(X_i)$ is fed through the net separately, alongside the code $\vec{c},$ resulting in a $Q$-estimate $\vec{z}_i.$  Then find the loss function as in \eref{eq:Bob_loss_fn}.  {\em Seems the most straightforward?} {\bf Adopt this for now.}
 \end{enumerate}
 None of these quite amount to Bob seeks to reproduce the Alice's code vocabulary.  However Bob could additionally set up a net in the same basic configuration as Alice's (he doesn't know the weights of course) and train {\em that} net jointly with his main net.
 
