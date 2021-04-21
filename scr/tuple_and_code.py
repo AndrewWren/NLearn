@@ -8,6 +8,8 @@ from scr.ml_utilities import c, h, rng_c
 
 
 class Code:
+    """Not yet used.  Consider if needed - and if so need to accommodate
+    batches"""
     def __init__(self, value: list):
         if len(value) != config.N_CODE:
             exit(f'Defining Code instance with length {len(value)} != '
@@ -55,15 +57,16 @@ class Rewarder:
         else:
             self.repr = f'Special({self.right}, {self.wrong})'
 
-    def __repr__(self):
+    """def __repr__(self):
         return self.repr
-
+    """
+    #TODO Something wrong with Rewarder
 
 class ElementSpec:
     def __init__(
             self,
             domain: Domain or tuple,
-            rewarder: rewarder = None,
+            rewarder: Rewarder = None,
             fraction: float = 0.2,
             random: Callable = None
     ):
@@ -72,7 +75,8 @@ class ElementSpec:
         else:
             self.domain = Domain(*domain)
 
-        self.rewarder = rewarder or rewarder()
+        self.rewarder = rewarder or Rewarder()
+        print(f'{self.rewarder=}')
 
         self.fraction = fraction
         self.repetition = None
@@ -111,16 +115,16 @@ def transpose_tuple(a):
     return tuple(map(tuple, zip(*a)))
 
 
-GameOrigin = namedtuple('GameOrigin', 'iteration target_no selection')
+GameOrigins = namedtuple('GameOrigins', 'iteration target_nos selections')
 
 
-GameReport = namedtuple('GameReport', 'gameorigin decision reward')
-class GameReport(GameReport):
+GameReports = namedtuple('GameReports', 'gameorigins decisions rewards')
+class GameReports(GameReports):
     def __init__(self, gameorigin, decision, reward):
         super().__init__()
         self.iteration = self.gameorigin.iteration
-        self.target_no = self.gameorigin.target_no
-        self.selection = self.gameorigin.selection
+        self.target_no = self.gameorigin.target_nos
+        self.selection = self.gameorigin.selections
 
 
 class TupleSpecs:
@@ -142,7 +146,7 @@ class TupleSpecs:
         self.specs = tuple(spec_list)
         self.n_elements = len(spec_list)
         self.select = select
-        self.selection = None
+        self.selections = None
         self.target_no = None
         
         """ Some attributes related to reward and its calculation
@@ -151,12 +155,12 @@ class TupleSpecs:
         right = np.array([spec.rewarder.right for spec in self.specs])
         wrong = np.array([spec.rewarder.wrong for spec in self.specs])
         self.factor = right - wrong
-        self.offset = sum(wrong) * np.ones(self.select)
+        self.offset = sum(wrong) * np.ones(self.n_elements)
         
         self.n_iterations = h.N_ITERATIONS
 
     def random(self):
-        selection = list()
+        selections = list()
         for spec in self.specs:
             random_selections = np.concatenate(
                 [np.repeat(spec.random(), spec.repetition, axis=1)
@@ -165,26 +169,29 @@ class TupleSpecs:
                 axis=1
             )
             h.rng.shuffle(random_selections, axis=1)
-            selection.append(random_selections[:,: self.select])
-        selection = np.stack(selection, axis=-1)
-        self.selection = selection
-        return self.selection
+            selections.append(random_selections[:,: self.select])
+        selections = np.stack(selections, axis=-1)
+        self.selections = selections
+        print(f'{self.selections.shape=}')
+        return self.selections
 
     def iter(self):
-        print(f'{h.N_ITERATIONS=}')
+        # print(f'{h.N_ITERATIONS=}')
         for iteration in range(h.N_ITERATIONS):
             self.random()
-            self.target_no = random.randrange(self.select)
-            game_origin = GameOrigin(iteration, self.target_no, self.selection)
-            yield game_origin
+            self.target_nos = h.rng.integers(self.select, size=h.BATCHSIZE)
+            game_origins = GameOrigins(
+                iteration, self.target_nos, self.selections
+            )
+            yield game_origins
 
     def __repr__(self):
         return f'TupleSpecs({self.specs})'
 
     def reward(self, grounds, guesses):
         """
-        :param grounds: np.array.shape = (h.batchsize, self.select)
-        :param guesses: np.array.shape = (h.batchsize, self.select)
+        :param grounds: np.array.shape = (h.batchsize, self.n_elements)
+        :param guesses: np.array.shape = (h.batchsize, self.n_elements)
         :return: np.array.shape = (h.batchsize, )
         """
         self.current_reward = (grounds == guesses).dot(self.factor)\

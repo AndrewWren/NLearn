@@ -43,7 +43,7 @@ def time_stamp(title: str, folder: str = None,
     the_now's date, time and timezone, and (if folder is not None) in the
     folder.
 
-    However, if the_now == None, then use the selection date, time, timezone.
+    However, if the_now == None, then use the selections date, time, timezone.
     """
     the_now = the_now or datetime.datetime.now(tz=tzlocal()).strftime(
         "%y-%m-%d_%H:%M:%S%Z")
