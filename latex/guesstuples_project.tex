@@ -50,6 +50,14 @@ is the prediction for the machine value of the $j$th bit.  The loss function is
 	. 
 \end{equation}
 
+Alternative approaches include:
+\begin{enumerate}
+	\item Two outputs for each bit showing the reward for each of $0$ and $1.$  {\em May reflect negative rewards better?}
+	\item Combine the rewards from the bits (with either one or two outputs per bit) by something other than addition - e.g. multiplication or via an NN. {\em The NN option seems quite interesting.  Interesting to use \verb|pytorch|'s gradients for that.}
+	\item One outputs for each possible code. {\em Might work but $2^{N_\text{code}}$ is quite large... not impossibly so if $N_\text{code}=10.$}
+	
+\end{enumerate}
+
 \subsection{Bob}
 
 Bob receives a matrix, $\mat{X} = (\vec{X}_{i}) = (X_{ij})$ for $0\leq i < N_\text{select},\ 0\leq j < N_\text{elements},$ and a code $\vec{c}=(c_k)_{k=0,...,N_\text{code}}.$  Why not makes his outputs be $Q$-estimates $\vec{z} = (z_i)_{i=0,...,N_\text{select}}.$ Bob's prediction is then
