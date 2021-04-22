@@ -160,7 +160,9 @@ class TupleSpecs:
             )
             h.rng.shuffle(random_selections, axis=1)
             selections.append(random_selections[:,: h.N_SELECT])
-        selections = np.stack(selections, axis=-1)
+        selections = np.stack(selections, axis=-1)  #TODO consider making
+        # this a 2D rather than a 3D array to avoid later reshaping.
+        # Means picking the target state requires a tiny bit of arithmetic.
         self.selections = selections
         print(f'{self.selections.shape=}')
         return self.selections

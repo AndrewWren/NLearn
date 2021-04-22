@@ -6,7 +6,9 @@ hyperparameters = {
     'BUFFER_LENGTH': 100,
     'RANDOM_SEED': 42,
     'BATCHSIZE': 32,
-    'N_SELECT': 10
+    'N_SELECT': 10,
+    'EPSILON_FLAT_END': 1000,
+    'EPSILON_ZERO': 10000
 }
 
 

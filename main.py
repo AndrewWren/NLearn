@@ -7,7 +7,7 @@ from scr.tuple_and_code import Code, Domain, ElementSpec, TupleSpecs
 
 
 @mlu.over_hp
-def train_ar(tuple_spec: TupleSpecs):
+def train_ab():
     tuple_spec = TupleSpecs()
     nets = Nets(tuple_spec)
     buffer = list()
@@ -44,7 +44,8 @@ def run_tuples():
 
 if __name__ == '__main__':
     random.seed(c.RANDOM_SEED)
-    run_tuples()
+    #run_tuples()
+    train_ab()
     """code = Code([1, 2, -7.3, -5, 4, 3, -20.22, 3.145, -2.2, 10.])
     print(code)
     """
