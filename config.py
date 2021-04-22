@@ -5,7 +5,8 @@ hyperparameters = {
     'N_ITERATIONS': 10,
     'BUFFER_LENGTH': 100,
     'RANDOM_SEED': 42,
-    'BATCHSIZE': 32
+    'BATCHSIZE': 32,
+    'N_SELECT': 10
 }
 
 

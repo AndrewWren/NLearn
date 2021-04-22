@@ -48,25 +48,11 @@ class Domain:
         return f'({self.type}, {self.range})'
 
 
-class Rewarder:
-    def __init__(self, right=1, wrong=0):
-        self.right = right
-        self.wrong = wrong
-        if (right == 1) and (wrong == 0):
-            self.repr = 'Default'
-        else:
-            self.repr = f'Special({self.right}, {self.wrong})'
-
-    """def __repr__(self):
-        return self.repr
-    """
-    #TODO Something wrong with Rewarder
-
 class ElementSpec:
     def __init__(
             self,
             domain: Domain or tuple,
-            rewarder: Rewarder = None,
+            reward: tuple = (1, 0),
             fraction: float = 0.2,
             random: Callable = None
     ):
@@ -75,8 +61,14 @@ class ElementSpec:
         else:
             self.domain = Domain(*domain)
 
-        self.rewarder = rewarder or Rewarder()
-        print(f'{self.rewarder=}')
+        """Makes the reward an attribute, modifying it to get a zero mean 
+        reward over h.N_SELECT
+        """
+        print(reward, h.N_SELECT)
+        self.mean_reward = (reward[0] + (h.N_SELECT - 1) * reward[1]) / \
+                           h.N_SELECT
+        self.right = reward[0] - self.mean_reward
+        self.wrong = reward[1] - self.mean_reward
 
         self.fraction = fraction
         self.repetition = None
@@ -131,8 +123,7 @@ class TupleSpecs:
     def __init__(
             self,
             specs: list = c.TUPLE_SPEC,
-            pool: int = 100,
-            select: int = 10
+            pool: int = 100
     ):
         self.pool = pool
         spec_list = list()
@@ -145,15 +136,14 @@ class TupleSpecs:
             spec.stub_length = self.pool % spec.repetition
         self.specs = tuple(spec_list)
         self.n_elements = len(spec_list)
-        self.select = select
         self.selections = None
         self.target_no = None
         
         """ Some attributes related to reward and its calculation
         """
         self.current_reward = None
-        right = np.array([spec.rewarder.right for spec in self.specs])
-        wrong = np.array([spec.rewarder.wrong for spec in self.specs])
+        right = np.array([spec.right for spec in self.specs])
+        wrong = np.array([spec.wrong for spec in self.specs])
         self.factor = right - wrong
         self.offset = sum(wrong) * np.ones(self.n_elements)
         
@@ -169,7 +159,7 @@ class TupleSpecs:
                 axis=1
             )
             h.rng.shuffle(random_selections, axis=1)
-            selections.append(random_selections[:,: self.select])
+            selections.append(random_selections[:,: h.N_SELECT])
         selections = np.stack(selections, axis=-1)
         self.selections = selections
         print(f'{self.selections.shape=}')
@@ -179,7 +169,7 @@ class TupleSpecs:
         # print(f'{h.N_ITERATIONS=}')
         for iteration in range(h.N_ITERATIONS):
             self.random()
-            self.target_nos = h.rng.integers(self.select, size=h.BATCHSIZE)
+            self.target_nos = h.rng.integers(h.N_SELECT, size=h.BATCHSIZE)
             game_origins = GameOrigins(
                 iteration, self.target_nos, self.selections
             )
