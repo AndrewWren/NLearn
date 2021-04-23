@@ -14,12 +14,10 @@ import numpy as np
 import torch
 import config as c
 
-
 """Note: DO NOT use h. hyperparameters as default arguments in any module --- 
 as they are only evaluated when the function is first defined.
 c. constants can be used as default arguments.
 """
-
 
 try:
     rng_c = np.random.default_rng(c.RANDOM_SEED)
@@ -121,7 +119,8 @@ class Constants():
     def config_modules(self):
         return [name for name in dir(c) if name[0].islower()]
 
-    def copy_config(self, title='config', folder=c.CONFIGS_FOLDER, to_json=False,
+    def copy_config(self, title='config', folder=c.CONFIGS_FOLDER,
+                    to_json=False,
                     with_now=True):
         title = PROJECT_NAME + '_' + title
         if with_now:
@@ -150,7 +149,7 @@ def save_log(entry: str):
         f.writelines(log_lines)
 
 
-def log(entry: str, backspaces: int=0):
+def log(entry: str, backspaces: int = 0):
     print('\b' * backspaces + entry)
     save_log(entry)
 
@@ -165,7 +164,8 @@ def close_log():
         f.writelines(log_lines)
     os.remove(LOG_WARNING_FILENAME)
 
-#TODO Consider integrating with Python logging module
+
+# TODO Consider integrating with Python logging module
 
 
 # https://dev.to/0xbf/use-dot-syntax-to-access-dictionary-key-python-tips-10ec
@@ -271,7 +271,7 @@ def log_end_run(n_h, last_key, time_elapsed, results, best_so_far):
                    range(base)]
     for hp_run, result in enumerate(results, 1):
         log((extra_spaces * ' ') + f' {numbers[hp_run - 1]} '
-                                         f'{hp_run:>7} '
+                                   f'{hp_run:>7} '
                                    f' {best_result_format(result)}')
     log(' ' + ('-' * 26) + '\n')
     best_result_string = best_result_format(best_so_far[0])
@@ -283,7 +283,7 @@ def log_end_run(n_h, last_key, time_elapsed, results, best_so_far):
 
 def over_hp(func):
     def wrapper_over_hp(*args, **kwargs):
-    # http://stephantul.github.io/python/2019/07/20/product-dict/
+        # http://stephantul.github.io/python/2019/07/20/product-dict/
         best_so_far_initial = (None, None, None, None)
         best_so_far = best_so_far_initial
         over_hp_start = perf_counter()
@@ -294,9 +294,21 @@ def over_hp(func):
             log_intro_hp_run(n_h, hp_run, time_elapsed)
             set_and_log_h(keys, bundle, last_key)
             try:
-                h['rng'] = np.random.default_rng(h.RANDOM_SEED)
+                h['n_rng'] = np.random.default_rng(h.RANDOM_SEED)
             except:
-                h['rng'] = None
+                h['n_rng'] = None
+            try:
+                # See https://pytorch.org/docs/stable/generated/torch
+                # .Generator.html on manual_seed()
+                torch_seed_rng = np.random.default_rng(h.TORCH_RANDOM_SEED)
+                zeros_ones = [0] * 16 + [1] * 16
+                torch_seed_rng.shuffle(zeros_ones)
+                torch_seed = sum([ bit * (2 ** (32 - b))
+                                   for b, bit in enumerate(zeros_ones)])
+                h['t_rng'] = torch.Generator(device=c.DEVICE).manual_seed(
+                   torch_seed)
+            except:
+                exit('Error setting or seeding torch Generator')
             h['hp_run'] = hp_run  # Needed to name saved models
             best_of_this_hp_run, idx = func(*args, **kwargs)
             del h['hp_run']
@@ -316,6 +328,7 @@ def test_hp(func):
     if n_h > 1:
         exit('The dictionary config.hyperparameters contains options - need '
              'singleton for test.')
+
     def wrapper_test_hp(*args, **kwargs):
         best_so_far_initial = (None, None, None, None)
         best_so_far = best_so_far_initial

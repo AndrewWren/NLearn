@@ -3,6 +3,8 @@ from collections.abc import Callable
 import random
 import numpy as np
 import numpy.typing as npt
+import torch
+
 import config
 from scr.ml_utilities import c, h, rng_c
 
@@ -64,7 +66,7 @@ class ElementSpec:
         """Makes the reward an attribute, modifying it to get a zero mean 
         reward over h.N_SELECT
         """
-        print(reward, h.N_SELECT)
+        #print(reward, h.N_SELECT)
         self.mean_reward = (reward[0] + (h.N_SELECT - 1) * reward[1]) / \
                            h.N_SELECT
         self.right = reward[0] - self.mean_reward
@@ -85,7 +87,7 @@ class ElementSpec:
             exit('Need a random for the ElementSpec initiation.')
 
     def default_random_selector_int_finite(self):
-        return h.rng.integers(self.domain.range, size=(h.BATCHSIZE, 1))
+        return h.n_rng.integers(self.domain.range, size=(h.BATCHSIZE, 1))
 
     def __repr__(self):
         return f'Element({self.domain}, {self.rewarder}, {self.random_repr})'
@@ -112,11 +114,11 @@ GameOrigins = namedtuple('GameOrigins', 'iteration target_nos selections')
 
 GameReports = namedtuple('GameReports', 'gameorigins decisions rewards')
 class GameReports(GameReports):
-    def __init__(self, gameorigin, decision, reward):
+    def __init__(self, gameorigins, decisions, rewards):
         super().__init__()
-        self.iteration = self.gameorigin.iteration
-        self.target_no = self.gameorigin.target_nos
-        self.selection = self.gameorigin.selections
+        self.iteration = self.gameorigins.iteration
+        self.target_no = self.gameorigins.target_nos
+        self.selection = self.gameorigins.selections
 
 
 class TupleSpecs:
@@ -142,10 +144,12 @@ class TupleSpecs:
         """ Some attributes related to reward and its calculation
         """
         self.current_reward = None
-        right = np.array([spec.right for spec in self.specs])
-        wrong = np.array([spec.wrong for spec in self.specs])
+        right = torch.FloatTensor([spec.right for spec in self.specs]).to(
+            c.DEVICE)
+        wrong = torch.FloatTensor([spec.wrong for spec in self.specs]).to(
+            c.DEVICE)
         self.factor = right - wrong
-        self.offset = sum(wrong) * np.ones(self.n_elements)
+        self.offset = (torch.sum(wrong)).repeat(h.BATCHSIZE)
         
         self.n_iterations = h.N_ITERATIONS
 
@@ -158,20 +162,20 @@ class TupleSpecs:
                 + [np.repeat(spec.random(), spec.stub_length, axis=1)],
                 axis=1
             )
-            h.rng.shuffle(random_selections, axis=1)
+            h.n_rng.shuffle(random_selections, axis=1)
             selections.append(random_selections[:,: h.N_SELECT])
         selections = np.stack(selections, axis=-1)  #TODO consider making
         # this a 2D rather than a 3D array to avoid later reshaping.
         # Means picking the target state requires a tiny bit of arithmetic.
         self.selections = selections
-        print(f'{self.selections.shape=}')
+        #print(f'{self.selections.shape=}')
         return self.selections
 
     def iter(self):
         # print(f'{h.N_ITERATIONS=}')
         for iteration in range(h.N_ITERATIONS):
             self.random()
-            self.target_nos = h.rng.integers(h.N_SELECT, size=h.BATCHSIZE)
+            self.target_nos = h.n_rng.integers(h.N_SELECT, size=h.BATCHSIZE)
             game_origins = GameOrigins(
                 iteration, self.target_nos, self.selections
             )
@@ -180,12 +184,18 @@ class TupleSpecs:
     def __repr__(self):
         return f'TupleSpecs({self.specs})'
 
-    def reward(self, grounds, guesses):
+    def rewards(self, grounds, guesses):
         """
-        :param grounds: np.array.shape = (h.batchsize, self.n_elements)
-        :param guesses: np.array.shape = (h.batchsize, self.n_elements)
-        :return: np.array.shape = (h.batchsize, )
+        :param grounds: torch.float32, size = (h.batchsize, self.n_elements)
+        :param guesses: torch.float32, size = (h.batchsize, self.n_elements)
+        :return: torch.float32, size = (h.batchsize, )
         """
-        self.current_reward = (grounds == guesses).dot(self.factor)\
+        """print(f'{grounds.size()=}')
+        print(f'{guesses.size()=}')
+        print(f'{self.offset.size()=}')
+        print(f'{(grounds == guesses).float()=}')
+        """
+        self.current_reward = torch.matmul((grounds == guesses).float(),
+                                           self.factor)\
                               + self.offset
         return self.current_reward

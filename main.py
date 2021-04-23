@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import torch
 import scr.ml_utilities as mlu
 from scr.ml_utilities import c, h, rng_c
 from scr.nets import FFs, Nets
@@ -11,14 +12,11 @@ def train_ab():
     tuple_spec = TupleSpecs()
     nets = Nets(tuple_spec)
     buffer = list()
-    for game_origin_for_buffer in tuple_spec.iter():
-        game_report_for_buffer = nets.play(game_origin_for_buffer)
-        buffer.append(game_report_for_buffer)
-        if len(buffer) < h.BUFFER_LENGTH:
-            continue
-        buffer_entry_for_training = random.randrange(h.BUFFER_LENGTH)
-        game_report_for_training = buffer.pop(buffer_entry_for_training)
-        nets.train(game_report_for_training)
+    for game_origin in tuple_spec.iter():
+        if (iteration := game_origin.iteration) % 1000 == 0:
+            print('\b' * 20 + f'Iteration={iteration:>10}', end='')
+        game_report = nets.play(game_origin)
+        buffer.append(game_report)
     return [None], 0
 #target_tuple = current_tuples[target_no]
 
@@ -43,7 +41,6 @@ def run_tuples():
 
 
 if __name__ == '__main__':
-    random.seed(c.RANDOM_SEED)
     #run_tuples()
     train_ab()
     """code = Code([1, 2, -7.3, -5, 4, 3, -20.22, 3.145, -2.2, 10.])
