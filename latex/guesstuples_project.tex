@@ -53,9 +53,23 @@ is the prediction for the machine value of the $j$th bit.  The loss function is
 Alternative approaches include:
 \begin{enumerate}
 	\item Two outputs for each bit showing the reward for each of $0$ and $1.$  {\em May reflect negative rewards better?}
+	
 	\item Combine the rewards from the bits (with either one or two outputs per bit) by something other than addition - e.g. multiplication or via an NN. {\em The NN option seems quite interesting.  Interesting to use \verb|pytorch|'s gradients for that.}
+	
 	\item One outputs for each possible code. {\em Might work but $2^{N_\text{code}}$ is quite large... not impossibly so if $N_\text{code}=10.$}
 	
+	\item Inspired by \rcite{he2015deep}, feed $\x$ into Alice's 'first' net, to get output $\y,$ and all possible codes $\c$ into her 'second' net, both net's having the same target dimensionality (a hyperparameter).  Then the code to use is the one $\c(\x)$ closest to the output of the first net, with the $Q$ being given by the inner product $Q = \left\langle \y, \c(\x) \right\rangle.$  \rcite{dulac2015deep} might provide an alternative, actor--critic, approach on a similar theme.
+	
+	\item \rcite{majeed2020exact} suggest sequentialising, which points to a variant of our main approach which does each bit in succession and feeding those results into successive Alice--nets so the $Q$-estimate for later bits takes account of earlier bits / estimates, with the $N_\text{code}$th estimate providing a final code $\c$ and $Q$-estimate for that code.
+	
+	\item Move away from typical Q-learning.  Instead Alice's output is the code $\vec{c}$ and then when Bob makes his choice $\vec{x}_\text{pred}$ (see below) run that choice through a copy of Alice, to get $\vec{c}_\text{Bob}$ and then the loss function is
+	\begin{equation}
+		L
+		=
+		-\,
+		r(\vec{c}, \vec{c}_\text{Bob})
+		.
+	\end{equation}
 \end{enumerate}
 
 \subsection{Bob}
@@ -100,7 +114,7 @@ None of these quite amount to Bob seeks to reproduce the Alice's code vocabulary
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \bibliographystyle{JHEP}
-%\bibliography{guesstuples_project}
+\bibliography{guesstuples_project}
 
 \end{document}
 
