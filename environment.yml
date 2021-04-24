@@ -4,3 +4,4 @@ dependencies:
   - pytorch=1.8.0  # Also introduces numpy=1.20.2
   - matplotlib=3.4.1
   - python-dateutil=2.8.1
+  - tensorboard-2.4.1
