@@ -87,7 +87,10 @@ class ElementSpec:
             exit('Need a random for the ElementSpec initiation.')
 
     def default_random_selector_int_finite(self):
-        return h.n_rng.integers(self.domain.range, size=(h.BATCHSIZE, 1))
+        return h.n_rng.integers(
+            self.domain.range,
+            size=(h.BATCHSIZE, 1)
+        ) * (2 / self.domain.range) - 1
 
     def __repr__(self):
         return f'Element({self.domain}, {self.rewarder}, {self.random_repr})'

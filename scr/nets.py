@@ -54,19 +54,51 @@ class Nets:
         self.tuple_specs = tuple_specs
         self.alice = FFs(input_width=tuple_specs.n_elements,
                          output_width=c.N_CODE).to(c.DEVICE)
+        self.alice_optimizer = self.optimizer('ALICE')
+        self.alice_loss_function = self.loss_function('ALICE')
         self.bob = FFs(input_width=h.N_SELECT * tuple_specs.n_elements +
                                    c.N_CODE,
                        output_width=h.N_SELECT).to(c.DEVICE)
+        if h.BOB_OPTIMIZER == 'Same':
+            bob_optimizer_label = 'ALICE'
+        else:
+            bob_optimizer_label = 'BOB'
+        self.bob_optimizer = self.optimizer(bob_optimizer_label)
+        if h.BOB_LOSS_FUNCTION == 'Same':
+            bob_loss_function_label = 'ALICE'
+        else:
+            bob_loss_function_label = 'BOB'
+        self.bob_loss_function = self.loss_function(bob_loss_function_label)
         self.selections = tuple_specs.selections
-        #print(f'{self.selections=}')
+        # print(f'{self.selections=}')
         self.epsilon_slope = 1 / (h.EPSILON_ZERO - h.EPSILON_FLAT_END)
 
+    def optimizer(self, net_label):
+        values = eval('h.' + net_label + '_OPTIMIZER')
+        return eval(
+            'torch.optim.' + values[0]
+            + '(self.alice.parameters(), *' + str(values[1]) + ')'
+        )
+
+    def loss_function(self, net_label):
+        values = eval('h.' + net_label + '_LOSS_FUNCTION')
+        return eval(
+            'torch.nn.' + values[0]
+            + 'Loss(*' + str(values[1]) + ')'
+        )
+
     def play(self, game_origins: GameOrigins):
+        """
+        """
+        """Forward passes
+        """
         selections = to_device_tensor(game_origins.selections)
         targets = game_origins.selections[np.arange(h.BATCHSIZE),
                                           game_origins.target_nos]
         targets = to_device_tensor(targets)
-        codes = self.alice(targets)
+        alice_outputs = self.alice(targets)
+        alice_qs = torch.sum(torch.abs(alice_outputs), dim=1)
+        codes = torch.sign(alice_outputs)
         """print(f'{game_origins.selections.shape=}')
         print(f'{targets.shape=}')
         print(f'{codes.shape=}')
@@ -77,7 +109,7 @@ class Nets:
                 h.N_SELECT * self.tuple_specs.n_elements)),
             codes], 1
         )
-        #print(f'{bob_input.shape=}')
+        # print(f'{bob_input.shape=}')
         bob_q_estimates = self.bob(bob_input)
         bob_q_estimates_max = torch.argmax(bob_q_estimates, dim=1).long()
         # TODO What about the Warning at
@@ -87,12 +119,24 @@ class Nets:
         # GOT TO HERE
 
         decision_nos = self.eps_greedy(game_origins.iteration,
-                                    bob_q_estimates_max)
+                                       bob_q_estimates_max)
         decisions = selections[list(range(h.BATCHSIZE)), decision_nos]
-        rewards = [self.tuple_specs.rewards(grounds=targets,
-                                            guesses=decisions)
-                  for target, decision in zip(targets, decisions)]
-        game_reports = GameReports(game_origins, decisions, rewards)
+        decision_qs = bob_q_estimates[list(range(h.BATCHSIZE)), decision_nos]
+        rewards = self.tuple_specs.rewards(grounds=targets, guesses=decisions)
+        print(f'{targets.size()=}')
+        print(f'{decision_qs.size()=}')
+        print(f'{rewards.size()=}')
+        game_reports = GameReports(game_origins, decision_qs, rewards)
+        """Backward passes
+        """
+        alice_losses = self.alice_loss_function(alice_qs, rewards)
+        self.alice_optimizer.zero_grad()
+        alice_losses.backward()
+        self.alice_optimizer.step()
+        bob_losses = self.bob_loss_function(decision_qs, rewards)
+        self.bob_optimizer.zero_grad()
+        bob_losses.backward()
+        self.bob_optimizer.step()
         return game_reports
 
     def eps_greedy(self, iteration, greedy_indices):
@@ -108,7 +152,7 @@ class Nets:
         indicator = torch.empty(h.BATCHSIZE)
         indicator.uniform_(generator=h.t_rng)
         chooser = (indicator > epsilon).long()
-        #print(f'{chooser=}')
+        # print(f'{chooser=}')
         random_indices = torch.empty(h.BATCHSIZE)
         random_indices.random_(h.N_SELECT, generator=h.t_rng).long()
         for_choice = torch.dstack((random_indices, greedy_indices))[0]
@@ -126,6 +170,7 @@ class Nets:
     def train_with_q(self, batch: list[GameReports]):
         batch = batch.to(c.DEVICE)
     """
+
     def epsilon_function(self, iteration):
         """
 
@@ -133,7 +178,7 @@ class Nets:
         :return: torch.float32, size = (h.BATCHSIZE)
         """
         single_epsilon = torch.FloatTensor([
-                1.
-                - max(iteration - h.EPSILON_FLAT_END, 0) * self.epsilon_slope
+            1.
+            - max(iteration - h.EPSILON_FLAT_END, 0) * self.epsilon_slope
         ])
         return single_epsilon.repeat(h.BATCHSIZE)
