@@ -198,7 +198,7 @@ class TupleSpecs:
         print(f'{self.offset.size()=}')
         print(f'{(grounds == guesses).float()=}')
         """
-        self.current_reward = torch.matmul((grounds == guesses).float(),
+        self.current_reward = (torch.matmul((grounds == guesses).float(),
                                            self.factor)\
-                              + self.offset
+                              + self.offset).detach()
         return self.current_reward

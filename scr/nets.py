@@ -92,17 +92,17 @@ class Nets:
         """
         """Forward passes
         """
-        selections = to_device_tensor(game_origins.selections)
         targets = game_origins.selections[np.arange(h.BATCHSIZE),
                                           game_origins.target_nos]
         targets = to_device_tensor(targets)
         alice_outputs = self.alice(targets)
         alice_qs = torch.sum(torch.abs(alice_outputs), dim=1)
-        codes = torch.sign(alice_outputs)
+        codes = torch.sign(alice_outputs).detach() ######
         """print(f'{game_origins.selections.shape=}')
         print(f'{targets.shape=}')
         print(f'{codes.shape=}')
         """
+        selections = to_device_tensor(game_origins.selections).detach()
         bob_input = torch.cat([
             selections.reshape((
                 h.BATCHSIZE,
@@ -114,18 +114,16 @@ class Nets:
         bob_q_estimates_max = torch.argmax(bob_q_estimates, dim=1).long()
         # TODO What about the Warning at
         # https://pytorch.org/docs/stable/generated/torch.max.html?highlight
-        # =max#torch.max ?  and see also torch.amax
-
-        # GOT TO HERE
-
+        # =max#torch.max ?  and see also torch.amax  Seems OK from testing.
         decision_nos = self.eps_greedy(game_origins.iteration,
                                        bob_q_estimates_max)
         decisions = selections[list(range(h.BATCHSIZE)), decision_nos]
         decision_qs = bob_q_estimates[list(range(h.BATCHSIZE)), decision_nos]
         rewards = self.tuple_specs.rewards(grounds=targets, guesses=decisions)
-        print(f'{targets.size()=}')
+        """print(f'{targets.size()=}')
         print(f'{decision_qs.size()=}')
         print(f'{rewards.size()=}')
+        """
         game_reports = GameReports(game_origins, decision_qs, rewards)
         """Backward passes
         """

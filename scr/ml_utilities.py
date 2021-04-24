@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from dateutil.tz import tzlocal
 import numpy as np
 import torch
+from torch.utils.tensorboard import SummaryWriter
 import config as c
 
 """Note: DO NOT use h. hyperparameters as default arguments in any module --- 
@@ -25,6 +26,7 @@ except:
     rng_c = None
 STD_NOW = datetime.datetime.now(tz=tzlocal()).strftime("%y-%m-%d_%H:%M:%S%Z")
 log_lines = ['****WARNING NOT CLOSED - MAY BE DUE TO ERROR***\n'] * 2
+writer=SummaryWriter()
 
 
 # See https://exceptionshub.com/how-to-get-filename-of-the-__main__-module-in-python.html
