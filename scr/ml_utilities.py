@@ -8,17 +8,19 @@ import platform
 import shutil
 import sys
 from time import perf_counter, strftime
-import matplotlib.pyplot as plt
 from dateutil.tz import tzlocal
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from torch.utils.tensorboard import SummaryWriter
 import config as c
 
+
 """Note: DO NOT use h. hyperparameters as default arguments in any module --- 
 as they are only evaluated when the function is first defined.
 c. constants can be used as default arguments.
 """
+
 
 try:
     rng_c = np.random.default_rng(c.RANDOM_SEED)

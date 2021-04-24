@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import scr.ml_utilities as mlu
-from scr.ml_utilities import c, h, rng_c
+from scr.ml_utilities import c, h, rng_c, writer
 from scr.net_class import Net
 from scr.tuple_and_code import Code, Domain, ElementSpec, GameOrigins, \
     GameReports, TupleSpecs
@@ -63,6 +63,7 @@ class Nets:
             bob_optimizer_label = 'ALICE'
         else:
             bob_optimizer_label = 'BOB'
+        #print(f'{bob_optimizer_label=}')
         self.bob_optimizer = self.optimizer(bob_optimizer_label)
         if h.BOB_LOSS_FUNCTION == 'Same':
             bob_loss_function_label = 'ALICE'
@@ -75,16 +76,17 @@ class Nets:
 
     def optimizer(self, net_label):
         values = eval('h.' + net_label + '_OPTIMIZER')
+        #print(f'For {net_label}, {values=}')
         return eval(
             'torch.optim.' + values[0]
-            + '(self.alice.parameters(), *' + str(values[1]) + ')'
+            + '(self.alice.parameters(), **' + str(values[1]) + ')'
         )
 
     def loss_function(self, net_label):
         values = eval('h.' + net_label + '_LOSS_FUNCTION')
         return eval(
             'torch.nn.' + values[0]
-            + 'Loss(*' + str(values[1]) + ')'
+            + 'Loss(**' + str(values[1]) + ')'
         )
 
     def play(self, game_origins: GameOrigins):
@@ -111,14 +113,17 @@ class Nets:
         )
         # print(f'{bob_input.shape=}')
         bob_q_estimates = self.bob(bob_input)
-        bob_q_estimates_max = torch.argmax(bob_q_estimates, dim=1).long()
+        bob_q_estimates_argmax = torch.argmax(bob_q_estimates, dim=1).long()
         # TODO What about the Warning at
         # https://pytorch.org/docs/stable/generated/torch.max.html?highlight
         # =max#torch.max ?  and see also torch.amax  Seems OK from testing.
         decision_nos = self.eps_greedy(game_origins.iteration,
-                                       bob_q_estimates_max)
-        decisions = selections[list(range(h.BATCHSIZE)), decision_nos]
-        decision_qs = bob_q_estimates[list(range(h.BATCHSIZE)), decision_nos]
+                                       bob_q_estimates_argmax).detach()
+        decisions = self.gatherer(selections, decision_nos, unsqueezes=2)
+        #print(f'{decisions.size()=}')
+        decision_qs = self.gatherer(bob_q_estimates, decision_nos,
+                                    unsqueezes=1)
+        #print(f'{decision_qs.size()=}')
         rewards = self.tuple_specs.rewards(grounds=targets, guesses=decisions)
         """print(f'{targets.size()=}')
         print(f'{decision_qs.size()=}')
@@ -135,6 +140,12 @@ class Nets:
         self.bob_optimizer.zero_grad()
         bob_losses.backward()
         self.bob_optimizer.step()
+        writer.add_scalars(
+            'Sqrt losses',
+            {'Alice sqrt loss': torch.sqrt(alice_losses),
+             'Bob sqrt loss': torch.sqrt(bob_losses)},
+            global_step=game_origins.iteration
+        )
         return game_reports
 
     def eps_greedy(self, iteration, greedy_indices):
@@ -144,6 +155,7 @@ class Nets:
         :param greedy: torch.float32, size (h.BATCHSIZE, h.N_SELECT)
         :return: torch.int64, size (h.BATCHSIZE)
         """
+        return greedy_indices
         if iteration >= h.EPSILON_ZERO:
             return greedy_indices
         epsilon = self.epsilon_function(iteration)
@@ -180,3 +192,14 @@ class Nets:
             - max(iteration - h.EPSILON_FLAT_END, 0) * self.epsilon_slope
         ])
         return single_epsilon.repeat(h.BATCHSIZE)
+
+    def gatherer(self, input, indices, unsqueezes):
+        #print(f'{input.size()=}')
+        #print(f'{indices.size()=}')
+        if unsqueezes == 2:
+            indices = indices.unsqueeze(1).repeat(1, 2).unsqueeze(1)
+        elif unsqueezes == 1:
+            indices = indices.unsqueeze(1)
+        else:
+            exit(f'Invalid {unsqueezes=}')
+        return torch.gather(input, 1, indices).squeeze()

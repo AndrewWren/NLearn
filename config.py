@@ -2,17 +2,16 @@ import torch
 
 
 hyperparameters = {
-    'N_ITERATIONS': 1100,
-    'BUFFER_LENGTH': 100,
+    'N_ITERATIONS': 1000,  #000,
     'RANDOM_SEED': 42,
     'TORCH_RANDOM_SEED': 4242,
     'BATCHSIZE': 32,
     'N_SELECT': 10,
-    'EPSILON_FLAT_END': 100,
-    'EPSILON_ZERO': 1000,
-    'ALICE_OPTIMIZER': ('Adam', []),
-    'BOB_OPTIMIZER': 'Same',
-    'ALICE_LOSS_FUNCTION': ('MSE', []),
+    'EPSILON_FLAT_END': 10,  # 1000
+    'EPSILON_ZERO': 50,  # 10000
+    'ALICE_OPTIMIZER': ('Adam', '{"lr": 0.1}'),
+    'BOB_OPTIMIZER': ('Adam', '{"lr": 1000010000000000.}'),
+    'ALICE_LOSS_FUNCTION': ('MSE', {}),
     'BOB_LOSS_FUNCTION': 'Same'
 }
 

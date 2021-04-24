@@ -152,6 +152,7 @@ class TupleSpecs:
         wrong = torch.FloatTensor([spec.wrong for spec in self.specs]).to(
             c.DEVICE)
         self.factor = right - wrong
+        #print(f'Immediate {self.factor.size()=}')
         self.offset = (torch.sum(wrong)).repeat(h.BATCHSIZE)
         
         self.n_iterations = h.N_ITERATIONS
@@ -197,6 +198,10 @@ class TupleSpecs:
         print(f'{guesses.size()=}')
         print(f'{self.offset.size()=}')
         print(f'{(grounds == guesses).float()=}')
+        """
+        """print(f'{self.factor.size()=}')
+        print(f'{grounds.size()=}')
+        print(f'{guesses.size()=}')
         """
         self.current_reward = (torch.matmul((grounds == guesses).float(),
                                            self.factor)\
