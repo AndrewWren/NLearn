@@ -9,8 +9,8 @@ hyperparameters = {
     'N_SELECT': 10,
     'EPSILON_FLAT_END': 10,  # 1000
     'EPSILON_ZERO': 50,  # 10000
-    'ALICE_OPTIMIZER': ('Adam', '{"lr": 0.1}'),
-    'BOB_OPTIMIZER': ('Adam', '{"lr": 1000010000000000.}'),
+    'ALICE_OPTIMIZER': ('SGD', '{"lr": 0.1}'),
+    'BOB_OPTIMIZER': ('SGD', '{"lr": 10000100000000000000.}'),
     'ALICE_LOSS_FUNCTION': ('MSE', {}),
     'BOB_LOSS_FUNCTION': 'Same'
 }
