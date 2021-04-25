@@ -7,8 +7,9 @@ hyperparameters = {
     'TORCH_RANDOM_SEED': 4242,
     'BATCHSIZE': 32,
     'N_SELECT': 10,
-    'EPSILON_FLAT_END': 10,  # 1000
-    'EPSILON_ZERO': 50,  # 10000
+    'EPSILON_ONE_END': 10,  # 1000
+    'EPSILON_MIN': 0.01,
+    'EPSILON_MIN_POINT': 50,  # 10000
     'ALICE_OPTIMIZER': ('SGD', '{"lr": 0.1}'),
     'BOB_OPTIMIZER': ('SGD', '{"lr": 10000100000000000000.}'),
     'ALICE_LOSS_FUNCTION': ('MSE', {}),

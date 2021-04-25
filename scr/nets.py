@@ -72,7 +72,8 @@ class Nets:
         self.bob_loss_function = self.loss_function(bob_loss_function_label)
         self.selections = tuple_specs.selections
         # print(f'{self.selections=}')
-        self.epsilon_slope = 1 / (h.EPSILON_ZERO - h.EPSILON_FLAT_END)
+        self.epsilon_slope = (1 - h.EPSILON_MIN) / (
+                h.EPSILON_MIN_POINT - h.EPSILON_ONE_END)
 
     def optimizer(self, net_label):
         values = eval('h.' + net_label + '_OPTIMIZER')
@@ -178,8 +179,6 @@ class Nets:
         :param greedy: torch.float32, size (h.BATCHSIZE, h.N_SELECT)
         :return: torch.int64, size (h.BATCHSIZE)
         """
-        if iteration >= h.EPSILON_ZERO:
-            return greedy_indices
         epsilon = self.epsilon_function(iteration)
         indicator = torch.empty(h.BATCHSIZE)
         indicator.uniform_(generator=h.t_rng)
@@ -209,10 +208,13 @@ class Nets:
         :param iteration: int
         :return: torch.float32, size = (h.BATCHSIZE)
         """
-        single_epsilon = torch.FloatTensor([
-            1.
-            - max(iteration - h.EPSILON_FLAT_END, 0) * self.epsilon_slope
-        ])
+        if iteration >= h.EPSILON_MIN_POINT:
+            single_epsilon = h.EPSILON_MIN * torch.ones(1)
+        else:
+            single_epsilon = torch.FloatTensor([
+                1.
+                - max(iteration - h.EPSILON_ONE_END, 0) * self.epsilon_slope
+            ])
         return single_epsilon.repeat(h.BATCHSIZE)
 
     def gatherer(self, input, indices, unsqueezes):
