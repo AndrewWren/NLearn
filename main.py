@@ -46,3 +46,4 @@ if __name__ == '__main__':
     """code = Code([1, 2, -7.3, -5, 4, 3, -20.22, 3.145, -2.2, 10.])
     print(code)
     """
+    mlu.close_log()

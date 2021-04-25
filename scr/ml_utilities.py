@@ -159,6 +159,7 @@ def log(entry: str, backspaces: int = 0):
 
 
 def close_log():
+    writer.close()
     global log_lines
     log_lines = [f'The closed log for run {STD_NOW}\n\n'] \
                 + log_lines[1: -1] \
