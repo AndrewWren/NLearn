@@ -2,7 +2,7 @@ import torch
 
 
 hyperparameters = {
-    'N_ITERATIONS': 1000,  #000,
+    'N_ITERATIONS': 1,  #000,
     'RANDOM_SEED': 42,
     'TORCH_RANDOM_SEED': 4242,
     'BATCHSIZE': 32,
