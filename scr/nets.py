@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import scr.ml_utilities as mlu
-from scr.ml_utilities import c, h, rng_c, writer
+from scr.ml_utilities import c, h, rng_c
 from scr.net_class import Net
 from scr.tuple_and_code import Domain, ElementSpec, GameOrigins, \
     GameReports, NiceCode, ReplayBuffer, TupleSpecs
