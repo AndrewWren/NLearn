@@ -9,13 +9,8 @@ import config
 from scr.ml_utilities import c, h, rng_c
 
 
-class Code:
-    """Not yet used.  Consider if needed - and if so need to accommodate
-    batches"""
+class NiceCode:
     def __init__(self, value: list):
-        if len(value) != config.N_CODE:
-            exit(f'Defining Code instance with length {len(value)} != '
-                 f'config.N_CODE')
         self.tuple = self.binary_list(value)
 
     def to_bit(self, b):
@@ -23,7 +18,7 @@ class Code:
             return 1
         elif b < 0:
             return 0
-        return random.randrange(2)
+        return 2
 
     def binary_list(self, bb):
         return [self.to_bit(b) for b in bb]
@@ -242,4 +237,15 @@ class ReplayBuffer:
     def sample(self):
         indices = np.random.choice(len(self.buffer), h.BATCHSIZE,
                                    replace=False)
-        return GameReports(*zip(*[self.buffer[idx] for idx in indices]))
+        game_reports_list = list(map(list,
+                                zip(*[self.buffer[idx] for idx in indices])))
+        iteration, target_nos, selections = game_reports_list[: 3]
+        iteration = np.array(iteration)
+        target_nos = np.array(target_nos)
+        selections = np.stack(selections)
+        game_origins = GameOrigins(iteration, target_nos, selections)
+        codes, decisions, rewards = game_reports_list[3: ]
+        codes = np.vstack(codes)
+        decisions = np.vstack(decisions)
+        rewards = np.array(rewards)
+        return GameReports(game_origins, codes, decisions, rewards)

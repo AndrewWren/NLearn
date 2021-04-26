@@ -4,7 +4,7 @@ import torch
 import scr.ml_utilities as mlu
 from scr.ml_utilities import c, h, rng_c
 from scr.nets import FFs, LossInfo, Nets
-from scr.tuple_and_code import Code, Domain, ElementSpec, ReplayBuffer,\
+from scr.tuple_and_code import Domain, ElementSpec, NiceCode, ReplayBuffer,\
     TupleSpecs
 
 
@@ -50,7 +50,7 @@ def run_tuples():
 if __name__ == '__main__':
     #run_tuples()
     train_ab()
-    """code = Code([1, 2, -7.3, -5, 4, 3, -20.22, 3.145, -2.2, 10.])
+    """code = NiceCode([1, 2, -7.3, -5, 4, 3, -20.22, 3.145, -2.2, 10.])
     print(code)
     """
     mlu.close_log()

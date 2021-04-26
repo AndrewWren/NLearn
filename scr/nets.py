@@ -6,8 +6,8 @@ import torch.nn as nn
 import scr.ml_utilities as mlu
 from scr.ml_utilities import c, h, rng_c, writer
 from scr.net_class import Net
-from scr.tuple_and_code import Code, Domain, ElementSpec, GameOrigins, \
-    GameReports, ReplayBuffer, TupleSpecs
+from scr.tuple_and_code import Domain, ElementSpec, GameOrigins, \
+    GameReports, NiceCode, ReplayBuffer, TupleSpecs
 
 
 def to_device_tensor(x):
@@ -102,7 +102,7 @@ class Nets:
         """
         self.set_size0(h.GAMESIZE)
         self.epsilon = self.epsilon_function(game_origins.iteration)
-        targets = game_origins.selections[np.arange(h.GAMESIZE),
+        targets = game_origins.selections[np.arange(self.size0),
                                           game_origins.target_nos]
         #print(f'{targets.shape=}')
         targets = to_device_tensor(targets)
@@ -116,9 +116,10 @@ class Nets:
         print(f'{codes.shape=}')
         """
         selections = to_device_tensor(game_origins.selections).detach()
-        print(f'{greedy_codes.size()=}')
+        """print(f'{greedy_codes.size()=}')
         print(f'{codes.size()=}')
         print(f'{selections.size()=}')
+        """
         bob_input = torch.cat([
             selections.reshape((
                 h.GAMESIZE,
@@ -160,7 +161,8 @@ class Nets:
             #print(f'{bob_input.grad=}')
             #print(f'{bob_q_estimates.grad=}')
             #print(f'{bob_q_estimates=}')
-            print(f'{codes=}')
+            print('Codes=')
+            [print(NiceCode(code)) for code in codes]
             """print(f'{bob_q_estimates_argmax=}')
             print(f'{decision_nos=}')
             print(f'{decision_qs.grad=}')
@@ -176,12 +178,14 @@ class Nets:
         game_reports = buffer.sample()
         self.size0 = h.BATCHSIZE
         self.epsilon = self.epsilon_function(current_iteration)
-        targets = game_reports.selections[np.arange(h.BATCHSIZE),
+        targets = game_reports.selections[np.arange(self.size0),
                                           game_reports.target_nos]
         targets = to_device_tensor(targets)
         alice_outputs = self.alice(targets)
         alice_qs = torch.sum(torch.abs(alice_outputs), dim=1)
-        alice_loss = self.alice_loss_function(alice_qs, game_reports.rewards)
+        alice_loss = self.alice_loss_function(alice_qs,
+                                              torch.tensor(
+                                                  game_reports.rewards))
         #TODO Consider if should generate new codes????
         #greedy_codes = torch.sign(alice_outputs).detach() #TODO or do this
         # and next line after the back-optimization?
@@ -189,11 +193,12 @@ class Nets:
         self.alice_optimizer.zero_grad()
         alice_loss.backward()
         self.alice_optimizer.step()
+        selections = torch.FloatTensor(game_reports.selections)
+        codes = torch.FloatTensor(game_reports.codes)
         bob_input = torch.cat([
-            game_reports.selections.reshape((
+            selections.reshape((
                 h.BATCHSIZE,
-                h.N_SELECT * self.tuple_specs.n_elements)),
-            game_reports.codes], 1
+                h.N_SELECT * self.tuple_specs.n_elements)), codes], 1
         )
         bob_q_estimates = self.bob(bob_input)
         # bob_q_estimates.retain_grad()
@@ -206,15 +211,17 @@ class Nets:
         decision_nos = self.bob_eps_greedy(bob_q_estimates_argmax).detach()
         decision_qs = self.gatherer(bob_q_estimates, decision_nos,
                                     'Decision_Qs')
-        bob_loss = self.bob_loss_function(decision_qs, game_reports.rewards)
+        rewards = torch.FloatTensor(game_reports.rewards)
+        bob_loss = self.bob_loss_function(decision_qs, rewards)
         self.bob_optimizer.zero_grad()
         bob_loss.backward()
         self.bob_optimizer.step()
         writer.add_scalars(
             'Sqrt losses',
             {'Alice sqrt loss': torch.sqrt(alice_loss),
-             'Bob sqrt loss': torch.sqrt(bob_loss)},
-            global_step=game_reports.iteration
+             'Bob sqrt loss': torch.sqrt(bob_loss)
+             },
+            global_step=current_iteration
         )
         return alice_loss.item(), bob_loss.item()
 
@@ -249,7 +256,7 @@ class Nets:
         """
         temp = self.gatherer(for_choice, chooser, 'Alice').long()
         #print(f'{temp=}')
-        print(f'{temp.size()=}')
+        #print(f'{temp.size()=}')
         return temp
 
     def bob_eps_greedy(self, greedy_indices):
