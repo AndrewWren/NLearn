@@ -8,6 +8,7 @@ hyperparameters = {
     'BATCHSIZE': 32,
     'GAMESIZE': 1,
     'BUFFER_CAPACITY': 10000,
+    'START_TRAINING': 10000,
     'N_SELECT': 10,
     'EPSILON_ONE_END': 100000,  # 1000
     'EPSILON_MIN': 0.01,

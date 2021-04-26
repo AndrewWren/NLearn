@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import scr.ml_utilities as mlu
 from scr.ml_utilities import c, h, rng_c
-from scr.nets import FFs, Nets
+from scr.nets import FFs, LossInfo, Nets
 from scr.tuple_and_code import Code, Domain, ElementSpec, ReplayBuffer,\
     TupleSpecs
 
@@ -13,12 +13,18 @@ def train_ab():
     tuple_spec = TupleSpecs()
     nets = Nets(tuple_spec)
     buffer = ReplayBuffer(h.BUFFER_CAPACITY)
+    best_bob_loss = LossInfo(np.inf, None, None)
     for game_origins in tuple_spec.iter():
         if (iteration := game_origins.iteration) % 1000 == 0:
             print('\b' * 20 + f'Iteration={iteration:>10}', end='')
         game_reports = nets.play(game_origins)
         buffer.append(game_reports)
-    return [None], 0
+        if iteration < h.START_TRAINING:
+            continue
+        alice_loss, bob_loss = nets.train(iteration, buffer)
+        if bob_loss < best_bob_loss.bob_loss:
+            best_bob_loss = LossInfo(bob_loss, iteration, alice_loss)
+    return [best_bob_loss], 0
 #target_tuple = current_tuples[target_nos]
 
 

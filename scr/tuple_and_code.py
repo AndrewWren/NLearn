@@ -85,11 +85,12 @@ class ElementSpec:
         self.random = default_random
         if self.random is None:
             exit('Need a random for the ElementSpec initiation.')
+        self.size0 = None
 
     def default_random_selector_int_finite(self):
         return h.n_rng.integers(
             self.domain.range,
-            size=(h.BATCHSIZE, 1)
+            size=(h.GAMESIZE, 1)
         ) * (2 / self.domain.range) - 1
 
     def __repr__(self):
@@ -125,15 +126,22 @@ GameOrigins = namedtuple('GameOrigins', 'iteration target_nos selections')
 GameReports = namedtuple('GameReports', 'gameorigins codes decisions rewards')
 class GameReports(GameReports):
     def __init__(self, gameorigins, codes, decisions, rewards):
-        super().__init__(gameorigins, codes, decisions, rewards)
+        super().__init__()
         self.iteration = self.gameorigins.iteration
         self.target_nos = self.gameorigins.target_nos
         self.selections = self.gameorigins.selections
 
     def game_report_list(self):
-        zipee = [self.iteration, self.target_nos, self.selections, self.codes,
-                 self.decisions, self.rewards]
-        return [GameReport(report) for report in zip(*zipee)]
+        zipee = [
+            [self.iteration] * h.GAMESIZE,
+            self.target_nos,
+            self.selections,
+            self.codes,
+            self.decisions,
+            self.rewards
+        ]
+        #print(f'{zipee=}')
+        return [GameReport(*report) for report in zip(*zipee)]
 
 
 class TupleSpecs:
@@ -191,7 +199,7 @@ class TupleSpecs:
         # print(f'{h.N_ITERATIONS=}')
         for iteration in range(h.N_ITERATIONS):
             self.random()
-            self.target_nos = h.n_rng.integers(h.N_SELECT, size=h.BATCHSIZE)
+            self.target_nos = h.n_rng.integers(h.N_SELECT, size=h.GAMESIZE)
             game_origins = GameOrigins(
                 iteration, self.target_nos, self.selections
             )
