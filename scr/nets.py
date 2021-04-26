@@ -57,18 +57,21 @@ class Nets:
     def __init__(self, tuple_specs: TupleSpecs):
         self.tuple_specs = tuple_specs
         self.alice = FFs(input_width=tuple_specs.n_elements,
-                         output_width=c.N_CODE, layers=2).to(c.DEVICE)
-        self.alice_optimizer = self.optimizer('ALICE')
+                         output_width=c.N_CODE, layers=h.ALICE_LAYERS,
+                         width=h.ALICE_WIDTH).to(
+            c.DEVICE)
+        self.alice_optimizer = self.optimizer('ALICE', 'alice')
         self.alice_loss_function = self.loss_function('ALICE')
         self.bob = FFs(input_width=h.N_SELECT * tuple_specs.n_elements +
                                    c.N_CODE,
-                       output_width=h.N_SELECT, layers=2).to(c.DEVICE)
+                       output_width=h.N_SELECT, layers=h.BOB_LAYERS,
+                         width=h.BOB_WIDTH).to(c.DEVICE)
         if h.BOB_OPTIMIZER == 'Same':
             bob_optimizer_label = 'ALICE'
         else:
             bob_optimizer_label = 'BOB'
         #print(f'{bob_optimizer_label=}')
-        self.bob_optimizer = self.optimizer(bob_optimizer_label)
+        self.bob_optimizer = self.optimizer(bob_optimizer_label, 'bob')
         if h.BOB_LOSS_FUNCTION == 'Same':
             bob_loss_function_label = 'ALICE'
         else:
@@ -80,16 +83,17 @@ class Nets:
                 h.EPSILON_MIN_POINT - h.EPSILON_ONE_END)
         self.size0 = None
 
-    def optimizer(self, net_label):
-        values = eval('h.' + net_label + '_OPTIMIZER')
-        #print(f'For {net_label}, {values=}')
+    def optimizer(self, h_label, parameter_label):
+        values = eval('h.' + h_label.upper() + '_OPTIMIZER')
+        #print(f'For {h_label}, {values=}')
         return eval(
             'torch.optim.' + values[0]
-            + '(self.alice.parameters(), **' + str(values[1]) + ')'
+            + '(self.' + parameter_label.lower() + '.parameters(), **' + str(
+                values[1]) + ')'
         )
 
-    def loss_function(self, net_label):
-        values = eval('h.' + net_label + '_LOSS_FUNCTION')
+    def loss_function(self, h_label):
+        values = eval('h.' + h_label.upper() + '_LOSS_FUNCTION')
         return eval(
             'torch.nn.' + values[0]
             + 'Loss(**' + str(values[1]) + ')'
@@ -104,60 +108,36 @@ class Nets:
         self.epsilon = self.epsilon_function(game_origins.iteration)
         targets = game_origins.selections[np.arange(self.size0),
                                           game_origins.target_nos]
-        #print(f'{targets.shape=}')
         targets = to_device_tensor(targets)
         alice_outputs = self.alice(targets)
-        ####alice_qs = torch.sum(torch.abs(alice_outputs), dim=1)
         greedy_codes = torch.sign(alice_outputs).detach()
         codes = self.alice_eps_greedy(greedy_codes)
-        ######
-        """print(f'{game_origins.selections.shape=}')
-        print(f'{targets.shape=}')
-        print(f'{codes.shape=}')
-        """
         selections = to_device_tensor(game_origins.selections).detach()
-        """print(f'{greedy_codes.size()=}')
-        print(f'{codes.size()=}')
-        print(f'{selections.size()=}')
-        """
         bob_input = torch.cat([
             selections.reshape((
                 h.GAMESIZE,
                 h.N_SELECT * self.tuple_specs.n_elements)),
             codes], 1
         )
-        #bob_input.requires_grad = True
-        #bob_input.retain_grad()
-        # print(f'{bob_input.shape=}')
         bob_q_estimates = self.bob(bob_input)
-        #bob_q_estimates.retain_grad()
         bob_q_estimates_argmax = torch.argmax(bob_q_estimates, dim=1).long()
-        #bob_q_estimates_argmax.requires_grad = True
-        #bob_q_estimates_argmax.retain_grad()
         # TODO What about the Warning at
         # https://pytorch.org/docs/stable/generated/torch.max.html?highlight
         # =max#torch.max ?  and see also torch.amax  Seems OK from testing.
         decision_nos = self.bob_eps_greedy(bob_q_estimates_argmax).detach()
-        #decision_nos.retain_grad()
         decisions = self.gatherer(selections, decision_nos, 'Decisions')
-        #print(f'{decisions=}')
-        #print(f'{decisions.size()=}')
-        #print(f'{decisions.size()=}')
-        ####decision_qs = self.gatherer(bob_q_estimates, decision_nos, 'Decision_Qs')
-        #decision_qs.retain_grad()
-        #print(f'{decision_qs.size()=}')
         rewards = self.tuple_specs.rewards(grounds=targets, guesses=decisions)
-        """print(f'{targets.size()=}')
-        print(f'{decision_qs.size()=}')
-        print(f'{rewards.size()=}')
-        """
         return GameReports(game_origins, codes, decisions, rewards)
         # Returns iteration target_nos selections decisions rewards
         # Don't return alice_qs decision_qs
 
-    def train(self, current_iteration: int, buffer: ReplayBuffer): #TODO train
+    def train(self, current_iteration, buffer):
         """
-        Backward passes
+        Calculating Q values on the current alice and bob nets.  Training
+        through backward pass
+        :param current_iteration: int
+        :param buffer: ReplayBuffer
+        :return (alice_loss.item(), bob_loss.item()): (float, float)
         """
         game_reports = buffer.sample()
         self.size0 = h.BATCHSIZE
@@ -185,10 +165,7 @@ class Nets:
                 h.N_SELECT * self.tuple_specs.n_elements)), codes], 1
         )
         bob_q_estimates = self.bob(bob_input)
-        # bob_q_estimates.retain_grad()
         bob_q_estimates_argmax = torch.argmax(bob_q_estimates, dim=1).long()
-        # bob_q_estimates_argmax.requires_grad = True
-        # bob_q_estimates_argmax.retain_grad()
         # TODO What about the Warning at
         # https://pytorch.org/docs/stable/generated/torch.max.html?highlight
         # =max#torch.max ?  and see also torch.amax  Seems OK from testing.
