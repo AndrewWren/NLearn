@@ -151,22 +151,6 @@ class Nets:
         print(f'{decision_qs.size()=}')
         print(f'{rewards.size()=}')
         """
-        if game_origins.iteration == 0:
-            pass
-            #print(f'{bob_input=}')
-            #print(f'{bob_q_estimates=}')
-        if (game_origins.iteration == 0) or (
-                game_origins.iteration % 10000 == 9999):
-            print(f'{game_origins.iteration=}')
-            #print(f'{bob_input.grad=}')
-            #print(f'{bob_q_estimates.grad=}')
-            #print(f'{bob_q_estimates=}')
-            print('Codes=')
-            [print(NiceCode(code)) for code in codes]
-            """print(f'{bob_q_estimates_argmax=}')
-            print(f'{decision_nos=}')
-            print(f'{decision_qs.grad=}')
-            """
         return GameReports(game_origins, codes, decisions, rewards)
         # Returns iteration target_nos selections decisions rewards
         # Don't return alice_qs decision_qs
@@ -223,6 +207,10 @@ class Nets:
              },
             global_step=current_iteration
         )
+        if (current_iteration == 0) or (current_iteration % 10000 == 0):
+            mlu.log('Codes=')
+            [mlu.log(NiceCode(code)) for code in codes]
+
         return alice_loss.item(), bob_loss.item()
 
     def alice_eps_greedy(self, greedy_codes):

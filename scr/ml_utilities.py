@@ -153,9 +153,15 @@ def save_log(entry: str):
         f.writelines(log_lines)
 
 
-def log(entry: str, backspaces: int = 0):
-    print('\b' * backspaces + entry)
-    save_log(entry)
+def log(entry, backspaces):
+    """
+
+    :param entry: str or ready to be turned into str by str built-in
+    :param backspaces: int, the number of backspaces to include when printing
+    :return:
+    """
+    print('\b' * backspaces + str(entry))
+    save_log(str(entry))
 
 
 def close_log():

@@ -192,7 +192,7 @@ class TupleSpecs:
 
     def iter(self):
         # print(f'{h.N_ITERATIONS=}')
-        for iteration in range(h.N_ITERATIONS):
+        for iteration in range(1, h.N_ITERATIONS + 1):
             self.random()
             self.target_nos = h.n_rng.integers(h.N_SELECT, size=h.GAMESIZE)
             game_origins = GameOrigins(
