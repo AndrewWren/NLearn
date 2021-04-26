@@ -4,21 +4,22 @@ import torch
 import scr.ml_utilities as mlu
 from scr.ml_utilities import c, h, rng_c
 from scr.nets import FFs, Nets
-from scr.tuple_and_code import Code, Domain, ElementSpec, TupleSpecs
+from scr.tuple_and_code import Code, Domain, ElementSpec, ReplayBuffer,\
+    TupleSpecs
 
 
 @mlu.over_hp
 def train_ab():
     tuple_spec = TupleSpecs()
     nets = Nets(tuple_spec)
-    buffer = list()
-    for game_origin in tuple_spec.iter():
-        if (iteration := game_origin.iteration) % 1000 == 0:
+    buffer = ReplayBuffer(h.BUFFER_CAPACITY)
+    for game_origins in tuple_spec.iter():
+        if (iteration := game_origins.iteration) % 1000 == 0:
             print('\b' * 20 + f'Iteration={iteration:>10}', end='')
-        game_report = nets.play(game_origin)
-        buffer.append(game_report)
+        game_reports = nets.play(game_origins)
+        buffer.append(game_reports)
     return [None], 0
-#target_tuple = current_tuples[target_no]
+#target_tuple = current_tuples[target_nos]
 
 
 def test_ar():

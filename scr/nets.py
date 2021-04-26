@@ -6,7 +6,7 @@ import scr.ml_utilities as mlu
 from scr.ml_utilities import c, h, rng_c, writer
 from scr.net_class import Net
 from scr.tuple_and_code import Code, Domain, ElementSpec, GameOrigins, \
-    GameReports, TupleSpecs
+    GameReports, ReplayBuffer, TupleSpecs
 
 
 def to_device_tensor(x):
@@ -58,7 +58,7 @@ class Nets:
         self.alice_loss_function = self.loss_function('ALICE')
         self.bob = FFs(input_width=h.N_SELECT * tuple_specs.n_elements +
                                    c.N_CODE,
-                       output_width=h.N_SELECT, layers=3).to(c.DEVICE)
+                       output_width=h.N_SELECT, layers=2).to(c.DEVICE)
         if h.BOB_OPTIMIZER == 'Same':
             bob_optimizer_label = 'ALICE'
         else:
@@ -90,20 +90,19 @@ class Nets:
             + 'Loss(**' + str(values[1]) + ')'
         )
 
-    def play(self, game_origins: GameOrigins):
+    @torch.no_grad()
+    def play(self, game_origins: GameOrigins) -> GameReports:
         """
-        """
-        """Forward passes
+        Forward passes
         """
         self.epsilon = self.epsilon_function(game_origins.iteration)
-        targets = game_origins.selections[np.arange(h.BATCHSIZE),
+        targets = game_origins.selections[np.arange(h.GAMESIZE),
                                           game_origins.target_nos]
         targets = to_device_tensor(targets)
         alice_outputs = self.alice(targets)
-        alice_qs = torch.sum(torch.abs(alice_outputs), dim=1)
+        ####alice_qs = torch.sum(torch.abs(alice_outputs), dim=1)
         greedy_codes = torch.sign(alice_outputs).detach()
         codes = self.alice_eps_greedy(greedy_codes)
-        print(f'{codes.size()=}')
         ######
         """print(f'{game_origins.selections.shape=}')
         print(f'{targets.shape=}')
@@ -112,15 +111,15 @@ class Nets:
         selections = to_device_tensor(game_origins.selections).detach()
         bob_input = torch.cat([
             selections.reshape((
-                h.BATCHSIZE,
+                h.GAMESIZE,
                 h.N_SELECT * self.tuple_specs.n_elements)),
             codes], 1
         )
-        bob_input.requires_grad = True
-        bob_input.retain_grad()
+        #bob_input.requires_grad = True
+        #bob_input.retain_grad()
         # print(f'{bob_input.shape=}')
         bob_q_estimates = self.bob(bob_input)
-        bob_q_estimates.retain_grad()
+        #bob_q_estimates.retain_grad()
         bob_q_estimates_argmax = torch.argmax(bob_q_estimates, dim=1).long()
         #bob_q_estimates_argmax.requires_grad = True
         #bob_q_estimates_argmax.retain_grad()
@@ -130,52 +129,83 @@ class Nets:
         decision_nos = self.bob_eps_greedy(bob_q_estimates_argmax).detach()
         #decision_nos.retain_grad()
         decisions = self.gatherer(selections, decision_nos, 'Decisions')
-        print(f'{decisions=}')
-        print(f'{decisions.size()=}')
+        #print(f'{decisions=}')
         #print(f'{decisions.size()=}')
-        decision_qs = self.gatherer(bob_q_estimates, decision_nos,
-                                    'Decision_Qs')
-        decision_qs.retain_grad()
+        #print(f'{decisions.size()=}')
+        ####decision_qs = self.gatherer(bob_q_estimates, decision_nos, 'Decision_Qs')
+        #decision_qs.retain_grad()
         #print(f'{decision_qs.size()=}')
         rewards = self.tuple_specs.rewards(grounds=targets, guesses=decisions)
         """print(f'{targets.size()=}')
         print(f'{decision_qs.size()=}')
         print(f'{rewards.size()=}')
         """
-        game_reports = GameReports(game_origins, decision_qs, rewards)
-        """Backward passes
-        """
-        alice_losses = self.alice_loss_function(alice_qs, rewards)
-        self.alice_optimizer.zero_grad()
-        alice_losses.backward()
-        self.alice_optimizer.step()
-        bob_losses = self.bob_loss_function(decision_qs, rewards)
-        self.bob_optimizer.zero_grad()
-        bob_losses.backward()
-
         if game_origins.iteration == 0:
             pass
             #print(f'{bob_input=}')
             #print(f'{bob_q_estimates=}')
         if (game_origins.iteration == 0) or (
-                game_origins.iteration % 100 == 99):
+                game_origins.iteration % 10000 == 9999):
             print(f'{game_origins.iteration=}')
             #print(f'{bob_input.grad=}')
             #print(f'{bob_q_estimates.grad=}')
             #print(f'{bob_q_estimates=}')
             print(f'{codes=}')
-            print(f'{bob_q_estimates_argmax=}')
+            """print(f'{bob_q_estimates_argmax=}')
             print(f'{decision_nos=}')
-            #print(f'{decision_qs.grad=}')
+            print(f'{decision_qs.grad=}')
+            """
+        return GameReports(game_origins, codes, decisions, rewards)
+        # Returns iteration target_nos selections decisions rewards
+        # Don't return alice_qs decision_qs
 
+    def train(self, current_iteration: int, buffer: ReplayBuffer): #TODO train
+        """
+        Backward passes
+        """
+        game_reports = buffer.sample()
+        self.epsilon = self.epsilon_function(current_iteration)
+        targets = game_reports.selections[np.arange(h.BATCHSIZE),
+                                          game_reports.target_nos]
+        targets = to_device_tensor(targets)
+        alice_outputs = self.alice(targets)
+        alice_qs = torch.sum(torch.abs(alice_outputs), dim=1)
+        alice_losses = self.alice_loss_function(alice_qs, game_reports.rewards)
+        #TODO Consider if should generate new codes????
+        #greedy_codes = torch.sign(alice_outputs).detach() #TODO or do this
+        # and next line after the back-optimization?
+        #codes = self.alice_eps_greedy(greedy_codes)
+        self.alice_optimizer.zero_grad()
+        alice_losses.backward()
+        self.alice_optimizer.step()
+        bob_input = torch.cat([
+            game_reports.selections.reshape((
+                h.BATCHSIZE,
+                h.N_SELECT * self.tuple_specs.n_elements)),
+            game_reports.codes], 1
+        )
+        bob_q_estimates = self.bob(bob_input)
+        # bob_q_estimates.retain_grad()
+        bob_q_estimates_argmax = torch.argmax(bob_q_estimates, dim=1).long()
+        # bob_q_estimates_argmax.requires_grad = True
+        # bob_q_estimates_argmax.retain_grad()
+        # TODO What about the Warning at
+        # https://pytorch.org/docs/stable/generated/torch.max.html?highlight
+        # =max#torch.max ?  and see also torch.amax  Seems OK from testing.
+        decision_nos = self.bob_eps_greedy(bob_q_estimates_argmax).detach()
+        decision_qs = self.gatherer(bob_q_estimates, decision_nos,
+                                    'Decision_Qs')
+        bob_losses = self.bob_loss_function(decision_qs, game_reports.rewards)
+        self.bob_optimizer.zero_grad()
+        bob_losses.backward()
         self.bob_optimizer.step()
         writer.add_scalars(
             'Sqrt losses',
             {'Alice sqrt loss': torch.sqrt(alice_losses),
              'Bob sqrt loss': torch.sqrt(bob_losses)},
-            global_step=game_origins.iteration
+            global_step=game_reports.iteration
         )
-        return game_reports
+        return None  #TODO What to return if anything?
 
     def alice_eps_greedy(self, greedy_codes):
         """
@@ -187,23 +217,23 @@ class Nets:
         indicator.uniform_()
         chooser = (indicator >= self.epsilon).long()
         #chooser = chooser.unsqueeze(-1).unsqueeze(-1).repeat(1, c.N_CODE, 2)
-        print(f'{chooser=}')
-        print(f'{chooser.size()=}')
+        #print(f'{chooser=}')
+        #print(f'{chooser.size()=}')
         random_codes = torch.empty(h.BATCHSIZE, c.N_CODE)
         random_codes.random_(to=2).long()
         random_codes = 2 * random_codes - 1
         for_choice = torch.stack((random_codes, greedy_codes), dim=1)
-        print(f'{greedy_codes.size()=}')
+        """print(f'{greedy_codes.size()=}')
         print(f'{random_codes=}')
         print(f'{for_choice.size()=}')
         print(f'{chooser.size()=}')
-        """print(f'{for_choice=}')
+        print(f'{for_choice=}')
         print(f'{chooser.shape=}')
         print(f'{for_choice.shape=}')
         """
         temp = self.gatherer(for_choice, chooser, 'Alice').long()
-        print(f'{temp=}')
-        print(f'{temp.size()=}')
+        #print(f'{temp=}')
+        #print(f'{temp.size()=}')
         return temp
 
     def bob_eps_greedy(self, greedy_indices):
@@ -254,7 +284,7 @@ class Nets:
     def gatherer(self, input, indices, context):
         #print(f'{input.size()=}')
         #print(f'{indices.size()=}')
-        print(f'{context=}: {input.size()=}, {indices.size()=}')
+        #print(f'{context=}: {input.size()=}, {indices.size()=}')
         if (context == 'Alice') or (context == 'Decisions'):
             indices = indices.unsqueeze(1).repeat(1,input.size()[2]
                                                   ).unsqueeze(1)

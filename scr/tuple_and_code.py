@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import deque, namedtuple
 from collections.abc import Callable
 import random
 import numpy as np
@@ -112,16 +112,28 @@ def transpose_tuple(a):
     return tuple(map(tuple, zip(*a)))
 
 
+GameOrigin = namedtuple('GameOrigin', 'iteration target_nos selections')
+
+
+GameReport = namedtuple('GameReport', 'iteration target_no selection code '
+                                      'decision reward')
+
+
 GameOrigins = namedtuple('GameOrigins', 'iteration target_nos selections')
 
 
-GameReports = namedtuple('GameReports', 'gameorigins decisions rewards')
+GameReports = namedtuple('GameReports', 'gameorigins codes decisions rewards')
 class GameReports(GameReports):
-    def __init__(self, gameorigins, decisions, rewards):
-        super().__init__()
+    def __init__(self, gameorigins, codes, decisions, rewards):
+        super().__init__(gameorigins, codes, decisions, rewards)
         self.iteration = self.gameorigins.iteration
-        self.target_no = self.gameorigins.target_nos
-        self.selection = self.gameorigins.selections
+        self.target_nos = self.gameorigins.target_nos
+        self.selections = self.gameorigins.selections
+
+    def game_report_list(self):
+        zipee = [self.iteration, self.target_nos, self.selections, self.codes,
+                 self.decisions, self.rewards]
+        return [GameReport(report) for report in zip(*zipee)]
 
 
 class TupleSpecs:
@@ -207,3 +219,19 @@ class TupleSpecs:
                                            self.factor)\
                               + self.offset).detach()
         return self.current_reward
+
+# From github.com/PacktPublishing/Deep-Reinforcement-Learning-Hands-On-Second-Edition/Chapter06/02_dqn_pong.py
+class ReplayBuffer:
+    def __init__(self, capacity):
+        self.buffer = deque(maxlen=capacity)
+
+    def __len__(self):
+        return len(self.buffer)
+
+    def append(self, game_reports):
+        self.buffer.extend(game_reports.game_report_list())
+
+    def sample(self):
+        indices = np.random.choice(len(self.buffer), h.BATCHSIZE,
+                                   replace=False)
+        return GameReports(*zip(*[self.buffer[idx] for idx in indices]))
