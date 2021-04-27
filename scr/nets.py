@@ -55,13 +55,6 @@ class FFs(Net):
         return self.ffs[-1](x)
 
 
-"""def argmax(ls):
-    # from https://towardsdatascience.com/there-is-no-argmax-function-for-python-list-cd0659b05e49
-    f = lambda i: ls[i]
-    return max(range(len(ls)), key=f)
-"""
-
-
 class Nets:
     def __init__(self, tuple_specs: TupleSpecs):
         self.tuple_specs = tuple_specs
@@ -79,7 +72,6 @@ class Nets:
             bob_optimizer_label = 'ALICE'
         else:
             bob_optimizer_label = 'BOB'
-        #print(f'{bob_optimizer_label=}')
         self.bob_optimizer = self.optimizer(bob_optimizer_label, 'bob')
         if h.BOB_LOSS_FUNCTION == 'Same':
             bob_loss_function_label = 'ALICE'
@@ -87,14 +79,12 @@ class Nets:
             bob_loss_function_label = 'BOB'
         self.bob_loss_function = self.loss_function(bob_loss_function_label)
         self.selections = tuple_specs.selections
-        # print(f'{self.selections=}')
         self.epsilon_slope = (1 - h.EPSILON_MIN) / (
                 h.EPSILON_MIN_POINT - h.EPSILON_ONE_END)
         self.size0 = None
 
     def optimizer(self, h_label, parameter_label):
         values = eval('h.' + h_label.upper() + '_OPTIMIZER')
-        #print(f'For {h_label}, {values=}')
         return eval(
             'torch.optim.' + values[0]
             + '(self.' + parameter_label.lower() + '.parameters(), **' + str(
@@ -203,30 +193,14 @@ class Nets:
         :return: torch.int64, size (h.GAMESIZE or h.BATCHSIZE respectively,
         c.N_CODE)
         """
-        #print(f'{greedy_codes.size()=}')
-        #print(f'{self.size0=}')
-        indicator = torch.empty(self.size0)
+        indicator = torch.empty(self.size0).to(c.DEVICE)
         indicator.uniform_()
         chooser = (indicator >= self.epsilon).long()
-        #chooser = chooser.unsqueeze(-1).unsqueeze(-1).repeat(1, c.N_CODE, 2)
-        #print(f'{chooser=}')
-        #print(f'{chooser.size()=}')
-        random_codes = torch.empty(self.size0, c.N_CODE)
+        random_codes = torch.empty(self.size0, c.N_CODE).to(c.DEVICE)
         random_codes.random_(to=2).long()
         random_codes = 2 * random_codes - 1
         for_choice = torch.stack((random_codes, greedy_codes), dim=1)
-        #print(f'{for_choice.size()=}')
-        """print(f'{greedy_codes.size()=}')
-        print(f'{random_codes=}')
-        print(f'{for_choice.size()=}')
-        print(f'{chooser.size()=}')
-        print(f'{for_choice=}')
-        print(f'{chooser.shape=}')
-        print(f'{for_choice.shape=}')
-        """
         temp = self.gatherer(for_choice, chooser, 'Alice').long()
-        #print(f'{temp=}')
-        #print(f'{temp.size()=}')
         return temp
 
     def bob_eps_greedy(self, greedy_indices):
@@ -236,28 +210,13 @@ class Nets:
         :param greedy_indices: torch.float32, size (h.GAMESIZE or h.BATCHSIZE)
         :return: torch.int64, size (h.GAMESIZE or h.BATCHSIZE respectively)
         """
-        indicator = torch.empty(self.size0)
+        indicator = torch.empty(self.size0).to(c.DEVICE)
         indicator.uniform_()
-        #print(f'{indicator=}')
         chooser = (indicator >= self.epsilon).long()
-        #print(f'{chooser=}')
-        random_indices = torch.empty(self.size0)
-        random_indices.random_(h.N_SELECT).long()
+        random_indices = torch.empty(self.size0).to(c.DEVICE)
+        random_indices.random_(to=h.N_SELECT).long()
         for_choice = torch.dstack((random_indices, greedy_indices))[0]
-        """print(f'{for_choice=}')
-        print(f'{chooser.shape=}')
-        print(f'{for_choice.shape=}')
-        """
         return for_choice[list(range(self.size0)), chooser].long()
-
-    """def train(self, batch: list[GameReports]):
-        training_return = exec('self.train_with_' + c.TRAINING_METHOD + '('
-                                                                        'batch)')
-        return training_return
-
-    def train_with_q(self, batch: list[GameReports]):
-        batch = batch.to(c.DEVICE)
-    """
 
     def epsilon_function(self, iteration):
         """
@@ -266,16 +225,15 @@ class Nets:
         :return: torch.float32, size = (h.BATCHSIZE)
         """
         if iteration >= h.EPSILON_MIN_POINT:
-            single_epsilon = h.EPSILON_MIN * torch.ones(1)
+            single_epsilon = h.EPSILON_MIN * torch.ones(1).to(c.DEVICE)
         else:
             single_epsilon = torch.FloatTensor([
                 1.
                 - max(iteration - h.EPSILON_ONE_END, 0) * self.epsilon_slope
-            ])
+            ]).to(c.DEVICE)
         return single_epsilon.repeat(self.size0)
 
     def gatherer(self, input, indices, context):
-        #print(f'{context=}: {input.size()=}, {indices.size()=}')
         if (context == 'Alice') or (context == 'Decisions'):
             indices = indices.unsqueeze(1).repeat(1,input.size()[2]
                                                   ).unsqueeze(1)

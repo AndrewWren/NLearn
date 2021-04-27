@@ -136,7 +136,6 @@ class GameReports(GameReports):
             self.decision_nos,
             self.rewards
         ]
-        #print(f'{zipee=}')
         return [GameReport(*report) for report in zip(*zipee)]
 
 
@@ -168,7 +167,6 @@ class TupleSpecs:
         wrong = torch.FloatTensor([spec.wrong for spec in self.specs]).to(
             c.DEVICE)
         self.factor = right - wrong
-        #print(f'Immediate {self.factor.size()=}')
         self.offset = (torch.sum(wrong)).repeat(h.BATCHSIZE)
         
         self.n_iterations = h.N_ITERATIONS
@@ -188,11 +186,9 @@ class TupleSpecs:
         # this a 2D rather than a 3D array to avoid later reshaping.
         # Means picking the target state requires a tiny bit of arithmetic.
         self.selections = selections
-        #print(f'{self.selections.shape=}')
         return self.selections
 
     def iter(self):
-        # print(f'{h.N_ITERATIONS=}')
         for iteration in range(1, h.N_ITERATIONS + 1):
             self.random()
             self.target_nos = h.n_rng.integers(h.N_SELECT, size=h.GAMESIZE)
@@ -209,15 +205,6 @@ class TupleSpecs:
         :param grounds: torch.float32, size = (h.batchsize, self.n_elements)
         :param guesses: torch.float32, size = (h.batchsize, self.n_elements)
         :return: torch.float32, size = (h.batchsize, )
-        """
-        """print(f'{grounds.size()=}')
-        print(f'{guesses.size()=}')
-        print(f'{self.offset.size()=}')
-        print(f'{(grounds == guesses).float()=}')
-        """
-        """print(f'{self.factor.size()=}')
-        print(f'{grounds.size()=}')
-        print(f'{guesses.size()=}')
         """
         self.current_reward = (torch.matmul((grounds == guesses).float(),
                                            self.factor)\
