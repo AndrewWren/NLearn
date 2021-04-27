@@ -58,16 +58,22 @@ class FFs(Net):
 class Nets:
     def __init__(self, tuple_specs: TupleSpecs):
         self.tuple_specs = tuple_specs
-        self.alice = FFs(input_width=tuple_specs.n_elements,
-                         output_width=c.N_CODE, layers=h.ALICE_LAYERS,
-                         width=h.ALICE_WIDTH).to(
-            c.DEVICE)
+        self.set_output_widths()
+        self.alice = FFs(
+            input_width=tuple_specs.n_elements,
+            output_width=self.alice_output_width,
+            layers=h.ALICE_LAYERS,
+            width=h.ALICE_WIDTH
+        ).to(c.DEVICE)
         self.alice_optimizer = self.optimizer('ALICE', 'alice')
         self.alice_loss_function = self.loss_function('ALICE')
-        self.bob = FFs(input_width=h.N_SELECT * tuple_specs.n_elements +
+        self.bob = FFs(
+            input_width=h.N_SELECT * tuple_specs.n_elements +
                                    c.N_CODE,
-                       output_width=h.N_SELECT, layers=h.BOB_LAYERS,
-                       width=h.BOB_WIDTH).to(c.DEVICE)
+            output_width=self.bob_output_width,
+            layers=h.BOB_LAYERS,
+            width=h.BOB_WIDTH
+        ).to(c.DEVICE)
         if h.BOB_OPTIMIZER == 'Same':
             bob_optimizer_label = 'ALICE'
         else:
@@ -139,13 +145,6 @@ class Nets:
         alice_loss = self.alice_train(
             targets, to_device_tensor(game_reports.rewards)
         )
-        """        alice_outputs = self.alice(targets)
-        alice_qs = torch.sum(torch.abs(alice_outputs), dim=1)
-        alice_loss = self.alice_loss_function(alice_qs,
-                                              to_device_tensor(
-                                                  game_reports.rewards))
-
-        """
         self.alice_optimizer.zero_grad()
         alice_loss.backward()
         self.alice_optimizer.step()
@@ -185,7 +184,8 @@ class Nets:
         indicator = torch.empty(self.size0).to(c.DEVICE)
         indicator.uniform_()
         chooser = (indicator >= self.epsilon).long()
-        random_codes = torch.empty(self.size0, c.N_CODE).to(c.DEVICE)
+        random_codes = torch.empty(self.size0, self.alice_output_width).to(
+            c.DEVICE)
         random_codes.random_(to=2).long()
         random_codes = 2 * random_codes - 1
         for_choice = torch.stack((random_codes, greedy_codes), dim=1)
@@ -238,12 +238,31 @@ class Nets:
     def set_size0(self, size0: int):
         self.size0 = size0
 
+    def set_output_widths(self):
+        if h.ALICE_STRATEGY == 'one_per_bit':
+            self.alice_output_width = c.N_CODE
+        if h.BOB_STRATEGY == 'one_per_bit':
+            self.bob_output_width = h.N_SELECT
+
     def alice_play(self, targets):
+        """
+
+        :param targets:
+        :return greedy_codes: tensor, size=(h.GAMESIZE, c.N_CODE)
+        """
         return eval(f'self.alice_play_{h.ALICE_STRATEGY}(targets)')
 
     def alice_play_one_per_bit(self, targets):
         alice_outputs = self.alice(targets)
         return torch.sign(alice_outputs)
+
+    def alice_play_one_per_code(self, targets):
+        alice_outputs = self.alice(targets)
+        code_nos = torch.argmax(alice_outputs, dim=1)
+        # https://stackoverflow.com/questions/55918468/convert-integer-to-pytorch-tensor-of-binary-bits#63546308
+        mask = 2 ** torch.arange(N_CODE - 1, -1, -1).to("cuda")
+        return 2 * alice_outputs.unsqueeze(-1).bitwise_and(mask).ne(
+            0).float() - 1
 
     def bob_play(self, selections, codes):
         return eval(f'self.bob_play_{h.BOB_STRATEGY}('
@@ -268,7 +287,15 @@ class Nets:
 
     def alice_train_one_per_bit(self, targets, rewards):
         alice_outputs = self.alice(targets)
-        alice_qs = torch.sum(torch.abs(alice_outputs), dim=1)
+        alice_qs = torch.sum(torch.abs(alice_outputs), dim=1) #NOT SURE THIS
+        # IS RIGHT
+        alice_loss = self.alice_loss_function(alice_qs, rewards)
+        return alice_loss
+
+    def alice_train_one_per_code(self, targets, rewards):
+        alice_outputs = self.alice(targets)
+        alice_qs = torch.max(alice_outputs, dim=1)
+        #### GOT TO HERE.  NOT SURE RIGHT YET
         alice_loss = self.alice_loss_function(alice_qs, rewards)
         return alice_loss
 
@@ -287,3 +314,5 @@ class Nets:
         decision_qs = self.gatherer(bob_q_estimates, decision_nos,
                                     'Decision_Qs')
         return self.bob_loss_function(decision_qs, rewards)
+
+

@@ -19,7 +19,7 @@ hyperparameters = {
     'EPSILON_MIN_POINT': 350000,
     'ALICE_STRATEGY': 'one_per_bit',
     'BOB_STRATEGY': 'one_per_bit',
-    'ALICE_OPTIMIZER': ('SGD', '{"lr": 0.01}'),
+    'ALICE_OPTIMIZER': ('Adam', '{"lr": 0.01}'),
     'BOB_OPTIMIZER': 'Same',
     'ALICE_LOSS_FUNCTION': ('MSE', {}),
     'BOB_LOSS_FUNCTION': 'Same'
