@@ -1,4 +1,4 @@
-from collections import  namedtuple
+from collections import namedtuple
 import random
 import numpy as np
 import torch
@@ -67,7 +67,7 @@ class Nets:
         self.bob = FFs(input_width=h.N_SELECT * tuple_specs.n_elements +
                                    c.N_CODE,
                        output_width=h.N_SELECT, layers=h.BOB_LAYERS,
-                         width=h.BOB_WIDTH).to(c.DEVICE)
+                       width=h.BOB_WIDTH).to(c.DEVICE)
         if h.BOB_OPTIMIZER == 'Same':
             bob_optimizer_label = 'ALICE'
         else:
@@ -108,26 +108,15 @@ class Nets:
         targets = game_origins.selections[np.arange(self.size0),
                                           game_origins.target_nos]
         targets = to_device_tensor(targets)
-        alice_outputs = self.alice(targets)
-        greedy_codes = torch.sign(alice_outputs)
+        greedy_codes = self.alice_play(targets)
         codes = self.alice_eps_greedy(greedy_codes)
         selections = to_device_tensor(game_origins.selections)
-        bob_input = torch.cat([
-            selections.reshape((
-                h.GAMESIZE,
-                h.N_SELECT * self.tuple_specs.n_elements)),
-            codes], 1
-        )
-        bob_q_estimates = self.bob(bob_input)
-        bob_q_estimates_argmax = torch.argmax(bob_q_estimates, dim=1).long()
-        # TODO What about the Warning at
-        # https://pytorch.org/docs/stable/generated/torch.max.html?highlight
-        # =max#torch.max ?  and see also torch.amax  Seems OK from testing.
-        decision_nos = self.bob_eps_greedy(bob_q_estimates_argmax).detach()
+        bob_q_estimates_argmax = self.bob_play(selections, codes)
+        decision_nos = self.bob_eps_greedy(bob_q_estimates_argmax)
         decisions = self.gatherer(selections, decision_nos, 'Decisions')
         rewards = self.tuple_specs.rewards(grounds=targets, guesses=decisions)
         return GameReports(game_origins, to_array(codes),
-                           to_array(decision_nos),to_array(rewards))
+                           to_array(decision_nos), to_array(rewards))
         # Returns iteration target_nos selections decisions rewards
         # Don't return alice_qs decision_qs
 
@@ -142,36 +131,29 @@ class Nets:
         game_reports = buffer.sample()
         self.size0 = h.BATCHSIZE
         self.epsilon = self.epsilon_function(current_iteration)
+
         # Alice
         targets = game_reports.selections[np.arange(self.size0),
                                           game_reports.target_nos]
         targets = to_device_tensor(targets)
-        alice_outputs = self.alice(targets)
-        alice_qs = torch.sum(torch.abs(alice_outputs), dim=1)
-        alice_loss = self.alice_loss_function(alice_qs,
-                                              to_device_tensor(
-                                                  game_reports.rewards))
+        alice_loss = self.alice_train(
+            targets, to_device_tensor(game_reports.rewards)
+        )
         self.alice_optimizer.zero_grad()
         alice_loss.backward()
         self.alice_optimizer.step()
+
         # Bob
         selections = to_device_tensor(game_reports.selections)
         codes = to_device_tensor(game_reports.codes)
-        bob_input = torch.cat([
-            selections.reshape((
-                h.BATCHSIZE,
-                h.N_SELECT * self.tuple_specs.n_elements)), codes], 1
-        )
-        bob_q_estimates = self.bob(bob_input)
         decision_nos = to_device_tensor(game_reports.decision_nos).long()
-        decision_qs = self.gatherer(bob_q_estimates, decision_nos,
-                                    'Decision_Qs')
         rewards = to_device_tensor(game_reports.rewards)
-        rewards.retain_grad = True
-        bob_loss = self.bob_loss_function(decision_qs, rewards)
+        bob_loss = self.bob_train(selections, codes, decision_nos, rewards)
         self.bob_optimizer.zero_grad()
         bob_loss.backward()
         self.bob_optimizer.step()
+
+        #logging of various sorts
         writer.add_scalars(
             'Sqrt losses',
             {f'Alice sqrt loss_{h.hp_run}': torch.sqrt(alice_loss),
@@ -235,7 +217,7 @@ class Nets:
 
     def gatherer(self, input, indices, context):
         if (context == 'Alice') or (context == 'Decisions'):
-            indices = indices.unsqueeze(1).repeat(1,input.size()[2]
+            indices = indices.unsqueeze(1).repeat(1, input.size()[2]
                                                   ).unsqueeze(1)
         elif context == 'Decision_Qs':
             indices = indices.unsqueeze(1)
@@ -248,3 +230,53 @@ class Nets:
 
     def set_size0(self, size0: int):
         self.size0 = size0
+
+    def alice_play(self, targets):
+        return eval(f'self.alice_play_{h.ALICE_STRATEGY}(targets)')
+
+    def alice_play_one_per_bit(self, targets):
+        alice_outputs = self.alice(targets)
+        return torch.sign(alice_outputs)
+
+    def bob_play(self, selections, codes):
+        return eval(f'self.bob_play_{h.BOB_STRATEGY}('
+                    f'selections, codes)')
+
+    def bob_play_one_per_bit(self, selections, codes):
+        bob_input = torch.cat([
+                    selections.reshape((
+                        h.GAMESIZE,
+                        h.N_SELECT * self.tuple_specs.n_elements)),
+                    codes], 1
+                )
+        bob_q_estimates = self.bob(bob_input)
+        return torch.argmax(bob_q_estimates, dim=1).long()
+        # TODO What about the Warning at
+        # https://pytorch.org/docs/stable/generated/torch.max.html?highlight
+        # =max#torch.max ?  and see also torch.amax  Seems OK from testing.
+
+    def alice_train(self, targets, rewards):
+        return eval(
+            f'self.alice_train_{h.ALICE_STRATEGY}(targets, rewards)')
+
+    def alice_train_one_per_bit(self, targets, rewards):
+        alice_outputs = self.alice(targets)
+        alice_qs = torch.sum(torch.abs(alice_outputs), dim=1)
+        alice_loss = self.alice_loss_function(alice_qs, rewards)
+        return alice_loss
+
+    def bob_train(self, selections, codes, decision_nos, rewards):
+        return eval(
+            f'self.bob_train_{h.BOB_STRATEGY}(selections, codes, decision_nos,'
+            f' rewards)')
+
+    def bob_train_one_per_bit(self, selections, codes, decision_nos, rewards):
+        bob_input = torch.cat([
+            selections.reshape((
+                h.BATCHSIZE,
+                h.N_SELECT * self.tuple_specs.n_elements)), codes], 1
+        )
+        bob_q_estimates = self.bob(bob_input)
+        decision_qs = self.gatherer(bob_q_estimates, decision_nos,
+                                    'Decision_Qs')
+        return self.bob_loss_function(decision_qs, rewards)

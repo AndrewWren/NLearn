@@ -12,11 +12,13 @@ hyperparameters = {
     'BATCHSIZE': 32,
     'GAMESIZE': 1,  #1
     'BUFFER_CAPACITY': 20000,
-    'START_TRAINING': 20000,
+    'START_TRAINING': 2000,  #20000
     'N_SELECT': 10,
     'EPSILON_ONE_END': 100000,
     'EPSILON_MIN': 0.01,
     'EPSILON_MIN_POINT': 350000,
+    'ALICE_STRATEGY': 'one_per_bit',
+    'BOB_STRATEGY': 'one_per_bit',
     'ALICE_OPTIMIZER': [('SGD', '{"lr": 0.1}'), ('SGD', '{"lr": 0.01}')],
     'BOB_OPTIMIZER': 'Same',
     'ALICE_LOSS_FUNCTION': ('MSE', {}),
