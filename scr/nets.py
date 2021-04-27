@@ -139,6 +139,13 @@ class Nets:
         alice_loss = self.alice_train(
             targets, to_device_tensor(game_reports.rewards)
         )
+        """        alice_outputs = self.alice(targets)
+        alice_qs = torch.sum(torch.abs(alice_outputs), dim=1)
+        alice_loss = self.alice_loss_function(alice_qs,
+                                              to_device_tensor(
+                                                  game_reports.rewards))
+
+        """
         self.alice_optimizer.zero_grad()
         alice_loss.backward()
         self.alice_optimizer.step()
