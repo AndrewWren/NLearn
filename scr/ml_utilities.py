@@ -28,6 +28,7 @@ except:
     rng_c = None
 STD_NOW = datetime.datetime.now(tz=tzlocal()).strftime("%y-%m-%d_%H:%M:%S%Z")
 log_lines = ['****WARNING NOT CLOSED - MAY BE DUE TO ERROR***\n'] * 2
+writer = SummaryWriter()
 
 
 # See https://exceptionshub.com/how-to-get-filename-of-the-__main__-module-in-python.html
@@ -165,6 +166,7 @@ def log(entry, backspaces=0):
 
 def close_log():
     global log_lines
+    writer.close()
     log_lines = [f'The closed log for run {STD_NOW}\n\n'] \
                 + log_lines[1: -1] \
                 + [f'\nEnd closed log for run {STD_NOW}\n']
@@ -298,7 +300,6 @@ def over_hp(func):
         over_hp_start = perf_counter()
         results = list()
         for hp_run, bundle in enumerate(product(*values), 1):
-            writer = SummaryWriter()
             log('\n')
             time_elapsed = perf_counter() - over_hp_start
             log_intro_hp_run(n_h, hp_run, time_elapsed)
@@ -319,14 +320,13 @@ def over_hp(func):
                    torch_seed)
             except:
                 exit('Error setting or seeding torch Generator')
-            h['hp_run'] = hp_run  # Needed to name saved models
+            h['hp_run'] = hp_run  # Needed for TensorBoard and saved models
             best_of_this_hp_run, idx = func(*args, **kwargs)
             del h['hp_run']
             result = best_of_this_hp_run[idx]
             results.append(result)
             if (best_so_far == best_so_far_initial) or (result < best_so_far[0]):
                 best_so_far = (result, hp_run, h.copy(), best_of_this_hp_run)
-            writer.close()
         time_elapsed = perf_counter() - over_hp_start
         log_end_run(n_h, last_key, time_elapsed, results, best_so_far)
         for key in keys:

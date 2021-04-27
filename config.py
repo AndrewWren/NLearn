@@ -2,7 +2,7 @@ import torch
 
 
 hyperparameters = {
-    'N_ITERATIONS': 500000,  # 100000,
+    'N_ITERATIONS': 500000,
     'RANDOM_SEED': 42,
     'TORCH_RANDOM_SEED': 4242,
     'ALICE_LAYERS': 3,
@@ -11,14 +11,14 @@ hyperparameters = {
     'BOB_WIDTH': 100,
     'BATCHSIZE': 32,
     'GAMESIZE': 1,  #1
-    'BUFFER_CAPACITY': 10000,
-    'START_TRAINING': 10000,
+    'BUFFER_CAPACITY': 20000,
+    'START_TRAINING': 20000,
     'N_SELECT': 10,
-    'EPSILON_ONE_END': 20000,  # 1000
+    'EPSILON_ONE_END': 100000,
     'EPSILON_MIN': 0.01,
     'EPSILON_MIN_POINT': 350000,
-    'ALICE_OPTIMIZER': ('SGD', '{"lr": 0.1}'),
-    'BOB_OPTIMIZER': ('SGD', '{"lr": 0.3}'),
+    'ALICE_OPTIMIZER': [('SGD', '{"lr": 0.1}'), ('SGD', '{"lr": 0.01}')],
+    'BOB_OPTIMIZER': 'Same',
     'ALICE_LOSS_FUNCTION': ('MSE', {}),
     'BOB_LOSS_FUNCTION': 'Same'
 }

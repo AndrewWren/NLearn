@@ -112,13 +112,14 @@ GameOrigin = namedtuple('GameOrigin', 'iteration target_nos selections')
 
 
 GameReport = namedtuple('GameReport', 'iteration target_no selection code '
-                                      'decision reward')
+                                      'decision_no reward')
 
 
 GameOrigins = namedtuple('GameOrigins', 'iteration target_nos selections')
 
 
-GameReports = namedtuple('GameReports', 'gameorigins codes decisions rewards')
+GameReports = namedtuple('GameReports', 'gameorigins codes decision_nos '
+                                        'rewards')
 class GameReports(GameReports):
     def __init__(self, gameorigins, codes, decisions, rewards):
         super().__init__()
@@ -132,7 +133,7 @@ class GameReports(GameReports):
             self.target_nos,
             self.selections,
             self.codes,
-            self.decisions,
+            self.decision_nos,
             self.rewards
         ]
         #print(f'{zipee=}')
@@ -244,8 +245,8 @@ class ReplayBuffer:
         target_nos = np.array(target_nos)
         selections = np.stack(selections)
         game_origins = GameOrigins(iteration, target_nos, selections)
-        codes, decisions, rewards = game_reports_list[3: ]
+        codes, decision_nos, rewards = game_reports_list[3: ]
         codes = np.vstack(codes)
-        decisions = np.vstack(decisions)
+        decision_nos = np.array(decision_nos)
         rewards = np.array(rewards)
-        return GameReports(game_origins, codes, decisions, rewards)
+        return GameReports(game_origins, codes, decision_nos, rewards)
