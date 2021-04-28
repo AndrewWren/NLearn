@@ -185,7 +185,7 @@ class Nets:
         indicator = torch.empty(self.size0).to(c.DEVICE)
         indicator.uniform_()
         chooser = (indicator >= self.epsilon).long()
-        random_codes = torch.empty(self.size0, self.alice_output_width).to(
+        random_codes = torch.empty(self.size0, c.N_CODE).to(
             c.DEVICE)
         random_codes.random_(to=2).long()
         random_codes = 2 * random_codes - 1
@@ -242,6 +242,8 @@ class Nets:
     def set_output_widths(self):
         if h.ALICE_STRATEGY == 'one_per_bit':
             self.alice_output_width = c.N_CODE
+        elif h.ALICE_STRATEGY == 'one_per_code':
+            self.alice_output_width = 2 ** c.N_CODE
         if h.BOB_STRATEGY == 'one_per_bit':
             self.bob_output_width = h.N_SELECT
 
@@ -259,10 +261,10 @@ class Nets:
 
     def alice_play_one_per_code(self, targets):
         alice_outputs = self.alice(targets)
-        code_nos = torch.argmax(alice_outputs, dim=1)
+        code_nos = torch.argmax(alice_outputs, dim=1).long()
         # https://stackoverflow.com/questions/55918468/convert-integer-to-pytorch-tensor-of-binary-bits#63546308
-        mask = 2 ** torch.arange(N_CODE - 1, -1, -1).to("cuda")
-        return 2 * alice_outputs.unsqueeze(-1).bitwise_and(mask).ne(
+        mask = 2 ** torch.arange(c.N_CODE - 1, -1, -1).to(c.DEVICE)
+        return 2 * code_nos.unsqueeze(-1).bitwise_and(mask).ne(
             0).float() - 1
 
     def bob_play(self, selections, codes):
@@ -294,11 +296,10 @@ class Nets:
 
     def alice_train_one_per_code(self, targets, rewards, codes):
         alice_outputs = self.alice(targets)
-        alice_qs = torch.max(alice_outputs, dim=1)
-        #### GOT TO HERE.  NOT SURE RIGHT YET
-        """mask = 2 ** torch.arange(bits - 1, -1, -1).to(b.device, b.dtype)
-        return torch.sum(mask * b, -1)
-        """
+        # https://stackoverflow.com/questions/55918468/convert-integer-to-pytorch-tensor-of-binary-bits#63546308
+        mask = 2 ** torch.arange(c.N_CODE - 1, -1, -1).to(c.DEVICE)
+        codes_nos = torch.sum(mask * codes, -1).long()
+        alice_qs = alice_outputs[torch.arange(self.size0), codes_nos]
         alice_loss = self.alice_loss_function(alice_qs, rewards)
         return alice_loss
 

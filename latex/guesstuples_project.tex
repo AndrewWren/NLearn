@@ -19,7 +19,7 @@
 
 \subsection{Alice}
 
-The input array to guess is $\vec{x}=(x_j)_{j=0,...,N_\text{elements}}.$  There should be $N_\text{code}$ outputs taking values $\vec{y} = (y_j)_{j=0,...,N_\text{code}}.$
+{\bf One per bit.} The input array to guess is $\vec{x}=(x_j)_{j=0,...,N_\text{elements}}.$  There should be $N_\text{code}$ outputs taking values $\vec{y} = (y_j)_{j=0,...,N_\text{code}}.$
 
 Normalise all the rewards so that for each bit $j,$ $\rt{j} + \left(N_\text{code} - 1\right)\rf{j} = 0.$  In other words
 \begin{equation}
@@ -56,7 +56,7 @@ Alternative approaches include:
 	
 	\item Combine the rewards from the bits (with either one or two outputs per bit) by something other than addition - e.g. multiplication or via an NN. {\em The NN option seems quite interesting.  Interesting to use \verb|pytorch|'s gradients for that.}
 	
-	\item One outputs for each possible code. {\em Might work but $2^{N_\text{code}}$ is quite large... not impossibly so if $N_\text{code}=10.$}
+	\item {\bf One per code.} One output for each possible code. {\em Might work but $2^{N_\text{code}}$ is quite large... not impossibly so if $N_\text{code}=8.$}
 	
 	\item Inspired by \rcite{he2015deep}, feed $\x$ into Alice's 'first' net, to get output $\y,$ and all possible codes $\c$ into her 'second' net, both net's having the same target dimensionality (a hyperparameter).  Then the code to use is the one $\c(\x)$ closest to the output of the first net, with the $Q$ being given by the inner product $Q = \left\langle \y, \c(\x) \right\rangle.$  \rcite{dulac2015deep} might provide an alternative, actor--critic, approach on a similar theme.  The main case above is, in effect, an embedding of $\x$ into the target space (of dimensionality $N_\text{code}$) which then compares with the natural embedding of $\c$ by, in effect, the inner product.
 	
@@ -74,7 +74,7 @@ Alternative approaches include:
 
 \subsection{Bob}
 
-Bob receives a matrix, $\mat{X} = (\vec{X}_{i}) = (X_{ij})$ for $0\leq i < N_\text{select},\ 0\leq j < N_\text{elements},$ and a code $\vec{c}=(c_k)_{k=0,...,N_\text{code}}.$  Why not makes his outputs be $Q$-estimates $\vec{z} = (z_i)_{i=0,...,N_\text{select}}.$ Bob's prediction is then
+{\bf One per bit} aka {\bf Simple.}  Bob receives a matrix, $\mat{X} = (\vec{X}_{i}) = (X_{ij})$ for $0\leq i < N_\text{select},\ 0\leq j < N_\text{elements},$ and a code $\vec{c}=(c_k)_{k=0,...,N_\text{code}}.$  Why not makes his outputs be $Q$-estimates $\vec{z} = (z_i)_{i=0,...,N_\text{select}}.$ Bob's prediction is then
 $
 	\vec{x}_\text{pred}
 =
@@ -105,7 +105,7 @@ How do we enforce covariance with respect to the order of $(\vec{X}_{i})$?
 	for some fixed hyperparameter $\mu > 0.$  Note this the term is still run backward through the original $\vec{x}\mapsto\vec{z}$ net configuration only.  {\em How effective would that be?  How big does $\left\lbrace \sigma \right\rbrace$ have to be? And how much time would the permutation and the additions forward passes cost?}
 	\item Enforce covariance via direct identification of weights in Bob's net.  {\em How?}
 	\item Something related to set transformers. {\em ?}
-	\item Adopt a different basic set--up where each $(X_i)$ is fed through the net separately, alongside the code $\vec{c},$ resulting in a $Q$-estimate $\vec{z}_i.$  Then find the loss function as in \eref{eq:Bob_loss_fn}.  {\em Seems the most straightforward?} {\bf Adopt this for now.}
+	\item Adopt a different basic set--up where each $(X_i)$ is fed through the net separately, alongside the code $\vec{c},$ resulting in a $Q$-estimate $\vec{z}_i.$  Then find the loss function as in \eref{eq:Bob_loss_fn}.  {\em Seems the most straightforward?}
 \end{enumerate}
 None of these quite amount to Bob seeks to reproduce the Alice's code vocabulary.  However Bob could additionally set up a net in the same basic configuration as Alice's (he doesn't know the weights of course) and train {\em that} net jointly with his main net.
 
@@ -114,7 +114,7 @@ None of these quite amount to Bob seeks to reproduce the Alice's code vocabulary
 
 \subsection{Original strategies}
 
-\fref{fig:fig-oneperbitsqrtlosses} is representative of the better results for the original strategies --- in other words, not very good.\footnote{The plot is taken from TensorBoard which gives an \texttt{.svg} file, then converted to \texttt{.pdf} by \texttt{rsvg-convert -f pdf -o <{\em fig-file-name}>.pdf "Sqrt losses.svg"}.}  Increasing from \verb|h.GAMESIZE = 1| to \verb|h.GAMESIZE = 32| gives no better results.
+\fref{fig:fig-oneperbitsqrtlosses} is representative of the better results for the original strategies, {\bf one per bit} --- in other words, not very good.\footnote{The plot is taken from TensorBoard which gives an \texttt{.svg} file, then converted to \texttt{.pdf} by \texttt{rsvg-convert -f pdf -o <{\em fig-file-name}>.pdf "Sqrt losses.svg"}.}  Increasing from \verb|h.GAMESIZE = 1| to \verb|h.GAMESIZE = 32| gives no better results.
 \begin{figure}
 	\centering
 	\includegraphics[width=0.7\linewidth]{fig-one_per_bit_sqrt_losses}
