@@ -2,7 +2,7 @@ import torch
 
 
 hyperparameters = {
-    'N_ITERATIONS': 500000,
+    'N_ITERATIONS': 250000,
     'RANDOM_SEED': 42,
     'TORCH_RANDOM_SEED': 4242,
     'ALICE_LAYERS': 3,

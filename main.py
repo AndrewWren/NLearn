@@ -22,7 +22,7 @@ def train_ab():
         if iteration < h.START_TRAINING:
             continue
         alice_loss, bob_loss = nets.train(iteration, buffer)
-        if (alice_loss.item == np.nan) or (bob_loss == np.nan):
+        if (alice_loss == np.nan) or (bob_loss == np.nan):
             return [np.nan], 0
         if bob_loss < best_bob_loss.bob_loss:
             best_bob_loss = LossInfo(bob_loss, iteration, alice_loss)
