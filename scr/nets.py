@@ -141,9 +141,10 @@ class Nets:
         # Alice
         targets = game_reports.selections[np.arange(self.size0),
                                           game_reports.target_nos]
-        targets = to_device_tensor(targets)
         alice_loss = self.alice_train(
-            targets, to_device_tensor(game_reports.rewards)
+            to_device_tensor(targets),
+            to_device_tensor(game_reports.rewards),
+            to_device_tensor(game_reports.codes)
         )
         self.alice_optimizer.zero_grad()
         alice_loss.backward()
@@ -281,21 +282,23 @@ class Nets:
         # https://pytorch.org/docs/stable/generated/torch.max.html?highlight
         # =max#torch.max ?  and see also torch.amax  Seems OK from testing.
 
-    def alice_train(self, targets, rewards):
+    def alice_train(self, targets, rewards, codes):
         return eval(
-            f'self.alice_train_{h.ALICE_STRATEGY}(targets, rewards)')
+            f'self.alice_train_{h.ALICE_STRATEGY}(targets, rewards, codes)')
 
-    def alice_train_one_per_bit(self, targets, rewards):
+    def alice_train_one_per_bit(self, targets, rewards, codes):
         alice_outputs = self.alice(targets)
-        alice_qs = torch.sum(torch.abs(alice_outputs), dim=1) #NOT SURE THIS
-        # IS RIGHT
+        alice_qs = torch.einsum('ij, ij -> i', alice_outputs, codes)
         alice_loss = self.alice_loss_function(alice_qs, rewards)
         return alice_loss
 
-    def alice_train_one_per_code(self, targets, rewards):
+    def alice_train_one_per_code(self, targets, rewards, codes):
         alice_outputs = self.alice(targets)
         alice_qs = torch.max(alice_outputs, dim=1)
         #### GOT TO HERE.  NOT SURE RIGHT YET
+        """mask = 2 ** torch.arange(bits - 1, -1, -1).to(b.device, b.dtype)
+        return torch.sum(mask * b, -1)
+        """
         alice_loss = self.alice_loss_function(alice_qs, rewards)
         return alice_loss
 

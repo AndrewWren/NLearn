@@ -10,8 +10,8 @@ hyperparameters = {
     'BOB_LAYERS': 3,
     'BOB_WIDTH': 100,
     'BATCHSIZE': 32,
-    'GAMESIZE': 1,  #1
-    'BUFFER_CAPACITY': 20000,
+    'GAMESIZE': 32,  #1
+    'BUFFER_CAPACITY': 32 * 20000,
     'START_TRAINING': 20000,  #20000
     'N_SELECT': 10,
     'EPSILON_ONE_END': 100000,
@@ -19,7 +19,7 @@ hyperparameters = {
     'EPSILON_MIN_POINT': 350000,
     'ALICE_STRATEGY': 'one_per_bit',
     'BOB_STRATEGY': 'one_per_bit',
-    'ALICE_OPTIMIZER': ('Adam', '{"lr": 0.01}'),
+    'ALICE_OPTIMIZER': ('SGD', '{"lr": 0.01}'),
     'BOB_OPTIMIZER': 'Same',
     'ALICE_LOSS_FUNCTION': ('MSE', {}),
     'BOB_LOSS_FUNCTION': 'Same'

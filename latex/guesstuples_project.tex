@@ -109,6 +109,21 @@ How do we enforce covariance with respect to the order of $(\vec{X}_{i})$?
 \end{enumerate}
 None of these quite amount to Bob seeks to reproduce the Alice's code vocabulary.  However Bob could additionally set up a net in the same basic configuration as Alice's (he doesn't know the weights of course) and train {\em that} net jointly with his main net.
 
+
+\section{Results}
+
+\subsection{Original strategies}
+
+\fref{fig:fig-oneperbitsqrtlosses} is representative of the better results for the original strategies --- in other words, not very good.\footnote{The plot is taken from TensorBoard which gives an \texttt{.svg} file, then converted to \texttt{.pdf} by \texttt{rsvg-convert -f pdf -o <{\em fig-file-name}>.pdf "Sqrt losses.svg"}.}  Increasing from \verb|h.GAMESIZE = 1| to \verb|h.GAMESIZE = 32| gives no better results.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{fig-one_per_bit_sqrt_losses}
+	\caption{The best results --- from \texttt{/runs/Apr27\_23-01-58\_andrew-XPS-15-9570}. The lines show the square root of the mean square losses with (a) \texttt{lr=0.3} Alice (orange), Bob (dark blue); (b) \texttt{lr=0.1} Alice (brick red), Bob (cyan); (c) \texttt{lr=0.01} Alice (pink), Bob (green).  The plot is from TensorFlow and uses smoothing of 0.999.}
+	\label{fig:fig-oneperbitsqrtlosses}
+\end{figure}
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
