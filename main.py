@@ -4,17 +4,18 @@ import torch
 import scr.ml_utilities as mlu
 from scr.ml_utilities import c, h, rng_c
 from scr.nets import FFs, LossInfo, Nets
-from scr.tuple_and_code import Domain, ElementSpec, NiceCode, ReplayBuffer,\
+from scr.game_set_up import Domain, ElementCircular, NiceCode, ReplayBuffer,\
     TupleSpecs
 
 
 @mlu.over_hp
 def train_ab():
-    tuple_spec = TupleSpecs()
-    nets = Nets(tuple_spec)
+    tuple_specs = TupleSpecs()
+    mlu.log(f'{tuple_specs.random_reward_sd()=}')
+    nets = Nets(tuple_specs)
     buffer = ReplayBuffer(h.BUFFER_CAPACITY)
     best_bob_loss = LossInfo(np.inf, None, None)
-    for game_origins in tuple_spec.iter():
+    for game_origins in tuple_specs.iter():
         if (iteration := game_origins.iteration) % 1000 == 0:
             print('\b' * 20 + f'Iteration={iteration:>10}', end='')
         game_reports = nets.play(game_origins)
@@ -40,8 +41,8 @@ def understand():
 
 @mlu.over_hp
 def run_tuples():
-    tuple_spec = TupleSpecs()
-    for iteration, pick_no, current_tuples in tuple_spec.iter():
+    tuple_specs = TupleSpecs()
+    for iteration, pick_no, current_tuples in tuple_specs.iter():
         pick_tuple = current_tuples[np.arange(32), pick_no, :]
         print(iteration, pick_no)
         print(f'{pick_tuple.shape=}')

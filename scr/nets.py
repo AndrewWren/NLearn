@@ -6,7 +6,7 @@ import torch.nn as nn
 import scr.ml_utilities as mlu
 from scr.ml_utilities import c, h, rng_c, writer
 from scr.net_class import Net
-from scr.tuple_and_code import Domain, ElementSpec, GameOrigins, \
+from scr.game_set_up import Domain, ElementCircular, GameOrigins, \
     GameReports, NiceCode, ReplayBuffer, TupleSpecs
 
 
@@ -120,9 +120,16 @@ class Nets:
         bob_q_estimates_argmax = self.bob_play(selections, codes)
         decision_nos = self.bob_eps_greedy(bob_q_estimates_argmax)
         decisions = self.gatherer(selections, decision_nos, 'Decisions')
-        rewards = self.tuple_specs.rewards(grounds=targets, guesses=decisions)
+        rewards = to_array(self.tuple_specs.rewards(grounds=targets,
+                                           guesses=decisions))
+        writer.add_scalars(
+            'Rewards',
+            {f'Mean reward_{h.hp_run}': np.mean(rewards),
+             f'SD reward_{h.hp_run}': np.std(rewards)},
+            global_step=game_origins.iteration
+        )
         return GameReports(game_origins, to_array(codes),
-                           to_array(decision_nos), to_array(rewards))
+                           to_array(decision_nos), rewards)
         # Returns iteration target_nos selections decisions rewards
         # Don't return alice_qs decision_qs
 
@@ -169,7 +176,7 @@ class Nets:
             global_step=current_iteration
         )
         if (current_iteration == 0) or (current_iteration % 10000 == 0):
-            mlu.log('Codes=')
+            mlu.log('\nCodes=')
             [mlu.log(NiceCode(code)) for code in codes]
 
         return alice_loss.item(), bob_loss.item()

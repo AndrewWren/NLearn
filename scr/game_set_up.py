@@ -1,3 +1,4 @@
+import math
 from collections import deque, namedtuple
 from collections.abc import Callable
 import random
@@ -45,57 +46,30 @@ class Domain:
         return f'({self.type}, {self.range})'
 
 
-class ElementSpec:
-    def __init__(
-            self,
-            domain: Domain or tuple,
-            reward: tuple = (1, 0),
-            fraction: float = 0.2,
-            random: Callable = None
-    ):
-        if isinstance(domain, Domain):
-            self.domain = domain
-        else:
-            self.domain = Domain(*domain)
 
-        """Makes the reward an attribute, modifying it to get a zero mean 
-        reward over h.N_SELECT
+
+
+class ElementCircular:
+    def __init__(self, modulus: int):
+        self.modulus = modulus
+        self.reward_offset = (self.modulus ** 2) / 4
+        self.circular_map = lambda x: np.transpose((np.cos(x), np.sin(x)))
+        self.set = self.circular_map(np.arange(modulus) * 2 * np.pi / modulus)
+
+    def reward(self, grounds, guesses):
         """
-        #print(reward, h.N_SELECT)
-        self.mean_reward = (reward[0] + (h.N_SELECT - 1) * reward[1]) / \
-                           h.N_SELECT
-        self.right = reward[0] - self.mean_reward
-        self.wrong = reward[1] - self.mean_reward
-
-        self.fraction = fraction
-        self.repetition = None
-        self.n_repetitions = None
-        self.stub_length = None
-
-        default_random = None
-        default_rewarder = None
-        if (self.domain.type == int) and (self.domain.range != np.inf):
-            default_random = self.default_random_selector_int_finite
-            self.random_repr = 'Uniform'
-        self.random = default_random
-        if self.random is None:
-            exit('Need a random for the ElementSpec initiation.')
-        self.size0 = None
-
-    def default_random_selector_int_finite(self):
-        return h.n_rng.integers(
-            self.domain.range,
-            size=(h.GAMESIZE, 1)
-        ) * (2 / self.domain.range) - 1
+        Returns the square of the Euclidean distance between each of the
+        points represented by the final dimension.
+        :param grounds: np.array of size (*, 2)
+        :param guesses: np.array of size (*, 2)
+        :return: float
+        """
+        return np.mean(
+            np.sum(1 - np.square(guesses - grounds), axis=-1)
+        )
 
     def __repr__(self):
-        return f'Element({self.domain}, {self.rewarder}, {self.random_repr})'
-
-    def reward(self, ground: int, guess: int):
-        if ground == guess:
-            return self.rewarder.right
-        else:
-            return self.rewarder.wrong
+        return f'ElementCircular({self.modulus})'
 
 
 def flatten_shuffle(ls):
@@ -140,61 +114,33 @@ class GameReports(GameReports):
 
 
 class TupleSpecs:
-    def __init__(
-            self,
-            specs: list = c.TUPLE_SPEC,
-            pool: int = 100
-    ):
-        self.pool = pool
+    def __init__(self,specs: list = c.TUPLE_SPEC):
         spec_list = list()
         for spec in specs:
-            if not isinstance(spec, ElementSpec):
-                spec = ElementSpec(*spec)
+            if not isinstance(spec, ElementCircular):
+                spec = ElementCircular(*spec)
             spec_list.append(spec)
-            spec.repetition = round(spec.fraction * self.pool)
-            spec.n_repetitions = self.pool // spec.repetition
-            spec.stub_length = self.pool % spec.repetition
         self.specs = tuple(spec_list)
         self.n_elements = len(spec_list)
-        self.selections = None
-        self.target_no = None
-        
-        """ Some attributes related to reward and its calculation
-        """
-        self.current_reward = None
-        right = torch.FloatTensor([spec.right for spec in self.specs]).to(
-            c.DEVICE)
-        wrong = torch.FloatTensor([spec.wrong for spec in self.specs]).to(
-            c.DEVICE)
-        self.factor = right - wrong
-        self.offset = (torch.sum(wrong)).repeat(h.BATCHSIZE)
-        
-        self.n_iterations = h.N_ITERATIONS
+        self.size0 = None
 
     def random(self):
-        selections = list()
-        for spec in self.specs:
-            random_selections = np.concatenate(
-                [np.repeat(spec.random(), spec.repetition, axis=1)
-                 for _ in range(spec.n_repetitions)]
-                + [np.repeat(spec.random(), spec.stub_length, axis=1)],
-                axis=1
-            )
-            h.n_rng.shuffle(random_selections, axis=1)
-            selections.append(random_selections[:,: h.N_SELECT])
-        selections = np.stack(selections, axis=-1)  #TODO consider making
-        # this a 2D rather than a 3D array to avoid later reshaping.
-        # Means picking the target state requires a tiny bit of arithmetic.
-        self.selections = selections
-        return self.selections
+        """
+
+        :return: a np array of size (self.size0, h.N_SELECT,
+        self.n_elements, 2)
+        """
+        return np.stack(
+            [[n_rng.choice(spec.set, size=h.N_SELECT, replace=False)
+                                for spec in self.specs]
+                for _ in range(self.size0)]
+        )  #TODO in the choice consider setting shuffle=False
 
     def iter(self):
         for iteration in range(1, h.N_ITERATIONS + 1):
-            self.random()
-            self.target_nos = h.n_rng.integers(h.N_SELECT, size=h.GAMESIZE)
-            game_origins = GameOrigins(
-                iteration, self.target_nos, self.selections
-            )
+            selections = self.random()
+            target_nos = h.n_rng.integers(h.N_SELECT, size=self.size0)
+            game_origins = GameOrigins(iteration, target_nos, selections)
             yield game_origins
 
     def __repr__(self):
@@ -210,6 +156,11 @@ class TupleSpecs:
                                            self.factor)\
                               + self.offset).detach()
         return self.current_reward
+
+    def random_reward_sd(self):
+        return math.sqrt(sum([((spec.right ** 2) + (spec.wrong ** 2) * (
+                h.N_SELECT - 1)) / h.N_SELECT for spec in self.specs]))
+
 
 # From github.com/PacktPublishing/Deep-Reinforcement-Learning-Hands-On-Second-Edition/Chapter06/02_dqn_pong.py
 class ReplayBuffer:
