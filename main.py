@@ -3,7 +3,7 @@ import numpy as np
 import torch
 import scr.ml_utilities as mlu
 from scr.ml_utilities import c, h, rng_c
-from scr.nets import FFs, LossInfo, Nets
+from scr.nets import LossInfo, Nets
 from scr.game_set_up import Domain, ElementCircular, NiceCode, ReplayBuffer,\
     TupleSpecs
 

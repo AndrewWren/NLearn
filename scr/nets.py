@@ -60,7 +60,7 @@ class Nets:
         self.tuple_specs = tuple_specs
         self.set_output_widths()
         self.alice = FFs(
-            input_width=tuple_specs.n_elements,
+            input_width=tuple_specs.n_elements * 2,
             output_width=self.alice_output_width,
             layers=h.ALICE_LAYERS,
             width=h.ALICE_WIDTH
@@ -68,7 +68,7 @@ class Nets:
         self.alice_optimizer = self.optimizer('ALICE', 'alice')
         self.alice_loss_function = self.loss_function('ALICE')
         self.bob = FFs(
-            input_width=h.N_SELECT * tuple_specs.n_elements +
+            input_width=h.N_SELECT * tuple_specs.n_elements * 2 +
                                    c.N_CODE,
             output_width=self.bob_output_width,
             layers=h.BOB_LAYERS,
@@ -231,9 +231,12 @@ class Nets:
         return single_epsilon.repeat(self.size0)
 
     def gatherer(self, input, indices, context):
-        if (context == 'Alice') or (context == 'Decisions'):
+        if context == 'Alice':
             indices = indices.unsqueeze(1).repeat(1, input.size()[2]
                                                   ).unsqueeze(1)
+        elif  context == 'Decisions':
+            indices = indices.unsqueeze(1).repeat(1, input.size()[-1]
+                                                   ).unsqueeze(1).unsqueeze(1)
         elif context == 'Decision_Qs':
             indices = indices.unsqueeze(1)
         else:
@@ -241,17 +244,17 @@ class Nets:
         gathered = torch.gather(input, 1, indices).squeeze()
         if self.size0 == 1:
             return gathered.unsqueeze(0)
+        if context == 'Decisions':
+            return gathered.unsqueeze(1)
         return gathered
 
     def set_size0(self, size0: int):
         self.size0 = size0
 
     def set_output_widths(self):
-        if h.ALICE_STRATEGY == 'one_per_bit':
+        if h.ALICE_STRATEGY == 'circular':
             self.alice_output_width = c.N_CODE
-        elif h.ALICE_STRATEGY == 'one_per_code':
-            self.alice_output_width = 2 ** c.N_CODE
-        if h.BOB_STRATEGY == 'one_per_bit':
+        if h.BOB_STRATEGY == 'circular':
             self.bob_output_width = h.N_SELECT
 
     def alice_play(self, targets):
@@ -262,28 +265,18 @@ class Nets:
         """
         return eval(f'self.alice_play_{h.ALICE_STRATEGY}(targets)')
 
-    def alice_play_one_per_bit(self, targets):
+    def alice_play_circular(self, targets):
+        targets = torch.flatten(targets, start_dim=1)
         alice_outputs = self.alice(targets)
         return torch.sign(alice_outputs)
-
-    def alice_play_one_per_code(self, targets):
-        alice_outputs = self.alice(targets)
-        code_nos = torch.argmax(alice_outputs, dim=1).long()
-        # https://stackoverflow.com/questions/55918468/convert-integer-to-pytorch-tensor-of-binary-bits#63546308
-        mask = 2 ** torch.arange(c.N_CODE - 1, -1, -1).to(c.DEVICE)
-        return 2 * code_nos.unsqueeze(-1).bitwise_and(mask).ne(
-            0).float() - 1
 
     def bob_play(self, selections, codes):
         return eval(f'self.bob_play_{h.BOB_STRATEGY}('
                     f'selections, codes)')
 
-    def bob_play_one_per_bit(self, selections, codes):
-        bob_input = torch.cat([
-                    selections.reshape((
-                        h.GAMESIZE,
-                        h.N_SELECT * self.tuple_specs.n_elements)),
-                    codes], 1
+    def bob_play_circular(self, selections, codes):
+        bob_input = torch.cat(
+                    [torch.flatten(selections, start_dim=1), codes], 1
                 )
         bob_q_estimates = self.bob(bob_input)
         return torch.argmax(bob_q_estimates, dim=1).long()
@@ -302,24 +295,13 @@ class Nets:
         return eval(
             f'self.alice_train_{h.ALICE_STRATEGY}(targets, rewards, codes)')
 
-    def alice_train_one_per_bit(self, targets, rewards, codes):
+    def alice_train_circular(self, targets, rewards, codes):
         """
         As alice_train
         """
+        targets = torch.flatten(targets, start_dim=1)
         alice_outputs = self.alice(targets)
         alice_qs = torch.einsum('ij, ij -> i', alice_outputs, codes)
-        alice_loss = self.alice_loss_function(alice_qs, rewards)
-        return alice_loss
-
-    def alice_train_one_per_code(self, targets, rewards, codes):
-        """
-        As alice_train
-        """
-        alice_outputs = self.alice(targets)
-        # https://stackoverflow.com/questions/55918468/convert-integer-to-pytorch-tensor-of-binary-bits#63546308
-        mask = 2 ** torch.arange(c.N_CODE - 1, -1, -1).to(c.DEVICE)
-        codes_nos = torch.sum(mask * codes, -1).long()
-        alice_qs = alice_outputs[torch.arange(self.size0), codes_nos]
         alice_loss = self.alice_loss_function(alice_qs, rewards)
         return alice_loss
 
@@ -336,18 +318,14 @@ class Nets:
             f'self.bob_train_{h.BOB_STRATEGY}(selections, codes, decision_nos,'
             f' rewards)')
 
-    def bob_train_one_per_bit(self, selections, codes, decision_nos, rewards):
+    def bob_train_circular(self, selections, codes, decision_nos, rewards):
         """
         As bob_train
         """
-        bob_input = torch.cat([
-            selections.reshape((
-                h.BATCHSIZE,
-                h.N_SELECT * self.tuple_specs.n_elements)), codes], 1
+        bob_input = torch.cat(
+            [torch.flatten(selections, start_dim=1), codes], 1
         )
         bob_q_estimates = self.bob(bob_input)
         decision_qs = self.gatherer(bob_q_estimates, decision_nos,
                                     'Decision_Qs')
-        return self.bob_loss_function(to_array(decision_qs), rewards)
-
-
+        return self.bob_loss_function(decision_qs, to_device_tensor(rewards))

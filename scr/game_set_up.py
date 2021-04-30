@@ -66,17 +66,16 @@ class ElementCircular:
         # This var also converges  to 2 as modulus -> infinity.  For
         # modulus=256 is 1.992095347943099
 
-    def reward(self, grounds, guesses):
+    def rewards(self, grounds, guesses):
         """
         Returns the square of the Euclidean distance between each of the
         points represented by the final dimension.
-        :param grounds: np.array of size (*, 2)
-        :param guesses: np.array of size (*, 2)
+        :param grounds: np.array of size (self.size0, 2)
+        :param guesses: np.array of size (self.size0, 2)
         :return: float
         """
-        return self.mean_random_distance - np.mean(
-            np.sum(np.square(guesses - grounds), axis=-1)
-        )
+        return self.mean_random_distance - np.sum(np.square(guesses - grounds),
+        axis=-1)
 
     def __repr__(self):
         return f'ElementCircular({self.modulus})'
@@ -86,7 +85,7 @@ GameOrigin = namedtuple('GameOrigin', 'iteration target_nos selections')
 
 
 GameReport = namedtuple('GameReport', 'iteration target_no selection code '
-                                      'decision_no reward')
+                                      'decision_no rewards')
 
 
 GameOrigins = namedtuple('GameOrigins', 'iteration target_nos selections')
@@ -151,8 +150,13 @@ class TupleSpecs:
         :param guesses: numpy array, shape = (self.size0, self.n_elements)
         :return:  numpy array, shape = (self.size0, )
         """
-        return np.sum([spec.reward(grounds[:, s, ...], guesses[:, s, ...])
-                for s, spec in enumerate(self.specs)], axis=-1)
+        to_stack = tuple(spec.rewards(grounds[:, s, ...], guesses[:, s, ...])
+                for s, spec in enumerate(self.specs))
+        if len(to_stack) > 1:
+            rewards = np.dstack(to_stack)
+        else:
+            rewards = np.reshape(to_stack[0], (-1, 1))
+        return np.sum(rewards, axis=-1)
 
     def random_reward_sd(self):
         return math.sqrt(sum([spec.var_random_distance
