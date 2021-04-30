@@ -58,7 +58,7 @@ class FFs(Net):
 class Nets:
     def __init__(self, tuple_specs: TupleSpecs):
         self.tuple_specs = tuple_specs
-        self.set_output_widths()
+        self.set_widths()
         self.alice = FFs(
             input_width=tuple_specs.n_elements * 2,
             output_width=self.alice_output_width,
@@ -68,8 +68,7 @@ class Nets:
         self.alice_optimizer = self.optimizer('ALICE', 'alice')
         self.alice_loss_function = self.loss_function('ALICE')
         self.bob = FFs(
-            input_width=h.N_SELECT * tuple_specs.n_elements * 2 +
-                                   c.N_CODE,
+            input_width=self.bob_input_width,
             output_width=self.bob_output_width,
             layers=h.BOB_LAYERS,
             width=h.BOB_WIDTH
@@ -251,11 +250,16 @@ class Nets:
     def set_size0(self, size0: int):
         self.size0 = size0
 
-    def set_output_widths(self):
+    def set_widths(self):
         if h.ALICE_STRATEGY == 'circular':
             self.alice_output_width = c.N_CODE
         if h.BOB_STRATEGY == 'circular':
+            self.bob_input_width = (h.N_SELECT * self.tuple_specs.n_elements
+                                    * 2 + c.N_CODE)
             self.bob_output_width = h.N_SELECT
+        elif h.BOB_STRATEGY == 'circular_vocab':
+            self.bob_input_width = self.tuple_specs.n_elements * 2 + c.N_CODE
+            self.bob_output_width = 1
 
     def alice_play(self, targets):
         """
@@ -283,6 +287,22 @@ class Nets:
         # TODO What about the Warning at
         # https://pytorch.org/docs/stable/generated/torch.max.html?highlight
         # =max#torch.max ?  and see also torch.amax  Seems OK from testing.
+
+    def bob_play_circular_vocab(self, selections, codes):
+        selections = torch.transpose(selections, 0, 1)
+        bob_q_estimates = list()
+        for selection in selections:  #TODO Could do all in a single net run
+            bob_input = torch.cat(
+                [torch.flatten(selection, start_dim=1), codes], 1
+            )
+            bob_q_estimates.append(self.bob(bob_input))
+        temp1 = torch.reshape(torch.stack(bob_q_estimates, dim=1),
+                              (self.size0, h.N_SELECT))
+        result = torch.argmax(temp1, dim=1)
+        # TODO What about the Warning at
+        # https://pytorch.org/docs/stable/generated/torch.max.html?highlight
+        # =max#torch.max ?  and see also torch.amax  Seems OK from testing.
+        return result
 
     def alice_train(self, targets, rewards, codes):
         """
@@ -329,3 +349,18 @@ class Nets:
         decision_qs = self.gatherer(bob_q_estimates, decision_nos,
                                     'Decision_Qs')
         return self.bob_loss_function(decision_qs, to_device_tensor(rewards))
+
+    def bob_train_circular_vocab(self, selections, codes, decision_nos,
+                                rewards):
+        """
+        As bob_train
+        """
+        bob_decisions_q_estimates = torch.flatten(
+            selections[torch.arange(self.size0), decision_nos],
+            start_dim=1
+        )
+        bob_input = torch.cat([bob_decisions_q_estimates, codes], dim=1)
+        bob_decisions_q_estimates = self.bob(bob_input).reshape((self.size0,))
+        return self.bob_loss_function(
+            bob_decisions_q_estimates, to_device_tensor(rewards)
+        )
