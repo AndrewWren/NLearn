@@ -154,9 +154,9 @@ class TupleSpecs:
                 for s, spec in enumerate(self.specs))
         if len(to_stack) > 1:
             rewards = np.dstack(to_stack)
+            return np.sum(rewards, axis=-1)
         else:
-            rewards = np.reshape(to_stack[0], (-1, 1))
-        return np.sum(rewards, axis=-1)
+            return to_stack[0]
 
     def random_reward_sd(self):
         return math.sqrt(sum([spec.var_random_distance
