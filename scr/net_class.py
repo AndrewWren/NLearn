@@ -201,7 +201,7 @@ class Net(nn.Module):
                                  f"{train_batches_per_epoch:<6}", end='')
             # has "y"
                 # all
-                # set the same
+                # domain the same
                 optimizer.zero_grad()
                 # print(f'batch = {batch_start}, batch_x.shape {batch_x.shape}')
                 output = net(batch_x)
@@ -282,7 +282,7 @@ class Net(nn.Module):
                     for b, batch_x in enumerate(batches_val):  # as the
                     # dataset has
                         # "y" all
-                        # set the same
+                        # domain the same
                         if self.train_tile_net != None:
                             batch_x = batch_x[0]
                         batch_x = batch_x.to(c.DEVICE)
@@ -465,7 +465,7 @@ class Net(nn.Module):
                                  f"{train_batches_per_epoch:<6}", end='')
             # has "y"
                 # all
-                # set the same
+                # domain the same
                 optimizer.zero_grad()
                 # print(f'batch = {batch_start}, batch_x.shape {batch_x.shape}')
                 output = net(batch_x)
@@ -500,7 +500,7 @@ class Net(nn.Module):
                         # as the
                     # dataset has
                         # "y" all
-                        # set the same
+                        # domain the same
                         if self.train_tile_net != None:
                             batch_x = batch_x[0]
                         batch_x = batch_x.to(c.DEVICE)

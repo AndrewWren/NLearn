@@ -113,15 +113,15 @@ class Nets:
         self.epsilon = self.epsilon_function(game_origins.iteration)
         targets = game_origins.selections[np.arange(self.size0),
                                           game_origins.target_nos]
-        targets = to_device_tensor(targets)
-        greedy_codes = self.alice_play(targets)
+        targets_t = to_device_tensor(targets)
+        greedy_codes = self.alice_play(targets_t)
         codes = self.alice_eps_greedy(greedy_codes)
         selections = to_device_tensor(game_origins.selections)
         bob_q_estimates_argmax = self.bob_play(selections, codes)
         decision_nos = self.bob_eps_greedy(bob_q_estimates_argmax)
         decisions = self.gatherer(selections, decision_nos, 'Decisions')
-        rewards = to_array(self.tuple_specs.rewards(grounds=targets,
-                                           guesses=decisions))
+        rewards = self.tuple_specs.rewards(grounds=targets,
+                                           guesses=to_array(decisions))
         writer.add_scalars(
             'Rewards',
             {f'Mean reward_{h.hp_run}': np.mean(rewards),
@@ -161,8 +161,8 @@ class Nets:
         selections = to_device_tensor(game_reports.selections)
         codes = to_device_tensor(game_reports.codes)
         decision_nos = to_device_tensor(game_reports.decision_nos).long()
-        rewards = to_device_tensor(game_reports.rewards)
-        bob_loss = self.bob_train(selections, codes, decision_nos, rewards)
+        bob_loss = self.bob_train(selections, codes, decision_nos,
+                                  game_reports.rewards)
         self.bob_optimizer.zero_grad()
         bob_loss.backward()
         self.bob_optimizer.step()
@@ -292,16 +292,29 @@ class Nets:
         # =max#torch.max ?  and see also torch.amax  Seems OK from testing.
 
     def alice_train(self, targets, rewards, codes):
+        """
+
+        :param targets: numpy array
+        :param rewards: numpy array
+        :param codes: pytorch tensor
+        :return:
+        """
         return eval(
             f'self.alice_train_{h.ALICE_STRATEGY}(targets, rewards, codes)')
 
     def alice_train_one_per_bit(self, targets, rewards, codes):
+        """
+        As alice_train
+        """
         alice_outputs = self.alice(targets)
         alice_qs = torch.einsum('ij, ij -> i', alice_outputs, codes)
         alice_loss = self.alice_loss_function(alice_qs, rewards)
         return alice_loss
 
     def alice_train_one_per_code(self, targets, rewards, codes):
+        """
+        As alice_train
+        """
         alice_outputs = self.alice(targets)
         # https://stackoverflow.com/questions/55918468/convert-integer-to-pytorch-tensor-of-binary-bits#63546308
         mask = 2 ** torch.arange(c.N_CODE - 1, -1, -1).to(c.DEVICE)
@@ -311,11 +324,22 @@ class Nets:
         return alice_loss
 
     def bob_train(self, selections, codes, decision_nos, rewards):
+        """
+
+        :param selections: pytorch tensor
+        :param codes: pytorch tensor
+        :param decision_nos: pytorch tensor
+        :param rewards: numpy array
+        :return:
+        """
         return eval(
             f'self.bob_train_{h.BOB_STRATEGY}(selections, codes, decision_nos,'
             f' rewards)')
 
     def bob_train_one_per_bit(self, selections, codes, decision_nos, rewards):
+        """
+        As bob_train
+        """
         bob_input = torch.cat([
             selections.reshape((
                 h.BATCHSIZE,
@@ -324,6 +348,6 @@ class Nets:
         bob_q_estimates = self.bob(bob_input)
         decision_qs = self.gatherer(bob_q_estimates, decision_nos,
                                     'Decision_Qs')
-        return self.bob_loss_function(decision_qs, rewards)
+        return self.bob_loss_function(to_array(decision_qs), rewards)
 
 

@@ -52,9 +52,19 @@ class Domain:
 class ElementCircular:
     def __init__(self, modulus: int):
         self.modulus = modulus
-        self.reward_offset = (self.modulus ** 2) / 4
         self.circular_map = lambda x: np.transpose((np.cos(x), np.sin(x)))
-        self.set = self.circular_map(np.arange(modulus) * 2 * np.pi / modulus)
+        self.domain = self.circular_map(
+            np.arange(modulus) * 2 * np.pi / modulus
+        )
+        random_square_distances = np.sum(
+            np.square(self.domain[1:, :] - self.domain[0, :]), axis=-1
+        )
+        self.mean_random_distance = np.mean(random_square_distances)
+        # This mean converges to 2 as modulus -> infinity.  For modulus=256 is
+        # 2.007843137254902
+        self.var_random_distance = np.var(random_square_distances)
+        # This var also converges  to 2 as modulus -> infinity.  For
+        # modulus=256 is 1.992095347943099
 
     def reward(self, grounds, guesses):
         """
@@ -64,22 +74,12 @@ class ElementCircular:
         :param guesses: np.array of size (*, 2)
         :return: float
         """
-        return np.mean(
-            np.sum(1 - np.square(guesses - grounds), axis=-1)
+        return self.mean_random_distance - np.mean(
+            np.sum(np.square(guesses - grounds), axis=-1)
         )
 
     def __repr__(self):
         return f'ElementCircular({self.modulus})'
-
-
-def flatten_shuffle(ls):
-    fl = [item for sublist in ls for item in sublist]
-    random.shuffle(fl)
-    return fl
-
-
-def transpose_tuple(a):
-    return tuple(map(tuple, zip(*a)))
 
 
 GameOrigin = namedtuple('GameOrigin', 'iteration target_nos selections')
@@ -122,7 +122,8 @@ class TupleSpecs:
             spec_list.append(spec)
         self.specs = tuple(spec_list)
         self.n_elements = len(spec_list)
-        self.size0 = None
+        self.size0 = h.GAMESIZE
+        self.selections = None
 
     def random(self):
         """
@@ -130,11 +131,12 @@ class TupleSpecs:
         :return: a np array of size (self.size0, h.N_SELECT,
         self.n_elements, 2)
         """
-        return np.stack(
-            [[n_rng.choice(spec.set, size=h.N_SELECT, replace=False)
+        randoms =  np.stack(
+            [[h.n_rng.choice(spec.domain, size=h.N_SELECT, replace=False)
                                 for spec in self.specs]
                 for _ in range(self.size0)]
         )  #TODO in the choice consider setting shuffle=False
+        return np.transpose(randoms, (0, 2, 1, 3))
 
     def iter(self):
         for iteration in range(1, h.N_ITERATIONS + 1):
@@ -143,23 +145,21 @@ class TupleSpecs:
             game_origins = GameOrigins(iteration, target_nos, selections)
             yield game_origins
 
-    def __repr__(self):
-        return f'TupleSpecs({self.specs})'
-
     def rewards(self, grounds, guesses):
         """
-        :param grounds: torch.float32, size = (h.batchsize, self.n_elements)
-        :param guesses: torch.float32, size = (h.batchsize, self.n_elements)
-        :return: torch.float32, size = (h.batchsize, )
+        :param grounds: numpy array, shape = (self.size0, self.n_elements)
+        :param guesses: numpy array, shape = (self.size0, self.n_elements)
+        :return:  numpy array, shape = (self.size0, )
         """
-        self.current_reward = (torch.matmul((grounds == guesses).float(),
-                                           self.factor)\
-                              + self.offset).detach()
-        return self.current_reward
+        return np.sum([spec.reward(grounds[:, s, ...], guesses[:, s, ...])
+                for s, spec in enumerate(self.specs)], axis=-1)
 
     def random_reward_sd(self):
-        return math.sqrt(sum([((spec.right ** 2) + (spec.wrong ** 2) * (
-                h.N_SELECT - 1)) / h.N_SELECT for spec in self.specs]))
+        return math.sqrt(sum([spec.var_random_distance
+                              for spec in self.specs]))
+
+    def __repr__(self):
+        return f'TupleSpecs({self.specs})'
 
 
 # From github.com/PacktPublishing/Deep-Reinforcement-Learning-Hands-On-Second-Edition/Chapter06/02_dqn_pong.py
