@@ -23,6 +23,11 @@ def train_ab():
         if iteration < h.START_TRAINING:
             continue
         alice_loss, bob_loss = nets.train(iteration, buffer)
+        if (iteration % 100000 == 0) or (iteration == h.N_ITERATIONS):
+            mlu.save_model(nets.alice, title='Alice', parameter_name='iter',
+                   parameter=iteration)
+            mlu.save_model(nets.bob, title='Bob', parameter_name='iter',
+                       parameter=iteration)
         if (alice_loss == np.nan) or (bob_loss == np.nan):
             return [np.nan], 0
         if bob_loss < best_bob_loss.bob_loss:

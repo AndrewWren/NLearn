@@ -369,6 +369,19 @@ def savefig(title):
     plt.savefig(fname)
 
 
+def save_model(model, title=None, parameter_name=None, parameter=None):
+    model_title = PROJECT_NAME + '_model'
+    if title is not None:
+        model_title += '_' + str(h.hp_run) + '_' + title
+    if parameter is not None:
+        model_title += '_'
+        if parameter_name is not None:
+            model_title += parameter_name
+        model_title += str(parameter)
+    model_title = time_stamp(model_title, c.MODEL_FOLDER)
+    torch.save(model, model_title)
+
+
 consts = Constants()
 consts.log()
 consts.copy_config()  # to_json=False
