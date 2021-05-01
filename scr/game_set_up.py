@@ -46,9 +46,6 @@ class Domain:
         return f'({self.type}, {self.range})'
 
 
-
-
-
 class ElementCircular:
     def __init__(self, modulus: int):
         self.modulus = modulus
@@ -56,15 +53,15 @@ class ElementCircular:
         self.domain = self.circular_map(
             np.arange(modulus) * 2 * np.pi / modulus
         )
-        random_square_distances = np.sum(
+        distinct_random_square_distances = np.sum(
             np.square(self.domain[1:, :] - self.domain[0, :]), axis=-1
         )
-        self.mean_random_distance = np.mean(random_square_distances)
-        # This mean converges to 2 as modulus -> infinity.  For modulus=256 is
-        # 2.007843137254902
-        self.var_random_distance = np.var(random_square_distances)
-        # This var also converges  to 2 as modulus -> infinity.  For
-        # modulus=256 is 1.992095347943099
+        self.mean_random_sq_distance = np.mean(
+            distinct_random_square_distances) * (1 - 1 / h.N_SELECT)
+        self.var_random_sq_distance = np.var(
+            distinct_random_square_distances) * (1 - 1 / h.N_SELECT) #TODO
+        # Check the variance formula
+        pass
 
     def rewards(self, grounds, guesses):
         """
@@ -74,8 +71,9 @@ class ElementCircular:
         :param guesses: np.array of size (self.size0, 2)
         :return: float
         """
-        return self.mean_random_distance - np.sum(np.square(guesses - grounds),
-        axis=-1)
+        return self.mean_random_sq_distance - np.sum(
+            np.square(guesses - grounds),
+            axis=-1)
 
     def __repr__(self):
         return f'ElementCircular({self.modulus})'
@@ -83,16 +81,15 @@ class ElementCircular:
 
 GameOrigin = namedtuple('GameOrigin', 'iteration target_nos selections')
 
-
 GameReport = namedtuple('GameReport', 'iteration target_no selection code '
                                       'decision_no rewards')
 
-
 GameOrigins = namedtuple('GameOrigins', 'iteration target_nos selections')
-
 
 GameReports = namedtuple('GameReports', 'gameorigins codes decision_nos '
                                         'rewards')
+
+
 class GameReports(GameReports):
     def __init__(self, gameorigins, codes, decisions, rewards):
         super().__init__()
@@ -113,7 +110,7 @@ class GameReports(GameReports):
 
 
 class TupleSpecs:
-    def __init__(self,specs: list = c.TUPLE_SPEC):
+    def __init__(self, specs: list = c.TUPLE_SPEC):
         spec_list = list()
         for spec in specs:
             if not isinstance(spec, ElementCircular):
@@ -130,11 +127,11 @@ class TupleSpecs:
         :return: a np array of size (self.size0, h.N_SELECT,
         self.n_elements, 2)
         """
-        randoms =  np.stack(
+        randoms = np.stack(
             [[h.n_rng.choice(spec.domain, size=h.N_SELECT, replace=False)
-                                for spec in self.specs]
-                for _ in range(self.size0)]
-        )  #TODO in the choice consider setting shuffle=False
+              for spec in self.specs]
+             for _ in range(self.size0)]
+        )  # TODO in the choice consider setting shuffle=False
         return np.transpose(randoms, (0, 2, 1, 3))
 
     def iter(self):
@@ -151,7 +148,7 @@ class TupleSpecs:
         :return:  numpy array, shape = (self.size0, )
         """
         to_stack = tuple(spec.rewards(grounds[:, s, ...], guesses[:, s, ...])
-                for s, spec in enumerate(self.specs))
+                         for s, spec in enumerate(self.specs))
         if len(to_stack) > 1:
             rewards = np.dstack(to_stack)
             return np.sum(rewards, axis=-1)
@@ -159,7 +156,7 @@ class TupleSpecs:
             return to_stack[0]
 
     def random_reward_sd(self):
-        return math.sqrt(sum([spec.var_random_distance
+        return math.sqrt(sum([spec.var_random_sq_distance
                               for spec in self.specs]))
 
     def __repr__(self):
@@ -181,13 +178,14 @@ class ReplayBuffer:
         indices = np.random.choice(len(self.buffer), h.BATCHSIZE,
                                    replace=False)
         game_reports_list = list(map(list,
-                                zip(*[self.buffer[idx] for idx in indices])))
+                                     zip(*[self.buffer[idx] for idx in
+                                           indices])))
         iteration, target_nos, selections = game_reports_list[: 3]
         iteration = np.array(iteration)
         target_nos = np.array(target_nos)
         selections = np.stack(selections)
         game_origins = GameOrigins(iteration, target_nos, selections)
-        codes, decision_nos, rewards = game_reports_list[3: ]
+        codes, decision_nos, rewards = game_reports_list[3:]
         codes = np.vstack(codes)
         decision_nos = np.array(decision_nos)
         rewards = np.array(rewards)

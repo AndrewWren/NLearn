@@ -29,7 +29,7 @@ hyperparameters = {
 
 RANDOM_SEED = 42
 TUPLE_SPEC = (
-    (256,),
+    (16,),
 )
 N_CODE = 8
 # TRAINING_METHOD = 'q'

@@ -210,9 +210,10 @@ class Nets:
         indicator.uniform_()
         chooser = (indicator >= self.epsilon).long()
         random_indices = torch.empty(self.size0).to(c.DEVICE)
-        random_indices.random_(to=h.N_SELECT).long()
+        random_indices.random_(to=h.N_SELECT)
         for_choice = torch.dstack((random_indices, greedy_indices))[0]
-        return for_choice[list(range(self.size0)), chooser].long()
+        temp0 = for_choice[list(range(self.size0)), chooser].long()
+        return temp0
 
     def epsilon_function(self, iteration):
         """
