@@ -58,9 +58,11 @@ class ElementCircular:
         )
         self.mean_random_sq_distance = np.mean(
             distinct_random_square_distances) * (1 - 1 / h.N_SELECT)
-        self.var_random_sq_distance = np.var(
-            distinct_random_square_distances) * (1 - 1 / h.N_SELECT) #TODO
-        # Check the variance formula
+        self.var_random_sq_distance = np.mean(
+            np.square(distinct_random_square_distances)) * (1 - 1 /
+                                                           h.N_SELECT) \
+            - self.mean_random_sq_distance ** 2
+        self.factor = 1 / self.mean_random_sq_distance
         pass
 
     def rewards(self, grounds, guesses):
@@ -71,7 +73,7 @@ class ElementCircular:
         :param guesses: np.array of size (self.size0, 2)
         :return: float
         """
-        return self.mean_random_sq_distance - np.sum(
+        return 1 - self.factor * np.sum(
             np.square(guesses - grounds),
             axis=-1)
 
@@ -156,7 +158,7 @@ class TupleSpecs:
             return to_stack[0]
 
     def random_reward_sd(self):
-        return math.sqrt(sum([spec.var_random_sq_distance
+        return math.sqrt(sum([spec.var_random_sq_distance * (spec.factor ** 2)
                               for spec in self.specs]))
 
     def __repr__(self):

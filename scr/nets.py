@@ -147,10 +147,16 @@ class Nets:
         # Alice
         targets = game_reports.selections[np.arange(self.size0),
                                           game_reports.target_nos]
+        decisions = torch.flatten(
+            to_device_tensor(game_reports.selections)[
+                torch.arange(self.size0), game_reports.decision_nos],
+            start_dim=1
+        )
         alice_loss = self.alice_train(
             to_device_tensor(targets),
             to_device_tensor(game_reports.rewards),
-            to_device_tensor(game_reports.codes)
+            to_device_tensor(game_reports.codes),
+            decisions
         )
         self.alice_optimizer.zero_grad()
         alice_loss.backward()
@@ -166,7 +172,7 @@ class Nets:
         bob_loss.backward()
         self.bob_optimizer.step()
 
-        #logging of various sorts
+        # logging of various sorts
         writer.add_scalars(
             'Sqrt losses',
             {f'Alice sqrt loss_{h.hp_run}': torch.sqrt(alice_loss),
@@ -234,9 +240,9 @@ class Nets:
         if context == 'Alice':
             indices = indices.unsqueeze(1).repeat(1, input.size()[2]
                                                   ).unsqueeze(1)
-        elif  context == 'Decisions':
+        elif context == 'Decisions':
             indices = indices.unsqueeze(1).repeat(1, input.size()[-1]
-                                                   ).unsqueeze(1).unsqueeze(1)
+                                                  ).unsqueeze(1).unsqueeze(1)
         elif context == 'Decision_Qs':
             indices = indices.unsqueeze(1)
         else:
@@ -252,7 +258,8 @@ class Nets:
         self.size0 = size0
 
     def set_widths(self):
-        if h.ALICE_STRATEGY == 'circular':
+        if (h.ALICE_STRATEGY == 'circular') or (h.ALICE_STRATEGY ==
+                                                'from_decisions'):
             self.alice_output_width = c.N_CODE
         if h.BOB_STRATEGY == 'circular':
             self.bob_input_width = (h.N_SELECT * self.tuple_specs.n_elements
@@ -275,14 +282,17 @@ class Nets:
         alice_outputs = self.alice(targets)
         return torch.sign(alice_outputs)
 
+    def alice_play_from_decisions(self, targets):
+        return self.alice_play_circular(targets)
+
     def bob_play(self, selections, codes):
         return eval(f'self.bob_play_{h.BOB_STRATEGY}('
                     f'selections, codes)')
 
     def bob_play_circular(self, selections, codes):
         bob_input = torch.cat(
-                    [torch.flatten(selections, start_dim=1), codes], 1
-                )
+            [torch.flatten(selections, start_dim=1), codes], 1
+        )
         bob_q_estimates = self.bob(bob_input)
         return torch.argmax(bob_q_estimates, dim=1).long()
         # TODO What about the Warning at
@@ -292,7 +302,7 @@ class Nets:
     def bob_play_circular_vocab(self, selections, codes):
         selections = torch.transpose(selections, 0, 1)
         bob_q_estimates = list()
-        for selection in selections:  #TODO Could do all in a single net run
+        for selection in selections:  # TODO Could do all in a single net run
             bob_input = torch.cat(
                 [torch.flatten(selection, start_dim=1), codes], 1
             )
@@ -305,26 +315,42 @@ class Nets:
         # =max#torch.max ?  and see also torch.amax  Seems OK from testing.
         return result
 
-    def alice_train(self, targets, rewards, codes):
+    def alice_train(self, targets, rewards, codes, decisions):
         """
 
         :param targets: numpy array
         :param rewards: numpy array
         :param codes: pytorch tensor
+        :param decisions: pytorch tensor
         :return:
         """
         return eval(
-            f'self.alice_train_{h.ALICE_STRATEGY}(targets, rewards, codes)')
+            f'self.alice_train_{h.ALICE_STRATEGY}(targets, rewards, codes,'
+            f' decisions)')
 
-    def alice_train_circular(self, targets, rewards, codes):
+    def alice_train_circular(self, targets, rewards, codes, decisions):
         """
         As alice_train
         """
         targets = torch.flatten(targets, start_dim=1)
         alice_outputs = self.alice(targets)
-        alice_qs = torch.einsum('ij, ij -> i', alice_outputs, codes)
+        alice_qs = torch.einsum('bj, bj -> b', alice_outputs, codes)
         alice_loss = self.alice_loss_function(alice_qs, rewards)
         return alice_loss
+
+    def alice_train_from_decisions(self, targets, rewards, codes, decisions):
+        """
+        As alice_train
+        """
+        targets = torch.flatten(targets, start_dim=1)
+        alice_codes_from_targets = torch.sign(self.alice(targets))
+        with torch.no_grad():
+            decisions = torch.flatten(decisions, start_dim=1)
+            alice_codes_from_decisions = torch.sign(self.alice(decisions))
+        closeness = torch.einsum('ij, ij -> i', alice_codes_from_targets,
+                                 alice_codes_from_decisions) / c.N_CODE
+        return self.alice_loss_function(closeness, rewards)
+    #TODO Should the code actually transmitted be used at all?
 
     def bob_train(self, selections, codes, decision_nos, rewards):
         """
@@ -352,16 +378,16 @@ class Nets:
         return self.bob_loss_function(decision_qs, to_device_tensor(rewards))
 
     def bob_train_circular_vocab(self, selections, codes, decision_nos,
-                                rewards):
+                                 rewards):
         """
         As bob_train
         """
-        bob_decisions_q_estimates = torch.flatten(
+        bob_decisions = torch.flatten(
             selections[torch.arange(self.size0), decision_nos],
             start_dim=1
         )
-        bob_input = torch.cat([bob_decisions_q_estimates, codes], dim=1)
+        bob_input = torch.cat([bob_decisions, codes], dim=1)
         bob_decisions_q_estimates = self.bob(bob_input).reshape((self.size0,))
-        return self.bob_loss_function(
-            bob_decisions_q_estimates, to_device_tensor(rewards)
+        return self.bob_loss_function(bob_decisions_q_estimates,
+                                      to_device_tensor(rewards)
         )
