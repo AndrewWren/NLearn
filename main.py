@@ -16,8 +16,6 @@ def train_ab():
     buffer = ReplayBuffer(h.BUFFER_CAPACITY)
     best_bob_loss = LossInfo(np.inf, None, None)
     for game_origins in tuple_specs.iter():
-        if (iteration := game_origins.iteration) % 1000 == 0:
-            print('\b' * 20 + f'Iteration={iteration:>10}', end='')
         game_reports = nets.play(game_origins)
         buffer.append(game_reports)
         if iteration < h.START_TRAINING:
