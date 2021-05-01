@@ -182,12 +182,12 @@ class Nets:
         )
         if current_iteration % 10000 == 0:
             print('\b' * 20)
-            mlu.log(f'Iteration={iteration:>10}')
+            mlu.log(f'Iteration={current_iteration:>10}')
             mlu.log('Codes=')
             [mlu.log(NiceCode(code)) for code in codes]
             mlu.log('')
         elif current_iteration % 1000 == 0:
-            print('\b' * 20 + f'Iteration={iteration:>10}', end='')
+            print('\b' * 20 + f'Iteration={current_iteration:>10}', end='')
 
         return alice_loss.item(), bob_loss.item()
 
