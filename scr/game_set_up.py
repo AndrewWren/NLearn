@@ -31,6 +31,12 @@ class NiceCode:
     def __repr__(self):
         return 'Code(' + self.__str__() + ')'
 
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __hash__(self):
+        return hash(str(self))
+
 
 class Domain:
     def __init__(self, domain_type: type, domain_range):
@@ -47,8 +53,9 @@ class Domain:
 
 
 class ElementCircular:
-    def __init__(self, modulus: int):
+    def __init__(self, modulus: int, n_select=None):
         self.modulus = modulus
+        self.n_select = n_select or h.N_SELECT
         self.circular_map = lambda x: np.transpose((np.cos(x), np.sin(x)))
         self.domain = self.circular_map(
             np.arange(modulus) * 2 * np.pi / modulus
@@ -57,10 +64,10 @@ class ElementCircular:
             np.square(self.domain[1:, :] - self.domain[0, :]), axis=-1
         )
         self.mean_random_sq_distance = np.mean(
-            distinct_random_square_distances) * (1 - 1 / h.N_SELECT)
+            distinct_random_square_distances) * (1 - 1 / self.n_select)
         self.var_random_sq_distance = np.mean(
             np.square(distinct_random_square_distances)) * (1 - 1 /
-                                                           h.N_SELECT) \
+                                                           self.n_select) \
             - self.mean_random_sq_distance ** 2
         self.factor = 1 / self.mean_random_sq_distance
         pass
@@ -78,7 +85,7 @@ class ElementCircular:
             axis=-1)
 
     def __repr__(self):
-        return f'ElementCircular({self.modulus})'
+        return f'ElementCircular({self.modulus}, {self.n_select})'
 
 
 GameOrigin = namedtuple('GameOrigin', 'iteration target_nos selections')

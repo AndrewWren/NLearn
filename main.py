@@ -1,3 +1,4 @@
+import os
 import random
 import numpy as np
 import torch
@@ -58,10 +59,37 @@ def run_tuples():
     return [None], 0
 
 
+@torch.no_grad()
+def code_book(model_file, modulus, n_select, print_list=False,
+              print_dict=True):
+    print(model_file)
+    model_file = os.path.join(c.MODEL_FOLDER, model_file)
+    model = torch.load(model_file)
+    elt = ElementCircular(modulus, n_select)
+    inputs = torch.tensor(elt.domain).to(c.DEVICE).float()
+    outputs = model(inputs).squeeze()
+    codes = torch.sign(outputs)
+    code_dict = dict()
+    for i, code in enumerate(codes):
+        nice_code = NiceCode(code)
+        if print_list:
+            print(f'{i}\t{nice_code}')
+        if print_dict:
+            if nice_code in code_dict:
+                code_dict[nice_code].append(i)
+            else:
+                code_dict[nice_code] = [i]
+    if print_dict:
+        print()
+        for key in code_dict:
+            print(f'{key}\t{code_dict[key]}')
+    print()
+
 if __name__ == '__main__':
     #run_tuples()
-    train_ab()
-    """code = NiceCode([1, 2, -7.3, -5, 4, 3, -20.22, 3.145, -2.2, 10.])
-    print(code)
-    """
+    #train_ab()
+    for hp_run in range(1, 4 + 1):
+        code_book(f'21-05-02_17:29:40BST_NLearn_model_'
+                  f'{hp_run}_Alice_iter500000',
+                  16, 5)
     mlu.close_log()
