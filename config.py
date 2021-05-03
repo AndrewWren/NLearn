@@ -16,7 +16,7 @@ hyperparameters = {
     'N_SELECT': 5,
     'EPSILON_ONE_END': 40000,
     'EPSILON_MIN': 0.01,
-    'EPSILON_MIN_POINT': 5 * (10 ** 5),
+    'EPSILON_MIN_POINT': 3 * (10 ** 5),
     'ALICE_STRATEGY': 'from_decisions',
     'BOB_STRATEGY': 'circular_vocab',
     'ALICE_OPTIMIZER': [#('SGD', '{"lr": 10.}'), # No effect
@@ -24,9 +24,13 @@ hyperparameters = {
                         ('SGD', '{"lr": 0.1}'),
                         ('SGD', '{"lr": 0.01}')
                         ],
-    'BOB_OPTIMIZER': 'Same',
+    'BOB_OPTIMIZER': [
+                        ('SGD', '{"lr": 0.1}'),
+                        ('SGD', '{"lr": 0.01}')
+                        ],
     'ALICE_LOSS_FUNCTION': ('MSE', {}),
-    'BOB_LOSS_FUNCTION': 'Same'
+    'BOB_LOSS_FUNCTION': 'Same',
+    'ALICE_LAST_TRAINING': 2 * (10 ** 5)
 }
 
 

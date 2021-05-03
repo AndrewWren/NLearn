@@ -87,6 +87,7 @@ class Nets:
         self.epsilon_slope = (1 - h.EPSILON_MIN) / (
                 h.EPSILON_MIN_POINT - h.EPSILON_ONE_END)
         self.size0 = None
+        self.last_alice_loss = None
 
     def optimizer(self, h_label, parameter_label):
         values = eval('h.' + h_label.upper() + '_OPTIMIZER')
@@ -145,22 +146,26 @@ class Nets:
         self.epsilon = self.epsilon_function(current_iteration)
 
         # Alice
-        targets = game_reports.selections[np.arange(self.size0),
-                                          game_reports.target_nos]
-        decisions = torch.flatten(
-            to_device_tensor(game_reports.selections)[
-                torch.arange(self.size0), game_reports.decision_nos],
-            start_dim=1
-        )
-        alice_loss = self.alice_train(
-            to_device_tensor(targets),
-            to_device_tensor(game_reports.rewards),
-            to_device_tensor(game_reports.codes),
-            decisions
-        )
-        self.alice_optimizer.zero_grad()
-        alice_loss.backward()
-        self.alice_optimizer.step()
+        if current_iteration <= h.ALICE_LAST_TRAINING:
+            targets = game_reports.selections[np.arange(self.size0),
+                                              game_reports.target_nos]
+            decisions = torch.flatten(
+                to_device_tensor(game_reports.selections)[
+                    torch.arange(self.size0), game_reports.decision_nos],
+                start_dim=1
+            )
+            alice_loss = self.alice_train(
+                to_device_tensor(targets),
+                to_device_tensor(game_reports.rewards),
+                to_device_tensor(game_reports.codes),
+                decisions
+            )
+            self.alice_optimizer.zero_grad()
+            alice_loss.backward()
+            self.alice_optimizer.step()
+            self.last_alice_loss = alice_loss
+        else:
+            alice_loss = self.last_alice_loss
 
         # Bob
         selections = to_device_tensor(game_reports.selections)
