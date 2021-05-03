@@ -8,7 +8,7 @@ class MSEBitsLoss(torch.nn.MSELoss):
             torch.sum(
                 torch.nn.functional.mse_loss(x, y, reduction='none')
                 + (mu / 2) * torch.square(x - torch.sign(x)),
-                dim=1
+                dim=-1
             )
         )
 

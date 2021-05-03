@@ -70,10 +70,10 @@ def code_book(model_file, modulus, n_select, print_list=False,
     outputs = model(inputs).squeeze()
     codes = torch.sign(outputs)
     code_dict = dict()
-    for i, code in enumerate(codes):
+    for i, (code, output) in enumerate(zip(codes, output)):
         nice_code = NiceCode(code)
         if print_list:
-            print(f'{i}\t{nice_code}')
+            print(f'{i}\t{nice_code}\t{output}')
         if print_dict:
             if nice_code in code_dict:
                 code_dict[nice_code].append(i)
