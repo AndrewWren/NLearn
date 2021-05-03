@@ -3,6 +3,7 @@ import random
 import numpy as np
 import torch
 import torch.nn as nn
+from scr.loss_functions import MSEBitsLoss
 import scr.ml_utilities as mlu
 from scr.ml_utilities import c, h, rng_c, writer
 from scr.net_class import Net
