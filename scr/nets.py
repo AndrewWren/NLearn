@@ -101,8 +101,7 @@ class Nets:
     def loss_function(self, h_label):
         values = eval('h.' + h_label.upper() + '_LOSS_FUNCTION')
         return eval(
-            'torch.nn.' + values[0]
-            + 'Loss(**' + str(values[1]) + ')'
+            values[0] + 'Loss(**' + str(values[1]) + ')'
         )
 
     @torch.no_grad()

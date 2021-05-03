@@ -85,11 +85,18 @@ def code_book(model_file, modulus, n_select, print_list=False,
             print(f'{key}\t{code_dict[key]}')
     print()
 
-if __name__ == '__main__':
-    #run_tuples()
-    #train_ab()
+
+def code_books_0():
     for hp_run in range(1, 4 + 1):
         code_book(f'21-05-02_17:29:40BST_NLearn_model_'
                   f'{hp_run}_Alice_iter500000',
                   16, 5)
+
+
+if __name__ == '__main__':
+    #run_tuples()
+    train_ab()
+    #code_books_0()
+    #code_book('21-05-03_10:53:10BST_NLearn_model_1_Alice_iter500000', 16, 16)
+
     mlu.close_log()
