@@ -133,9 +133,22 @@ Key runs:
 	\end{lstlisting}
 	up to a point when it levels off.  Gets to $\verb|reward|=0.6$.
 	
-	\item  \verb|21-05-01_20:04:35| other \verb|lr| choices but same result.
-	
-	\item \verb|21-05-02_17:29:40| stops Alice training at some point. Alice $\verb|lr|=0.1$ and Bob $\verb|lr|=0.01$ gets to $0.78.$  The \verb|config| includes
+	\item  \verb|21-05-01_20:04:35| other \verb|lr| choices but same result.	
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.7\linewidth]{Fig_Mean_Rewards_21-05-01_20:04:35}
+		\caption{Mean Rewards per game for \texttt{21-05-01\_20:04:35}.  By colour, (Alice \texttt{lr}, Bob \texttt{lr}) are: cyan $(0.1, 0.1),$ orange $(0.1, 0.01),$ pink $(0.01, 0.1),$ and blue $(0.01, 0.01).$}
+		\label{fig:figmeanrewards21-05-01200435}
+	\end{figure}
+
+	\item \verb|21-05-02_17:29:40| stops Alice training at some point. Alice $\verb|lr|=0.1$ and Bob $\verb|lr|=0.01$ gets to $0.78.$
+	\begin{figure}
+		\centering
+		\includegraphics[width=0.7\linewidth]{Fig_Mean_Rewards_21-05-02_17:29:40}
+		\caption{Mean Rewards per game for \texttt{21-05-02\_17:29:40}.  By colour, (Alice \texttt{lr}, Bob \texttt{lr}) are: green $(0.1, 0.1),$ orange $(0.1, 0.01),$ grey $(0.01, 0.1),$ and cyan $(0.01, 0.01).$}
+		\label{fig:figmeanrewards21-05-02172940}
+	\end{figure}
+	The \verb|config| includes
 	\begin{lstlisting}
 		hyperparameters = {
 			'N_ITERATIONS': 500000,
