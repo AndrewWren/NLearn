@@ -2,7 +2,7 @@ import torch
 
 
 hyperparameters = {
-    'N_ITERATIONS': 5 * (10 ** 5),
+    'N_ITERATIONS': 4 * (10 ** 5),
     'RANDOM_SEED': 42,
     'TORCH_RANDOM_SEED': 4242,
     'ALICE_LAYERS': 3,
@@ -13,22 +13,19 @@ hyperparameters = {
     'GAMESIZE': 32,
     'BUFFER_CAPACITY': 32 * 20000,
     'START_TRAINING': 20000,
-    'N_SELECT': 5,
+    'N_SELECT': 16,  # 5,
     'EPSILON_ONE_END': 40000,
     'EPSILON_MIN': 0.01,
     'EPSILON_MIN_POINT': 3 * (10 ** 5),
     'ALICE_STRATEGY': 'from_decisions',
     'BOB_STRATEGY': 'circular_vocab',
-    'ALICE_OPTIMIZER': [#('SGD', '{"lr": 10.}'), # No effect
-                        #('SGD', '{"lr": 1.}'),    #No effect
-                        ('SGD', '{"lr": 0.1}'),
+    'ALICE_OPTIMIZER': [
                         ('SGD', '{"lr": 0.01}')
                         ],
     'BOB_OPTIMIZER': [
-                        ('SGD', '{"lr": 0.1}'),
                         ('SGD', '{"lr": 0.01}')
                         ],
-    'ALICE_LOSS_FUNCTION': ('MSE', {}),
+    'ALICE_LOSS_FUNCTION': ('MSEBits', {}), # (''torch.nn.MSE', {}),
     'BOB_LOSS_FUNCTION': 'Same',
     'ALICE_LAST_TRAINING': 2 * (10 ** 5)
 }
