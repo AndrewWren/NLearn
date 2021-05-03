@@ -11,7 +11,7 @@
 \maketitle
 
 \begin{abstract}
-	Notes on GuessTuples project
+	Notes on \texttt{GuessTuples} project aka \texttt{NLearn}
 \end{abstract}
 
 
@@ -122,6 +122,59 @@ None of these quite amount to Bob seeks to reproduce the Alice's code vocabulary
 	\label{fig:fig-oneperbitsqrtlosses}
 \end{figure}
 
+\section{Revised approach --- \texttt{NLearn}}
+
+Key runs:  
+\begin{enumerate}
+	\item \verb|21-05-01_12:05:16| is the strategy that works 
+	\begin{lstlisting}
+		'ALICE_STRATEGY': 'from_decisions',
+		'BOB_STRATEGY': 'circular_vocab'
+	\end{lstlisting}
+	up to a point when it levels off.  Gets to $\verb|reward|=0.6$.
+	
+	\item  \verb|21-05-01_20:04:35| other \verb|lr| choices but same result.
+	
+	\item \verb|21-05-02_17:29:40| stops Alice training at some point. Alice $\verb|lr|=0.1$ and Bob $\verb|lr|=0.01$ gets to $0.78.$  The \verb|config| includes
+	\begin{lstlisting}
+		hyperparameters = {
+			'N_ITERATIONS': 500000,
+			'RANDOM_SEED': 42,
+			'TORCH_RANDOM_SEED': 4242,
+			'ALICE_LAYERS': 3,
+			'ALICE_WIDTH': 50,
+			'BOB_LAYERS': 3,
+			'BOB_WIDTH': 50,
+			'BATCHSIZE': 32,
+			'GAMESIZE': 32,
+			'BUFFER_CAPACITY': 640000,
+			'START_TRAINING': 20000,
+			'N_SELECT': 5,
+			'EPSILON_ONE_END': 40000,
+			'EPSILON_MIN': 0.01,
+			'EPSILON_MIN_POINT': 300000,
+			'ALICE_STRATEGY': 'from_decisions',
+			'BOB_STRATEGY': 'circular_vocab',
+			'ALICE_OPTIMIZER': ('SGD', '{"lr": 0.1}'),
+			'BOB_OPTIMIZER': ('SGD', '{"lr": 0.01}'),
+			'ALICE_LOSS_FUNCTION': ('MSE', {}),
+			'BOB_LOSS_FUNCTION': 'Same',
+			'ALICE_LAST_TRAINING': 200000
+	\end{lstlisting}
+\end{enumerate}
+
+Things to try:
+\begin{enumerate}
+	\item What codes does best Alice generate?
+	
+	\item Try using the loss function to constraint outputs to nearer bit values.
+	
+	\item How quickly can \verb|epsilon| be tapered? 
+	
+	\item Vary learning rates.
+	
+	\item Vary \verb|modulus|, \verb|N_CODE| and \verb|N_SELECT|.
+\end{enumerate}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
