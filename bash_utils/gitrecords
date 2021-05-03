@@ -1,0 +1,49 @@
+#!/bin/bash
+
+#Add - and perhaps ##if can work well## commit and push - records 
+
+#commit=0
+#push=0
+#posscp=$1
+#if [ "${posscp:0:2}" = "-c" ]; then
+#    commit=1
+#    commitname=$2
+#    if [ "${posscp:2:1}" = "p" ]; then
+#        push=1
+#    fi
+#    shift
+#    shift
+#fi
+
+outarg=""
+months=(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
+for word in $@; do
+    monthno=${word:3:2}
+    month=${months[$monthno-1]}
+    day=${word:6:2}
+    hour=${word:9:2}
+    min=${word:12:2}
+    sec=${word:15:2}
+    configname="${PWD}/configs/${word}*"
+    logname="${PWD}/logs/${word}*"
+    modelname="${PWD}/models/${word}*"
+    runname="${PWD}/runs/${month}${day}_${hour}-${min}-${sec}*"
+    names=(${configname} ${logname} ${modelname} ${runname})
+    outarg=""
+    for name in "${names[@]}"; do
+    if compgen -G $name > /dev/null; then  #from https://stackoverflow.com/questions/2937407/test-whether-a-glob-has-any-matches-in-bash
+        outarg="${outarg} ${name} "
+    fi
+    done    
+done
+git add $outarg
+echo "Added: $outarg"
+#if [ "$commit" -eq 1 ]; then
+#    git commit $commitname
+#    echo "Committed"
+#fi
+#if [ "$push" -eq 1 ]; then
+#    git push
+#    echo "Pushed"
+#fi
+
