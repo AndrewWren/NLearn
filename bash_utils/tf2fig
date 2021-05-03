@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Converts a Reward.svg file in the Download folder to a Fig_Mean_Rewards_<arg>.pdf file in NLearn/latex  Then removes the original svg file.  The arg should be the date-and-time
+
+datetime=$1
+figfile="${HOME}/NLearn/latex/Fig_Mean_Rewards_${datetime}.pdf"
+rsvg-convert -f pdf -o $figfile ${HOME}/Downloads/Rewards.svg
+rm ${HOME}/Downloads/Rewards.svg
+
+
+ 
