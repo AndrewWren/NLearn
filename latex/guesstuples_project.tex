@@ -187,7 +187,28 @@ Things to try:
 	\item Vary learning rates.
 	
 	\item Vary \verb|modulus|, \verb|N_CODE| and \verb|N_SELECT|.
+	
+	\item Introduce noise.
+	
+	\item Alice strategy with a code, as input and the output are values for the numbers.  In each play (or train?) step feed all the codes in and the outputs indicate how well represents each number???
+	
+	\item Try best strategy but with Alice outputs having dimension \verb|2 ** N_CODE|.
+	
+	\item Train bits successively. 
+	
+	\item Look at MARL literature.
 \end{enumerate}
+
+The best Alice so far, \verb|21-05-02_17:29:40 hp_run=2| generates codes as follows:
+\begin{lstlisting}
+	11101100	[0, 1, 2, 12, 13, 14, 15]
+	11101110	[3]
+	10101110	[4, 6]
+	10100110	[5, 7]
+	10100100	[8]
+	11100100	[9, 10, 11]
+\end{lstlisting}
+Surprisingly only six distinct codes used!  At least the first and last have sequential runs of numbers.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
