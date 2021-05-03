@@ -23,6 +23,10 @@ for word in $@; do
     day=${word:6:2}
     hour=${word:9:2}
     min=${word:12:2}
+    if [ "$min" = "" ]; then
+      echo "Skipping ${word} as need to specify at least to the minute"
+      continue
+    fi
     sec=${word:15:2}
     configname="${PWD}/configs/${word}*"
     logname="${PWD}/logs/${word}*"
