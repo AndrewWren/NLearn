@@ -382,6 +382,24 @@ def save_model(model, title=None, parameter_name=None, parameter=None):
     torch.save(model, model_title)
 
 
+def to_device_tensor(x):
+    """
+    Convert array to device tensor
+    :param x: numpy array
+    :return:  pytorch c.DEVICE tensor
+    """
+    return torch.FloatTensor(x).to(c.DEVICE)
+
+
+def to_array(x):
+    """
+    Convert device tensor to array
+    :param x: pytorch c.DEVICE tensor
+    :return: numpy array
+    """
+    return x.cpu().detach().numpy()
+
+
 consts = Constants()
 consts.log()
 consts.copy_config()  # to_json=False

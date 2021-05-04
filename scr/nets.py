@@ -3,30 +3,13 @@ import random
 import numpy as np
 import torch
 import torch.nn as nn
+from torch.nn import MSELoss
 from scr.loss_functions import MSEBitsLoss
 import scr.ml_utilities as mlu
-from scr.ml_utilities import c, h, rng_c, writer
+from scr.ml_utilities import c, h, rng_c, to_array, to_device_tensor, writer
 from scr.net_class import Net
 from scr.game_set_up import Domain, ElementCircular, GameOrigins, \
     GameReports, NiceCode, ReplayBuffer, TupleSpecs
-
-
-def to_device_tensor(x):
-    """
-    Convert array to device tensor
-    :param x: numpy array
-    :return:  pytorch c.DEVICE tensor
-    """
-    return torch.FloatTensor(x).to(c.DEVICE)
-
-
-def to_array(x):
-    """
-    Convert device tensor to array
-    :param x: pytorch c.DEVICE tensor
-    :return: numpy array
-    """
-    return x.cpu().detach().numpy()
 
 
 LossInfo = namedtuple('LossInfo', 'bob_loss iteration alice_loss')

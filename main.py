@@ -3,7 +3,7 @@ import random
 import numpy as np
 import torch
 import scr.ml_utilities as mlu
-from scr.ml_utilities import c, h, rng_c
+from scr.ml_utilities import c, h, rng_c, to_array, to_device_tensor, writer
 from scr.nets import LossInfo, Nets
 from scr.game_set_up import Domain, ElementCircular, NiceCode, ReplayBuffer,\
     TupleSpecs
@@ -61,25 +61,30 @@ def run_tuples():
 
 @torch.no_grad()
 def code_book(model_file, modulus, n_select, print_list=False,
-              print_dict=True):
+              print_dict=True, print_full_dict=False):
     print(model_file)
     model_file = os.path.join(c.MODEL_FOLDER, model_file)
     model = torch.load(model_file)
     elt = ElementCircular(modulus, n_select)
-    inputs = torch.tensor(elt.domain).to(c.DEVICE).float()
-    outputs = model(inputs).squeeze()
-    codes = torch.sign(outputs)
+    inputs = to_device_tensor(elt.domain)
+    outputs = to_array(model(inputs).squeeze())
+    codes = np.sign(outputs)
     code_dict = dict()
-    for i, (code, output) in enumerate(zip(codes, output)):
+    for i, (code, output) in enumerate(zip(codes, outputs)):
         nice_code = NiceCode(code)
         if print_list:
             print(f'{i}\t{nice_code}\t{output}')
-        if print_dict:
+        if print_full_dict:
+            if nice_code in code_dict:
+                code_dict[nice_code].append((i, output))
+            else:
+                code_dict[nice_code] = [(i, output)]
+        elif print_dict:
             if nice_code in code_dict:
                 code_dict[nice_code].append(i)
             else:
                 code_dict[nice_code] = [i]
-    if print_dict:
+    if (print_dict or print_full_dict):
         print()
         for key in code_dict:
             print(f'{key}\t{code_dict[key]}')
@@ -95,8 +100,9 @@ def code_books_0():
 
 if __name__ == '__main__':
     #run_tuples()
-    train_ab()
+    #train_ab()
     #code_books_0()
-    #code_book('21-05-03_10:53:10BST_NLearn_model_1_Alice_iter500000', 16, 16)
+    code_book('21-05-03_20:36:57BST_NLearn_model_2_Alice_iter500000', 16,
+              16, print_full_dict=True)
 
     mlu.close_log()
