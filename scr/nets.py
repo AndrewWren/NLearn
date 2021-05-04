@@ -15,7 +15,7 @@ from scr.game_set_up import Domain, ElementCircular, GameOrigins, \
 LossInfo = namedtuple('LossInfo', 'bob_loss iteration alice_loss')
 
 
-class FFs(Net):
+class FFs(torch.nn.Module):
 
     def __init__(self, input_width, output_width, layers=10, width=50):
         super().__init__()
@@ -72,6 +72,7 @@ class Nets:
                 h.EPSILON_MIN_POINT - h.EPSILON_ONE_END)
         self.size0 = None
         self.last_alice_loss = None
+        self.current_iteration = None
 
     def optimizer(self, h_label, parameter_label):
         values = eval('h.' + h_label.upper() + '_OPTIMIZER')
@@ -88,7 +89,7 @@ class Nets:
         )
 
     @torch.no_grad()
-    def play(self, game_origins: GameOrigins) -> GameReports:
+    def play(self, game_origins: GameOrigins):
         """
         Forward passes
         """
@@ -98,21 +99,29 @@ class Nets:
                                           game_origins.target_nos]
         targets_t = to_device_tensor(targets)
         greedy_codes = self.alice_play(targets_t)
-        codes = self.alice_eps_greedy(greedy_codes)
+        codes, chooser_a = self.alice_eps_greedy(greedy_codes)
         selections = to_device_tensor(game_origins.selections)
         bob_q_estimates_argmax = self.bob_play(selections, codes)
-        decision_nos = self.bob_eps_greedy(bob_q_estimates_argmax)
+        decision_nos, chooser_b = self.bob_eps_greedy(bob_q_estimates_argmax)
         decisions = self.gatherer(selections, decision_nos, 'Decisions')
         rewards = self.tuple_specs.rewards(grounds=targets,
                                            guesses=to_array(decisions))
+        non_random_rewards = rewards[chooser_a & chooser_b]
+        if non_random_rewards.shape[0]:
+            non_random_rewards_0 = non_random_rewards
+        else:
+            non_random_rewards_0 = np.zeros(1)
         writer.add_scalars(
             'Rewards',
-            {f'Mean reward_{h.hp_run}': np.mean(rewards),
-             f'SD reward_{h.hp_run}': np.std(rewards)},
+            {f'Mean reward_{h.hp_run}': np.mean(non_random_rewards_0),
+             f'SD reward_{h.hp_run}': np.std(non_random_rewards_0)},
             global_step=game_origins.iteration
         )
-        return GameReports(game_origins, to_array(codes),
-                           to_array(decision_nos), rewards)
+        return (
+            non_random_rewards,
+            GameReports(game_origins, to_array(codes), to_array(decision_nos),
+                rewards)
+        )
         # Returns iteration target_nos selections decisions rewards
         # Don't return alice_qs decision_qs
 
@@ -196,7 +205,7 @@ class Nets:
         random_codes = 2 * random_codes - 1
         for_choice = torch.stack((random_codes, greedy_codes), dim=1)
         temp = self.gatherer(for_choice, chooser, 'Alice').long()
-        return temp
+        return temp, to_array(chooser).astype(bool)
 
     def bob_eps_greedy(self, greedy_indices):
         """
@@ -212,7 +221,7 @@ class Nets:
         random_indices.random_(to=h.N_SELECT)
         for_choice = torch.dstack((random_indices, greedy_indices))[0]
         temp0 = for_choice[list(range(self.size0)), chooser].long()
-        return temp0
+        return temp0, to_array(chooser).astype(bool)
 
     def epsilon_function(self, iteration):
         """
@@ -342,7 +351,13 @@ class Nets:
             alice_codes_from_decisions = torch.sign(self.alice(decisions))
         closeness = torch.einsum('ij, ij -> i', alice_codes_from_targets,
                                  alice_codes_from_decisions) / c.N_CODE
-        return self.alice_loss_function(closeness, rewards)
+        if self.current_iteration < h.ALICE_PROXIMITY_BONUS:
+            return self.alice_loss_function(closeness, rewards)
+        closeness_bonus = (closeness == 1.).float()
+        rewards_bonus = (rewards == 1.).float()
+        return self.alice_loss_function(closeness + closeness_bonus,
+                                        rewards + rewards_bonus)
+
     #TODO Should the code actually transmitted be used at all?
 
     def bob_train(self, selections, codes, decision_nos, rewards):

@@ -118,7 +118,7 @@ None of these quite amount to Bob seeks to reproduce the Alice's code vocabulary
 \begin{figure}
 	\centering
 	\includegraphics[width=0.7\linewidth]{fig-one_per_bit_sqrt_losses}
-	\caption{The best results --- from \texttt{/runs/Apr27\_23-01-58\_andrew-XPS-15-9570}. The lines show the square root of the mean square losses with (a) \texttt{lr=0.3} Alice (orange), Bob (dark blue); (b) \texttt{lr=0.1} Alice (brick red), Bob (cyan); (c) \texttt{lr=0.01} Alice (pink), Bob (green).  The plot is from TensorFlow and uses smoothing of 0.999.}
+	\caption{The best results --- from \texttt{/runs/Apr27\_23-01-58\_andrew-XPS-15-9570}. The lines show the square root of the mean square losses with (a) \texttt{lr=0.3} Alice (orange), Bob (dark blue); (b) \texttt{lr=0.1} Alice (brick red), Bob (cyan); (c) \texttt{lr=0.01} Alice (pink), Bob (green).  The plot is from TensorFlow and uses smoothing of 0.999. Note rewards from random plays are counted.}
 	\label{fig:fig-oneperbitsqrtlosses}
 \end{figure}
 
@@ -137,7 +137,7 @@ Key runs:
 	\begin{figure}
 		\centering
 		\includegraphics[width=0.7\linewidth]{Fig_Mean_Rewards_21-05-01_20:04:35}
-		\caption{Mean Rewards per game for \texttt{21-05-01\_20:04:35}.  By colour, (Alice \texttt{lr}, Bob \texttt{lr}) are: cyan $(0.1, 0.1),$ orange $(0.1, 0.01),$ pink $(0.01, 0.1),$ and blue $(0.01, 0.01).$}
+		\caption{Mean Rewards per game for \texttt{21-05-01\_20:04:35}.  By colour, (Alice \texttt{lr}, Bob \texttt{lr}) are: cyan $(0.1, 0.1),$ orange $(0.1, 0.01),$ pink $(0.01, 0.1),$ and blue $(0.01, 0.01).$ Note rewards from random plays are counted.}
 		\label{fig:figmeanrewards21-05-01200435}
 	\end{figure}
 
@@ -145,7 +145,7 @@ Key runs:
 	\begin{figure}
 		\centering
 		\includegraphics[width=0.7\linewidth]{Fig_Mean_Rewards_21-05-02_17:29:40}
-		\caption{Mean Rewards per game for \texttt{21-05-02\_17:29:40}.  By colour, (Alice \texttt{lr}, Bob \texttt{lr}) are: green $(0.1, 0.1),$ orange $(0.1, 0.01),$ grey $(0.01, 0.1),$ and cyan $(0.01, 0.01).$}
+		\caption{Mean Rewards per game for \texttt{21-05-02\_17:29:40}.  By colour, (Alice \texttt{lr}, Bob \texttt{lr}) are: green $(0.1, 0.1),$ orange $(0.1, 0.01),$ grey $(0.01, 0.1),$ and cyan $(0.01, 0.01).$   Note rewards from random plays are counted.}
 		\label{fig:figmeanrewards21-05-02172940}
 	\end{figure}
 	The \verb|config| includes
@@ -208,7 +208,7 @@ Things to try:
 \begin{enumerate}
 	\item What codes does best Alice generate?
 	
-	\item Try using the loss function to constraint outputs to nearer bit values.
+	\item Try using the loss function to constraint outputs to nearer bit values.  Try increasing the weighting of this.
 	
 	\item How quickly can \verb|epsilon| be tapered? 
 	

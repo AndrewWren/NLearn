@@ -2,7 +2,7 @@ import torch
 
 
 hyperparameters = {
-    'N_ITERATIONS': 5 * (10 ** 5),
+    'N_ITERATIONS': 50000,  # 5 * (10 ** 5),
     'RANDOM_SEED': 42,
     'TORCH_RANDOM_SEED': 4242,
     'ALICE_LAYERS': 3,
@@ -11,12 +11,12 @@ hyperparameters = {
     'BOB_WIDTH': 50,
     'BATCHSIZE': 32,
     'GAMESIZE': 32,
-    'BUFFER_CAPACITY': 32 * 20000,
-    'START_TRAINING': 20000,
+    'BUFFER_CAPACITY': 32 * 10000,
+    'START_TRAINING': 2000, # 20000,
     'N_SELECT': 16,  # 5,
-    'EPSILON_ONE_END': 40000,
-    'EPSILON_MIN': [0.01, 0.1],
-    'EPSILON_MIN_POINT': 3 * (10 ** 5),
+    'EPSILON_ONE_END': 2000,  #40000,
+    'EPSILON_MIN':   0.5,  # to write up, [0.01, 0.1],
+    'EPSILON_MIN_POINT': 25000,  # 3 * (10 ** 5),
     'ALICE_STRATEGY': 'from_decisions',
     'BOB_STRATEGY': 'circular_vocab',
     'ALICE_OPTIMIZER': [
@@ -27,7 +27,9 @@ hyperparameters = {
                         ],
     'ALICE_LOSS_FUNCTION': ('MSEBits', {}), # ('MSE', {}),
     'BOB_LOSS_FUNCTION': 'Same',
-    'ALICE_LAST_TRAINING': [2 * (10 ** 5), 3 * (10 ** 5)]
+    'ALICE_LAST_TRAINING': 3 * (10 ** 5),  # to write up [2 * (10 ** 5),
+    # 3 * (10 ** 5)],
+    'ALICE_PROXIMITY_BONUS': 10 ** 7
 }
 
 
@@ -36,7 +38,7 @@ TUPLE_SPEC = (
     (16,),
 )
 N_CODE = 8
-# TRAINING_METHOD = 'q'
+SMOOTHING_LENGTH = 1000  # 10000
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
