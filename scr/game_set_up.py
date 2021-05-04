@@ -24,6 +24,9 @@ class NiceCode:
     def binary_list(self, bb):
         return [self.to_bit(b) for b in bb]
 
+    def raw(self):
+        return np.array([ b * 2 - 1 for b in self.tuple])
+
     def __str__(self):
         b_list = [str(int(b)) for b in self.tuple]
         return ''.join(b_list)

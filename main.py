@@ -69,27 +69,57 @@ def code_book(model_file, modulus, n_select, print_list=False,
     inputs = to_device_tensor(elt.domain)
     outputs = to_array(model(inputs).squeeze())
     codes = np.sign(outputs)
+    return codes, print_book(codes, outputs, print_dict, print_full_dict,
+                        print_list)
+
+
+@torch.no_grad()
+def code_decode_book(model_file_alice, model_file_bob, modulus, n_select):
+    print(f'{model_file_alice=}\n{model_file_bob=}')
+    _, code_dict = code_book(model_file_alice, modulus, n_select)
+    model_file_bob = os.path.join(c.MODEL_FOLDER, model_file_bob)
+    model_bob = torch.load(model_file_bob)
+    elt = ElementCircular(modulus, n_select)
+    domain = to_device_tensor(elt.domain)
+    decode_dict = dict()
+    for nice_code in code_dict.keys():
+        code_repeated = to_device_tensor(nice_code.raw()).repeat(modulus, 1)
+        bob_input = torch.cat(
+            [domain, code_repeated], 1
+        )
+        bob_q_estimates = model_bob(bob_input).squeeze()
+        decode_dict[nice_code] = torch.argmax(bob_q_estimates).item()
+    print()
+    for nice_code in decode_dict:
+        print(f'{nice_code}\t{decode_dict[nice_code]}')
+    print()
+
+
+def print_book(codes, outputs=None, print_dict=True, print_full_dict=False,
+               print_list=True):
+    if outputs is None:
+        outputs = np.empty(codes.shape)
     code_dict = dict()
     for i, (code, output) in enumerate(zip(codes, outputs)):
         nice_code = NiceCode(code)
         if print_list:
             print(f'{i}\t{nice_code}\t{output}')
         if print_full_dict:
-            if nice_code in code_dict:
+            try:
                 code_dict[nice_code].append((i, output))
-            else:
+            except:
                 code_dict[nice_code] = [(i, output)]
         elif print_dict:
-            if nice_code in code_dict:
+            try:
                 code_dict[nice_code].append(i)
-            else:
+            except:
                 code_dict[nice_code] = [i]
     if (print_dict or print_full_dict):
         print()
-        for key in code_dict:
-            print(f'{key}\t{code_dict[key]}')
+        for nice_code in code_dict:
+            print(f'{nice_code}\t{code_dict[nice_code]}')
     print()
-
+    return code_dict
 
 def code_books_0():
     for hp_run in range(1, 4 + 1):
@@ -104,5 +134,8 @@ if __name__ == '__main__':
     #code_books_0()
     code_book('21-05-03_20:36:57BST_NLearn_model_2_Alice_iter500000', 16,
               16, print_full_dict=True)
+    code_decode_book('21-05-03_20:36:57BST_NLearn_model_2_Alice_iter500000',
+                     '21-05-03_20:36:57BST_NLearn_model_2_Bob_iter500000',16,
+              16)
 
     mlu.close_log()
