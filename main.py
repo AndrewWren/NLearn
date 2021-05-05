@@ -19,6 +19,8 @@ def train_ab():
     best_non_random_reward = -np.inf
     nrr_buffer = collections.deque(maxlen=c.SMOOTHING_LENGTH)
     best_nrr_iteration = None
+    saved_alice_model_title = None
+    saved_bob_model_title = None
     for game_origins in tuple_specs.iter():
         nets.current_iteration = game_origins.iteration
         non_random_rewards, game_reports = nets.play(game_origins)
@@ -32,12 +34,15 @@ def train_ab():
         alice_loss, bob_loss = nets.train(game_origins.iteration, buffer)
         if (alice_loss == np.nan) or (bob_loss == np.nan):
             return [(best_non_random_reward, best_nrr_iteration),
+                    (saved_alice_model_title, saved_bob_model_title),
                     f'nan error at iteration={game_origins.iteration}'], 0
-        if (game_origins.iteration % 100000 == 0) or (
+        if (game_origins.iteration % c.SAVE_PERIOD == 0) or (
                 game_origins.iteration == h.N_ITERATIONS):
-            mlu.save_model(nets.alice, title='Alice', parameter_name='iter',
+            saved_alice_model_title = mlu.save_model(nets.alice, title='Alice',
+                               parameter_name='iter',
                    parameter=game_origins.iteration)
-            mlu.save_model(nets.bob, title='Bob', parameter_name='iter',
+            saved_bob_model_title = mlu.save_model(nets.bob, title='Bob',
+                                           parameter_name='iter',
                        parameter=game_origins.iteration)
         if (game_origins.iteration % c.SMOOTHING_LENGTH == 0) and \
             ((nrr_buffer_n := np.concatenate(nrr_buffer)).shape[0] >=
@@ -46,7 +51,8 @@ def train_ab():
                         > best_non_random_reward):
                     best_non_random_reward = smoothed_nrr
                     best_nrr_iteration = game_origins.iteration
-    return [(- best_non_random_reward, best_nrr_iteration)], 0
+    return [(- best_non_random_reward, best_nrr_iteration),
+            (saved_alice_model_title, saved_bob_model_title)], 0
 
 
 def test_ar():
@@ -71,7 +77,6 @@ def run_tuples():
 @torch.no_grad()
 def code_book(model_file, modulus, n_select, print_list=False,
               print_dict=True, print_full_dict=False):
-    print(model_file)
     model_file = os.path.join(c.MODEL_FOLDER, model_file)
     model = torch.load(model_file)
     elt = ElementCircular(modulus, n_select)
@@ -82,7 +87,7 @@ def code_book(model_file, modulus, n_select, print_list=False,
                         print_list)
 
 
-@torch.no_grad()
+@torch.no_grad()  #TODO print to mlu
 def code_decode_book(model_file_alice, model_file_bob, modulus, n_select):
     print(f'{model_file_alice=}\n{model_file_bob=}')
     _, code_dict = code_book(model_file_alice, modulus, n_select)
@@ -105,7 +110,7 @@ def code_decode_book(model_file_alice, model_file_bob, modulus, n_select):
 
 
 def print_book(codes, outputs=None, print_dict=True, print_full_dict=False,
-               print_list=True):
+               print_list=True):  #TODO print to mlu
     if outputs is None:
         outputs = np.empty(codes.shape)
     code_dict = dict()
@@ -139,13 +144,22 @@ def code_books_0():
 
 if __name__ == '__main__':
     #run_tuples()
-    #train_ab()
+    full_results = train_ab()
+    for full_result in full_results:
+        saved_alice_model_title, saved_bob_model_title = full_result[1]
+        code_decode_book(
+            saved_alice_model_title,
+            saved_bob_model_title,
+            16,
+            16
+        )  #TODO Automate those 16s
+
     #code_books_0()
     """code_book('21-05-03_20:36:57BST_NLearn_model_2_Alice_iter500000', 16,
               16, print_full_dict=True)
     """
-    code_decode_book('21-05-05_13:13:06BST_NLearn_model_1_Alice_iter150000',
-                     '21-05-05_13:13:06BST_NLearn_model_1_Bob_iter150000',
+    """code_decode_book('21-05-05_15:59:30BST_NLearn_model_1_Alice_iter150000',
+                     '21-05-05_15:59:30BST_NLearn_model_1_Bob_iter150000',
                      16, 16)
-
+    """
     mlu.close_log()

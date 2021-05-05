@@ -299,6 +299,7 @@ def over_hp(func):
         best_so_far = best_so_far_initial
         over_hp_start = perf_counter()
         results = list()
+        full_results = list()
         for hp_run, bundle in enumerate(product(*values), 1):
             log('\n')
             time_elapsed = perf_counter() - over_hp_start
@@ -309,9 +310,9 @@ def over_hp(func):
             except:
                 h['n_rng'] = None
             try:
-                h['ni_rng'] = np.random.default_rng(h.ITERATIONS_SEED)
+                h['ne_rng'] = np.random.default_rng(h.ENVIRONMENT_SEED)
             except:
-                h['ni_rng'] = None
+                h['ne_rng'] = None
             try:
                 # See https://pytorch.org/docs/stable/generated/torch
                 # .Generator.html on manual_seed()
@@ -324,17 +325,32 @@ def over_hp(func):
                    torch_seed)
             except:
                 exit('Error setting or seeding torch Generator')
+            try:
+                # See https://pytorch.org/docs/stable/generated/torch
+                # .Generator.html on manual_seed()
+                torch_seed_rng = np.random.default_rng(
+                    h.TORCH_ENVIRONMENT_RANDOM_SEED)
+                zeros_ones = [0] * 16 + [1] * 16
+                torch_seed_rng.shuffle(zeros_ones)
+                torch_seed = sum([ bit * (2 ** (32 - b))
+                                   for b, bit in enumerate(zeros_ones)])
+                h['te_rng'] = torch.Generator(device=c.DEVICE).manual_seed(
+                   torch_seed)
+            except:
+                exit('Error setting or seeding torch environment Generator')
             h['hp_run'] = hp_run  # Needed for TensorBoard and saved models
             best_of_this_hp_run, idx = func(*args, **kwargs)
             del h['hp_run']
             result = best_of_this_hp_run[idx]
             results.append(result)
+            full_results.append(best_of_this_hp_run)
             if (best_so_far == best_so_far_initial) or (result < best_so_far[0]):
                 best_so_far = (result, hp_run, h.copy(), best_of_this_hp_run)
         time_elapsed = perf_counter() - over_hp_start
         log_end_run(n_h, last_key, time_elapsed, results, best_so_far)
         for key in keys:
             h[key] = None
+        return full_results
 
     return wrapper_over_hp
 
@@ -382,8 +398,9 @@ def save_model(model, title=None, parameter_name=None, parameter=None):
         if parameter_name is not None:
             model_title += parameter_name
         model_title += str(parameter)
-    model_title = time_stamp(model_title, c.MODEL_FOLDER)
-    torch.save(model, model_title)
+    model_title = time_stamp(model_title)
+    torch.save(model, os.path.join(c.MODEL_FOLDER, model_title))
+    return model_title
 
 
 def to_device_tensor(x):

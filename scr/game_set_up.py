@@ -140,7 +140,7 @@ class TupleSpecs:
         self.n_elements, 2)
         """
         randoms = np.stack(
-            [[h.ni_rng.choice(spec.domain, size=h.N_SELECT, replace=False)
+            [[h.ne_rng.choice(spec.domain, size=h.N_SELECT, replace=False)
               for spec in self.specs]
              for _ in range(self.size0)]
         )  # TODO in the choice consider setting shuffle=False
@@ -149,7 +149,7 @@ class TupleSpecs:
     def iter(self):
         for iteration in range(1, h.N_ITERATIONS + 1):
             selections = self.random()
-            target_nos = h.ni_rng.integers(h.N_SELECT, size=self.size0)
+            target_nos = h.ne_rng.integers(h.N_SELECT, size=self.size0)
             game_origins = GameOrigins(iteration, target_nos, selections)
             yield game_origins
 

@@ -10,6 +10,7 @@ from scr.ml_utilities import c, h, rng_c, to_array, to_device_tensor, writer
 from scr.net_class import Net
 from scr.game_set_up import Domain, ElementCircular, GameOrigins, \
     GameReports, NiceCode, ReplayBuffer, TupleSpecs
+from scr.noise import Noise
 
 
 LossInfo = namedtuple('LossInfo', 'bob_loss iteration alice_loss')
@@ -73,6 +74,7 @@ class Nets:
         self.size0 = None
         self.last_alice_loss = None
         self.current_iteration = None
+        self.noise = Noise(h.NOISE)
 
     def optimizer(self, h_label, parameter_label):
         values = eval('h.' + h_label.upper() + '_OPTIMIZER')
@@ -100,6 +102,8 @@ class Nets:
         targets_t = to_device_tensor(targets)
         greedy_codes = self.alice_play(targets_t)
         codes, chooser_a = self.alice_eps_greedy(greedy_codes)
+        if game_origins.iteration >= h.NOISE_START:
+            codes = self.noise.inject(codes)
         selections = to_device_tensor(game_origins.selections)
         bob_q_estimates_argmax = self.bob_play(selections, codes)
         decision_nos, chooser_b = self.bob_eps_greedy(bob_q_estimates_argmax)
@@ -355,7 +359,7 @@ class Nets:
             return self.alice_loss_function(closeness, rewards)
         bonus_prop = min(1, (self.current_iteration -
                               h.ALICE_PROXIMITY_BONUS) /
-                         h.ALICE_PROMIXITY_SLOPE_LENGTH)
+                         h.ALICE_PROXIMITY_SLOPE_LENGTH)
         closeness_bonus = (closeness == 1.).float()
         rewards_bonus = (rewards == 1.).float()
         return self.alice_loss_function(closeness + closeness_bonus,
