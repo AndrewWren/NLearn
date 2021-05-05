@@ -309,6 +309,10 @@ def over_hp(func):
             except:
                 h['n_rng'] = None
             try:
+                h['ni_rng'] = np.random.default_rng(h.ITERATIONS_SEED)
+            except:
+                h['ni_rng'] = None
+            try:
                 # See https://pytorch.org/docs/stable/generated/torch
                 # .Generator.html on manual_seed()
                 torch_seed_rng = np.random.default_rng(h.TORCH_RANDOM_SEED)

@@ -204,7 +204,25 @@ Key runs:
 	
 \end{enumerate}
 
-Things to try:
+\section{From now on exclude random plays from mean reward}
+
+The exclusion is if either Alice or Bob or both is random.
+
+\subsection{Loss includes element to push bits towards $-1$ or $1$}
+
+This gets pretty good results --- see \fref{fig:figmeanrewards21-05-04201038} which also (orange, pink, blue) lines adds a `proximity bonus' that --- at least for these seeds --- speeds up training but does not improve the outcome.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{Fig_Mean_Rewards_21-05-04_20:10:38}
+	\caption{The green line shows the best run from \figstamp{21-05-03}{20:36:57}, which introduced \texttt{MSEBits} and had Alice stopping training at iteration $\num{300000}.$  The remaining lines are from \figstamp{21-05-03}{20:10:38} and do not stop Alice training.  They add the simple `proximity bonus' of $1$ when codes or numbers are equal~--- phasing this in over $\num{10000}$ iterations from iteration $\num{100000}$ (orange), $\num{200000}$ (pink) and $\num{300000}$ (blue),  The plot has smoothing set to $0.9.$}
+	\label{fig:figmeanrewards21-05-04201038}
+\end{figure}
+
+
+
+
+\section{Things to try}
+
 \begin{enumerate}
 	\item What codes does best Alice generate?
 	
@@ -227,6 +245,11 @@ Things to try:
 	\item Look at MARL literature.
 	
 	\item (At some stage in the training) introduce a `proximity bonus' into Alice's training, which increases (in the same way) both the closeness of codes and the rewards if Bob's decision is right or nearly so.
+	
+	\item Do a second sweep of \verb|epsilon| going from high to low --- perhaps for one player only?  Definitely should re-\verb|epsilon|--randomise Bob as otherwise Alice will never (or rarely if $\verb|N_SELECT| < \verb|N_CODE|$) get fed choices not in his decoding book.  And I think Alice too, so Bob can learn new codes.
+	
+	\item Random seeds seem to play a significant role --- at least for short ($\sim \num{12500}$) iteration training.  Test how significant for $\num{500000}$ iterations.
+	
 \end{enumerate}
 
 

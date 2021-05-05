@@ -46,7 +46,7 @@ def train_ab():
                         > best_non_random_reward):
                     best_non_random_reward = smoothed_nrr
                     best_nrr_iteration = game_origins.iteration
-    return [(best_non_random_reward, best_nrr_iteration)], 0
+    return [(- best_non_random_reward, best_nrr_iteration)], 0
 
 
 def test_ar():

@@ -181,7 +181,7 @@ class Nets:
             print('\b' * 20)
             mlu.log(f'Iteration={current_iteration:>10}')
             mlu.log('Codes=')
-            [mlu.log(NiceCode(code)) for code in codes]
+            [mlu.log(NiceCode(code)) for code in set(codes)]
             mlu.log('')
         elif current_iteration % 1000 == 0:
             print('\b' * 20 + f'Iteration={current_iteration:>10}', end='')
@@ -353,6 +353,9 @@ class Nets:
                                  alice_codes_from_decisions) / c.N_CODE
         if self.current_iteration < h.ALICE_PROXIMITY_BONUS:
             return self.alice_loss_function(closeness, rewards)
+        bonus_prop = min(1, (self.current_iteration -
+                              h.ALICE_PROXIMITY_BONUS) /
+                         h.ALICE_PROMIXITY_SLOPE_LENGTH)
         closeness_bonus = (closeness == 1.).float()
         rewards_bonus = (rewards == 1.).float()
         return self.alice_loss_function(closeness + closeness_bonus,
