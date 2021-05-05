@@ -144,8 +144,8 @@ if __name__ == '__main__':
     """code_book('21-05-03_20:36:57BST_NLearn_model_2_Alice_iter500000', 16,
               16, print_full_dict=True)
     """
-    code_decode_book('21-05-05_11:27:12BST_NLearn_model_1_Alice_iter150000',
-                     '21-05-05_11:27:12BST_NLearn_model_1_Bob_iter150000',
+    code_decode_book('21-05-05_13:13:06BST_NLearn_model_1_Alice_iter150000',
+                     '21-05-05_13:13:06BST_NLearn_model_1_Bob_iter150000',
                      16, 16)
 
     mlu.close_log()

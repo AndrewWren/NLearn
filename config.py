@@ -3,9 +3,9 @@ import torch
 
 hyperparameters = {
     'N_ITERATIONS': 15 * (10 ** 4),
-    'ITERATIONS_SEED': 100,
-    'RANDOM_SEED': 42,
-    'TORCH_RANDOM_SEED': 4242,
+    'ITERATIONS_SEED': 18755,  #100,
+    'RANDOM_SEED': 81821,  #42,
+    'TORCH_RANDOM_SEED': 28414,  #4242,
     'ALICE_LAYERS': 3,
     'ALICE_WIDTH': 50,
     'BOB_LAYERS': 3,

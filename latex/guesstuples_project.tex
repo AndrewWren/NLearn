@@ -258,6 +258,28 @@ The final coding and decoding books are
 \end{lstlisting}
 with Alice using nine codes.
 
+However, another run, \verb|21-05-05_13:13:06|, with the same parameters, except for the three seeds, shows the high random dependence getting a small code book:
+\begin{lstlisting}
+	10010100	[0, 1, 2, 3, 12, 13, 14, 15]
+	10010000	[4, 5, 6, 7]
+	00111000	[8, 9, 10]
+	10110100	[11]
+	
+	
+	10010100	0
+	10010000	5
+	00111000	9
+	10110100	11
+\end{lstlisting}
+\fref{fig:figmeanrewards21-05-05131306} compares with previous results.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{Fig_Mean_Rewards_21-05-05_13:13:06}
+	\caption{From \figstamp{21-05-05}{13:13:06} we have the red line. The grey line which is the former run shown in red in \fref{fig:figmeanrewards21-05-05112712} and the that shown in orange in \fref{fig:figmeanrewards21-05-05112712}.  The plot has smoothing set to $0.9.$} 
+	\label{fig:figmeanrewards21-05-05131306}
+\end{figure}
+Perhaps suggests introducing some noise?
+
 \section{Things to try}
 
 \begin{enumerate}
@@ -286,6 +308,8 @@ with Alice using nine codes.
 	\item Do a second sweep of \verb|epsilon| going from high to low --- perhaps for one player only?  Definitely should re-\verb|epsilon|--randomise Bob as otherwise Alice will never (or rarely if $\verb|N_SELECT| < \verb|N_CODE|$) get fed choices not in his decoding book.  And I think Alice too, so Bob can learn new codes.
 	
 	\item Random seeds seem to play a significant role --- at least for short ($\sim \num{12500}$) iteration training.  Test how significant for $\num{500000}$ iterations.
+	
+	\item Simulate use of a code--decode book pair.
 	
 \end{enumerate}
 
