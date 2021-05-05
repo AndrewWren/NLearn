@@ -29,7 +29,7 @@ hyperparameters = {
     'ALICE_LOSS_FUNCTION': ('MSEBits', {}), # ('MSE', {}),
     'BOB_LOSS_FUNCTION': 'Same',
     'ALICE_PROXIMITY_BONUS': 30000,
-    'ALICE_PROMIXITY_SLOPE_LENGTH': 10 ** 4,
+    'ALICE_PROXIMITY_SLOPE_LENGTH': 10 ** 4,
     'ALICE_LAST_TRAINING': 100 * (10 ** 5)
 }
 

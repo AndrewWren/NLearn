@@ -30,7 +30,7 @@ hyperparameters = {
     'BOB_LOSS_FUNCTION': 'Same',
     'ALICE_PROXIMITY_BONUS': [100 * (10 ** 3), 200 * (10 ** 3), 300 * (100
                                                                        ** 3)],
-    'ALICE_PROMIXITY_SLOPE_LENGTH': 10 ** 5,
+    'ALICE_PROXIMITY_SLOPE_LENGTH': 10 ** 5,
     'ALICE_LAST_TRAINING': 100 * (10 ** 5)
 }
 

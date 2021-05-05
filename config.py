@@ -2,10 +2,11 @@ import torch
 
 
 hyperparameters = {
-    'N_ITERATIONS': 15 * (10 ** 4),
-    'ITERATIONS_SEED': 18755,  #100,
+    'N_ITERATIONS': 5 * (10 ** 5),  # 15 * (10 ** 4),
     'RANDOM_SEED': 81821,  #42,
+    'ENVIRONMENT_SEED': 18755,  #100,
     'TORCH_RANDOM_SEED': 28414,  #4242,
+    'TORCH_ENVIRONMENT_RANDOM_SEED': 111000,
     'ALICE_LAYERS': 3,
     'ALICE_WIDTH': 50,
     'BOB_LAYERS': 3,
@@ -29,8 +30,10 @@ hyperparameters = {
     'ALICE_LOSS_FUNCTION': ('MSEBits', {}), # ('MSE', {}),
     'BOB_LOSS_FUNCTION': 'Same',
     'ALICE_PROXIMITY_BONUS': 30000,
-    'ALICE_PROMIXITY_SLOPE_LENGTH': 10 ** 4,
-    'ALICE_LAST_TRAINING': 100 * (10 ** 5)
+    'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
+    'ALICE_LAST_TRAINING': 100 * (10 ** 5),
+    'NOISE_START': 175000,
+    'NOISE': [0.1, 0.2]
 }
 
 
@@ -42,6 +45,8 @@ N_CODE = 8
 # TRAINING_METHOD = 'q'
 
 SMOOTHING_LENGTH = 10000
+SAVE_PERIOD = 10000
+
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
