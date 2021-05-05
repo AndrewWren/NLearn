@@ -2,7 +2,7 @@ import torch
 
 
 hyperparameters = {
-    'N_ITERATIONS': 5 * (10 ** 5),
+    'N_ITERATIONS': 15 * (10 ** 4),
     'ITERATIONS_SEED': 100,
     'RANDOM_SEED': 42,
     'TORCH_RANDOM_SEED': 4242,
@@ -28,9 +28,8 @@ hyperparameters = {
                         ],
     'ALICE_LOSS_FUNCTION': ('MSEBits', {}), # ('MSE', {}),
     'BOB_LOSS_FUNCTION': 'Same',
-    'ALICE_PROXIMITY_BONUS': [100 * (10 ** 3), 200 * (10 ** 3), 300 * (100
-                                                                       ** 3)],
-    'ALICE_PROMIXITY_SLOPE_LENGTH': 10 ** 5,
+    'ALICE_PROXIMITY_BONUS': 30000,
+    'ALICE_PROMIXITY_SLOPE_LENGTH': 10 ** 4,
     'ALICE_LAST_TRAINING': 100 * (10 ** 5)
 }
 
