@@ -10,6 +10,7 @@ from scr.ml_utilities import c, h, rng_c, to_array, to_device_tensor, writer
 from scr.net_class import Net
 from scr.game_set_up import Domain, ElementCircular, GameOrigins, \
     GameReports, NiceCode, ReplayBuffer, TupleSpecs
+from scr.nets import FFs
 from scr.noise import Noise
 import scr._alice_play, scr._alice_train, scr._alice_net, \
     scr._alice_loss_function
@@ -271,9 +272,10 @@ class Session:
         self.size0 = size0
 
     def set_widths(self):
-        if (h.ALICE_STRATEGY == 'circular') or (h.ALICE_STRATEGY ==
+        """if (h.ALICE_STRATEGY == 'circular') or (h.ALICE_STRATEGY ==
                                                 'from_decisions'):
             self.alice_output_width = c.N_CODE
+        """
         if h.BOB_STRATEGY == 'circular':
             self.bob_input_width = (h.N_SELECT * self.tuple_specs.n_elements
                                     * 2 + c.N_CODE)
@@ -321,22 +323,19 @@ class Session:
         return result
 
     """def alice_train(self, targets, rewards, codes, decisions):
-        """
+        
 
         :param targets: numpy array
         :param rewards: numpy array
         :param codes: pytorch tensor
         :param decisions: pytorch tensor
         :return:
-        """
+        
         return eval(
             f'self.alice_train_{h.ALICE_STRATEGY}(targets, rewards, codes,'
             f' decisions)')
 
     def alice_train_circular(self, targets, rewards, codes, decisions):
-        """
-        As alice_train
-        """
         targets = torch.flatten(targets, start_dim=1)
         alice_outputs = self.alice(targets)
         alice_qs = torch.einsum('bj, bj -> b', alice_outputs, codes)
@@ -344,9 +343,6 @@ class Session:
         return alice_loss
 
     def alice_train_from_decisions(self, targets, rewards, codes, decisions):
-        """
-        As alice_train
-        """
         targets = torch.flatten(targets, start_dim=1)
         alice_codes_from_targets = torch.sign(self.alice(targets))
         with torch.no_grad():
