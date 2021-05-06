@@ -214,7 +214,7 @@ This gets pretty good results --- see \fref{fig:figmeanrewards21-05-04201038} wh
 \begin{figure}
 	\centering
 	\includegraphics[width=0.7\linewidth]{Fig_Mean_Rewards_21-05-04_20:10:38}
-	\caption{The green line shows the best run from \figstamp{21-05-03}{20:36:57}, which introduced \texttt{MSEBits} and had Alice stopping training at iteration $\num{300000}.$  The remaining lines are from \figstamp{21-05-04}{20:10:38} and do not stop Alice training.  They add the simple `proximity bonus' of $1$ when codes or numbers are equal~--- phasing this in over $\num{10000}$ iterations from iteration $\num{100000}$ (orange), $\num{200000}$ (pink) and $\num{300000}$ (blue),  The plot has smoothing set to $0.9.$}
+	\caption{The green line shows the best run from \figstamp{21-05-03}{20:36:57}, which introduced \texttt{MSEBits} and had Alice stopping training at iteration $\num{300000}.$  The remaining lines are from \figstamp{21-05-04}{20:10:38} and do not stop Alice training.  They add the simple `proximity bonus' of $1$ when codes or numbers are equal from iteration $\num{100000}$ (orange), $\num{200000}$ (pink) and $\num{300000}$ (blue),  The plot has smoothing set to $0.9.$}
 	\label{fig:figmeanrewards21-05-04201038}
 \end{figure}
 
@@ -290,6 +290,9 @@ From \verb|21-05-05_21:56:16|, noise doesn't seem to help on this individual run
 	\label{fig:figmeanrewards21-05-05215616}
 \end{figure}
 
+\subsection{In Alice training, make both sides of the loss function have \texttt{grad}}
+
+As in \verb|21-05-06_09:44:04|, this doesn't work --- reward oscillates around zero.  Is also slower.
 
 \section{Things to try}
 

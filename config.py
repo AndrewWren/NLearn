@@ -7,8 +7,7 @@ hyperparameters = {
     'ENVIRONMENT_SEED': 18755,  #100,
     'TORCH_RANDOM_SEED': 28414,  #4242,
     'TORCH_ENVIRONMENT_RANDOM_SEED': 111000,
-    'ALICE_LAYERS': 3,
-    'ALICE_WIDTH': 50,
+    'ALICE_NET': 'FF(3, 50)',
     'BOB_LAYERS': 3,
     'BOB_WIDTH': 50,
     'BATCHSIZE': 32,
@@ -19,7 +18,8 @@ hyperparameters = {
     'EPSILON_ONE_END': 40000,
     'EPSILON_MIN': 0.01,
     'EPSILON_MIN_POINT': 3 * (10 ** 5),
-    'ALICE_STRATEGY': 'from_decisions',
+    'ALICE_PLAY': 'FromDecisions',
+    'ALICE_TRAIN': 'FromDecisions',
     'BOB_STRATEGY': 'circular_vocab',
     'ALICE_OPTIMIZER': [
                         ('SGD', '{"lr": 0.01}')
@@ -27,7 +27,7 @@ hyperparameters = {
     'BOB_OPTIMIZER': [
                         ('SGD', '{"lr": 0.01}')
                         ],
-    'ALICE_LOSS_FUNCTION': ('MSEBits', {}), # ('MSE', {}),
+    'ALICE_LOSS_FUNCTION': 'MSEBits', # ('MSE', {}),
     'BOB_LOSS_FUNCTION': 'Same',
     'ALICE_PROXIMITY_BONUS': 30000,
     'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
@@ -45,7 +45,7 @@ N_CODE = 8
 # TRAINING_METHOD = 'q'
 
 SMOOTHING_LENGTH = 10000
-SAVE_PERIOD = 10000
+SAVE_PERIOD = 10 ** 5
 
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
