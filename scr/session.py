@@ -40,8 +40,6 @@ class Agent:
         self.play = self.use_key('play')
         self.train = self.use_key('train')
         self.net = self.use_key('net')  # Note the net class uses the .play
-        self.training_net = self.net
-        self.double_copy_period = None
         try:
             double_copy_period = h[f'{self.name}_DOUBLE']
             if double_copy_period:  # None is the correct setting to not establish a
@@ -49,7 +47,8 @@ class Agent:
                 self.double_copy_period = double_copy_period
                 self.training_net = copy.deepcopy(self.net)
         except:
-            pass
+            self.double_copy_period = None
+            self.training_net = self.net
         self.optimizer = self.get_optimizer()
         self.loss_function = self.use_key('loss_function')
 
