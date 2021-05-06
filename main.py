@@ -5,7 +5,7 @@ import numpy as np
 import torch
 import scr.ml_utilities as mlu
 from scr.ml_utilities import c, h, rng_c, to_array, to_device_tensor, writer
-from scr.run import LossInfo, Run
+from scr.session import LossInfo, Session
 from scr.game_set_up import Domain, ElementCircular, NiceCode, ReplayBuffer,\
     TupleSpecs
 
@@ -17,7 +17,7 @@ def train_ab():
             h[key] = h[key.replace('BOB', 'ALICE')]
     tuple_specs = TupleSpecs()
     mlu.log(f'{tuple_specs.random_reward_sd()=}')
-    run = Run(tuple_specs)
+    session = Session(tuple_specs)
     buffer = ReplayBuffer(h.BUFFER_CAPACITY)
     best_non_random_reward = - np.inf
     nrr_buffer = collections.deque(maxlen=c.SMOOTHING_LENGTH)
@@ -25,8 +25,8 @@ def train_ab():
     saved_alice_model_title = None
     saved_bob_model_title = None
     for game_origins in tuple_specs.iter():
-        run.current_iteration = game_origins.iteration
-        non_random_rewards, game_reports = run.play(game_origins)
+        session.current_iteration = game_origins.iteration
+        non_random_rewards, game_reports = session.play(game_origins)
         buffer.append(game_reports)
         nrr_buffer.append(non_random_rewards)
         if game_origins.iteration < h.START_TRAINING:
@@ -34,17 +34,17 @@ def train_ab():
                 print('\b' * 20 + f'Iteration={game_origins.iteration:>10}',
                       end='')
             continue
-        alice_loss, bob_loss = run.train(game_origins.iteration, buffer)
+        alice_loss, bob_loss = session.train(game_origins.iteration, buffer)
         if (alice_loss == np.nan) or (bob_loss == np.nan):
             return [(best_non_random_reward, best_nrr_iteration),
                     (saved_alice_model_title, saved_bob_model_title),
                     f'nan error at iteration={game_origins.iteration}'], 0
         if (game_origins.iteration % c.SAVE_PERIOD == 0) or (
                 game_origins.iteration == h.N_ITERATIONS):
-            saved_alice_model_title = mlu.save_model(run.alice, title='Alice',
+            saved_alice_model_title = mlu.save_model(session.alice, title='Alice',
                                parameter_name='iter',
                    parameter=game_origins.iteration)
-            saved_bob_model_title = mlu.save_model(run.bob, title='Bob',
+            saved_bob_model_title = mlu.save_model(session.bob, title='Bob',
                                            parameter_name='iter',
                        parameter=game_origins.iteration)
         if (game_origins.iteration % c.SMOOTHING_LENGTH == 0) and \

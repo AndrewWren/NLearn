@@ -6,11 +6,11 @@ from scr.ml_utilities import c, h, rng_c, to_array, \
 class AliceTrain:
     def __init__(self, alice):
         self.alice = alice
-        self.targets = self.alice.run.game_reports.targets
-        self.codes = self.alice.run.game_reports.codes
-        self.rewards = self.alice.run.game_reports.rewards
-        self.decisions = self.alice.run.game_reports.decisions
-        self.current_iteration = alice.run.current_iteration
+        self.targets = self.alice.session.game_reports.targets
+        self.codes = self.alice.session.game_reports.codes
+        self.rewards = self.alice.session.game_reports.rewards
+        self.decisions = self.alice.session.game_reports.decisions
+        self.current_iteration = alice.session.current_iteration
 
 
 class Basic(AliceTrain):

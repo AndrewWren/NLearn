@@ -6,13 +6,13 @@ from scr.ml_utilities import c, h, rng_c, to_array, \
 class AlicePlay:
     def __init__(self, alice):
         self.alice = alice
-        self.targets = self.alice.run.game_origin.targets
+        self.targets = self.alice.session.game_origin.targets
 
 
 class Basic(AlicePlay):
     def __init__(self, alice):
         super().__init__(alice)
-        self.input_width = alice.run.tuple_specs.n_elements * 2
+        self.input_width = alice.session.tuple_specs.n_elements * 2
         self.output_width = c.N_CODE
 
     def __call__(self):

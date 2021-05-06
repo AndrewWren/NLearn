@@ -12,8 +12,9 @@ from scr.game_set_up import Domain, ElementCircular, GameOrigins, \
     GameReports, NiceCode, ReplayBuffer, TupleSpecs
 from scr.noise import Noise
 import scr._alice_play, scr._alice_train, scr._alice_net, \
-    scr._alice_loss_function, \
-    scr._bob_play, scr._bob_train, scr._bob_net, scr._bob_loss_function
+    scr._alice_loss_function
+#import scr._bob_play, scr._bob_train, scr._bob_net,
+# \scr._bob_loss_function
 
 
 LossInfo = namedtuple('LossInfo', 'bob_loss iteration alice_loss')
@@ -29,28 +30,31 @@ class Agent:
         self.net = self.use_key('net')  # Note the net class may use the
         # play class
         self.loss_function = self.use_key('loss_function')
+        self.get_optimizer_class_kwargs()
 
     def use_key(self, label, args='[]'):
-        key = f'{self.name}_{label.upper()}'
-        item = h[key]
+        item = h[f'{self.name}_{label.upper()}']
         if '(' in item:
             item.replace('(', '(self, ', count=1)
         else:
             item += '(self)'
         return eval(f'{self.prefix}{label.lower()}.{item}')
 
+    def get_optimizer_class_kwargs(self):
+        """
+        optimizer has to be done differently to get the class and the
+        kwargs, since an instance is only formed at use
+        """
+        item = h[f'{self.name}_OPTIMIZER']
+        self.optimizer_class = item[0]
+        self.optimizer_kwargs = item[1]
 
-class Run:  #TODO change class name to Run and similarly for instance and
+
+class Session:
     # file name --- and for related classes
     def __init__(self, tuple_specs: TupleSpecs):
         self.tuple_specs = tuple_specs
         self.set_widths()
-        self.alice = FFs(
-            input_width=tuple_specs.n_elements * 2,
-            output_width=self.alice_output_width,
-            layers=h.ALICE_LAYERS,
-            width=h.ALICE_WIDTH
-        ).to(c.DEVICE)
         self.alice_optimizer = self.optimizer('ALICE', 'alice')
         self.alice_loss_function = self.loss_function('ALICE')
         self.bob = FFs(
