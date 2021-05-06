@@ -1,20 +1,14 @@
 import torch
 from scr.ml_utilities import c, h, rng_c, to_array, \
     to_device_tensor, writer
-from scr.nets import FFs
+import scr.nets
 
 
-class AliceNet:
-    def __init__(self, alice):
-        self.alice = alice
-
-
-class FFNet(AliceNet):
+class FFs(scr.nets.FFs):
     def __init__(self, alice, layers, width):
-        super().__init__(alice)
-        self.net = FFs(
-            input_width=self.alice.play.input_width,
-            output_width=self.alice.play.output_width,
+        super().__init__(
+            input_width=alice.play.input_width,
+            output_width=alice.play.output_width,
             layers=layers,
             width=width
         )

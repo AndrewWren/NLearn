@@ -7,7 +7,7 @@ class MSE(torch.nn.MSELoss):
         self.alice = alice
 
 
-class MSEBitsLoss(MSE):
+class MSEBits(MSE):
     def __init__(self, alice, mu=1.):
         super().__init__(alice)
         self.loss_fn = lambda x, y: torch.mean(

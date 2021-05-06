@@ -85,7 +85,7 @@ def triplet_fn_wang(x, x_i, x_j, y, y_i, y_j, alpha=1):
 
 
 class Net(nn.Module):
-    """The Net class to use in defining a model that can be run as in the
+    """The Net class to use in defining a model that can be sessopm as in the
     code below.
     This class cannot be used directly, instead an individual type of net
     should be built as a sub-class of Net, and this sub-class must define
@@ -93,11 +93,11 @@ class Net(nn.Module):
         .__init__ in order to initalise with e.g. the hyperparameters for
         the shape of the net
 
-        ._build which is run in the Net.data method when it is called.  This
+        ._build which is sessopm in the Net.data method when it is called.  This
         defines the layers of the Net instance,
         in particular shaping the first layer's input to match the input
         shape appropriately.  The initial underscore in ._build() indicates
-        it's better not to run this publicly: instead create a new Net
+        it's better not to sessopm this publicly: instead create a new Net
         instance to re-initialise weights.  This is clearer code.
 
         .forward which actually runs the Net instance.

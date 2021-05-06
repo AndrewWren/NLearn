@@ -92,22 +92,19 @@ class ElementCircular:
 
 
 GameOrigin = namedtuple('GameOrigin', 'iteration target_nos selections')
-
 GameReport = namedtuple('GameReport', 'iteration target_no selection code '
-                                      'decision_no rewards')
-
+                                      'decision_no reward')
 GameOrigins = namedtuple('GameOrigins', 'iteration target_nos selections')
 
-GameReports = namedtuple('GameReports', 'gameorigins codes decision_nos '
-                                        'rewards')
 
-
-class GameReports(GameReports):
-    def __init__(self, gameorigins, codes, decisions, rewards):
-        super().__init__()
-        self.iteration = self.gameorigins.iteration
-        self.target_nos = self.gameorigins.target_nos
-        self.selections = self.gameorigins.selections
+class GameReports:
+    def __init__(self, game_origins, codes, decision_nos, rewards):
+        self.iteration = game_origins.iteration
+        self.target_nos = game_origins.target_nos
+        self.selections = game_origins.selections
+        self.codes = codes
+        self.decision_nos = decision_nos
+        self.rewards = rewards
 
     def game_report_list(self):
         zipee = [

@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+from scr.ml_utilities import c, h, rng_c, to_array, \
+    to_device_tensor, writer
 
 
 class FFs(torch.nn.Module):
@@ -17,7 +19,7 @@ class FFs(torch.nn.Module):
         ffs += [nn.Linear(self.width, self.width) for _ in range(self.layers
                                                                  - 2)]
         ffs += [nn.Linear(self.width, self.output_width)]
-        self.ffs = nn.ModuleList(ffs)
+        self.ffs = nn.ModuleList(ffs).to(c.DEVICE)
 
     def forward(self, x):
         for ff in self.ffs[: -1]:

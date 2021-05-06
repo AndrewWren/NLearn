@@ -41,7 +41,8 @@ def train_ab():
                     f'nan error at iteration={game_origins.iteration}'], 0
         if (game_origins.iteration % c.SAVE_PERIOD == 0) or (
                 game_origins.iteration == h.N_ITERATIONS):
-            saved_alice_model_title = mlu.save_model(session.alice, title='Alice',
+            saved_alice_model_title = mlu.save_model(session.alice.net,
+                                                     title='Alice',
                                parameter_name='iter',
                    parameter=game_origins.iteration)
             saved_bob_model_title = mlu.save_model(session.bob, title='Bob',

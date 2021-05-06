@@ -1,4 +1,5 @@
 from collections import namedtuple
+import copy
 import random
 import numpy as np
 import torch
@@ -22,53 +23,78 @@ LossInfo = namedtuple('LossInfo', 'bob_loss iteration alice_loss')
 
 
 class Agent:
-    def __init__(self, run, name):
+    def __init__(self, session, name):
+        """
+
+        :param session: Session
+        :param name: str - must be the same as the name created  #TODO make
+        this intrinsic to the code?
+        """
         self.prefix = f'scr._{name.lower()}_'
-        self.run = run  #TODO is this too circular?  Seems OK from Testbed
+        self.session = session
         self.name = name.upper()
+
+    def set_methods(self, instance_name):  #TODO Does this need to be
+        # separate from __init__ ?
+        self.instance_name = instance_name
         self.play = self.use_key('play')
         self.train = self.use_key('train')
-        self.net = self.use_key('net')  # Note the net class may use the
-        # play class
+        self.net = self.use_key('net')  # Note the net class uses the .play
+        self.training_net = self.net
+        self.double_copy_period = None
+        try:
+            double_copy_period = h[f'{self.name}_DOUBLE']
+            if double_copy_period:  # None is the correct setting to not establish a
+                # separate training net
+                self.double_copy_period = double_copy_period
+                self.training_net = copy.deepcopy(self.net)
+        except:
+            pass
+        self.optimizer = self.get_optimizer()
         self.loss_function = self.use_key('loss_function')
-        self.get_optimizer_class_kwargs()
 
-    def use_key(self, label, args='[]'):
+    def use_key(self, label):
         item = h[f'{self.name}_{label.upper()}']
         if '(' in item:
-            item.replace('(', '(self, ', count=1)
+            item = item.replace('(', '(self, ', 1)
         else:
             item += '(self)'
         return eval(f'{self.prefix}{label.lower()}.{item}')
 
-    def get_optimizer_class_kwargs(self):
+    def get_optimizer(self):
         """
-        optimizer has to be done differently to get the class and the
-        kwargs, since an instance is only formed at use
+        optimizer has to be done differently as don't have
+        _<agent>_optimizer files
         """
         item = h[f'{self.name}_OPTIMIZER']
-        self.optimizer_class = item[0]
-        self.optimizer_kwargs = item[1]
+        first_arg = 'self.training_net.parameters()'
+        if '(' in item:
+            item = item.replace('(', f'({first_arg}, ', 1)
+        else:
+            item += f'({first_arg})'
+        eval1 = f'torch.optim.{item}'
+        return eval(eval1)
 
 
 class Session:
     # file name --- and for related classes
     def __init__(self, tuple_specs: TupleSpecs):
         self.tuple_specs = tuple_specs
+        self.targets_t = None
+        self.decisions = None
+        self.game_reports = GameReports(GameOrigins(None, None, None), None,
+                                        None, None)
+        self.current_iteration = None
+        self.alice = Agent(self, 'alice')
+        self.alice.set_methods('alice')
         self.set_widths()
-        self.alice_optimizer = self.optimizer('ALICE', 'alice')
-        self.alice_loss_function = self.loss_function('ALICE')
         self.bob = FFs(
             input_width=self.bob_input_width,
             output_width=self.bob_output_width,
             layers=h.BOB_LAYERS,
             width=h.BOB_WIDTH
         ).to(c.DEVICE)
-        if h.BOB_OPTIMIZER == 'Same':
-            bob_optimizer_label = 'ALICE'
-        else:
-            bob_optimizer_label = 'BOB'
-        self.bob_optimizer = self.optimizer(bob_optimizer_label, 'bob')
+        self.bob_optimizer = self.optimizer('BOB', 'bob')
         if h.BOB_LOSS_FUNCTION == 'Same':
             bob_loss_function_label = 'ALICE'
         else:
@@ -79,7 +105,6 @@ class Session:
                 h.EPSILON_MIN_POINT - h.EPSILON_ONE_END)
         self.size0 = None
         self.last_alice_loss = None
-        self.current_iteration = None
         self.noise = Noise(h.NOISE)
         self.noise_end = h.N_ITERATIONS - 1.1 * h.BUFFER_CAPACITY / h.GAMESIZE
 
@@ -106,8 +131,8 @@ class Session:
         self.epsilon = self.epsilon_function(game_origins.iteration)
         targets = game_origins.selections[np.arange(self.size0),
                                           game_origins.target_nos]
-        targets_t = to_device_tensor(targets)
-        greedy_codes = self.alice_play(targets_t)
+        self.targets_t = to_device_tensor(targets)
+        greedy_codes = self.alice.play()
         codes, chooser_a = self.alice_eps_greedy(greedy_codes)
         if (game_origins.iteration >= h.NOISE_START) and (
                 game_origins.iteration < self.noise_end):
@@ -129,54 +154,55 @@ class Session:
              f'SD reward_{h.hp_run}': np.std(non_random_rewards_0)},
             global_step=game_origins.iteration
         )
-        return (
-            non_random_rewards,
-            GameReports(game_origins, to_array(codes), to_array(decision_nos),
-                rewards)
-        )
-        # Returns iteration target_nos selections decisions rewards
-        # Don't return alice_qs decision_qs
+        game_reports = GameReports(game_origins, to_array(codes),
+                                        to_array(decision_nos), rewards)
+        return non_random_rewards, game_reports
 
     def train(self, current_iteration, buffer):
         """
-        Calculating Q values on the current alice and bob run.  Training
+        Calculating Q values on the current alice and bob sessopm.  Training
         through backward pass
         :param current_iteration: int
         :param buffer: ReplayBuffer
         :return (alice_loss.item(), bob_loss.item()): (float, float)
         """
-        game_reports = buffer.sample()
+        self.current_iteration = current_iteration
+        self.game_reports = buffer.sample()
         self.size0 = h.BATCHSIZE
         self.epsilon = self.epsilon_function(current_iteration)
 
         # Alice
         if current_iteration <= h.ALICE_LAST_TRAINING:
-            targets = game_reports.selections[np.arange(self.size0),
-                                              game_reports.target_nos]
-            decisions = torch.flatten(
-                to_device_tensor(game_reports.selections)[
-                    torch.arange(self.size0), game_reports.decision_nos],
+            self.targets_t = to_device_tensor(
+                self.game_reports.selections[
+                    np.arange(self.size0),
+                    self.game_reports.target_nos
+                ]
+            )
+            self.decisions = torch.flatten(
+                to_device_tensor(self.game_reports.selections)[
+                    torch.arange(self.size0), self.game_reports.decision_nos],
                 start_dim=1
             )
-            alice_loss = self.alice_train(
-                to_device_tensor(targets),
-                to_device_tensor(game_reports.rewards),
-                to_device_tensor(game_reports.codes),
-                decisions
-            )
-            self.alice_optimizer.zero_grad()
+            self.codes = to_device_tensor(self.game_reports.codes)
+            self.rewards = to_device_tensor(self.game_reports.rewards)
+            alice_loss = self.alice.train()
+            self.alice.optimizer.zero_grad()
             alice_loss.backward()
-            self.alice_optimizer.step()
+            self.alice.optimizer.step()
             self.last_alice_loss = alice_loss
+            if self.alice.double_copy_period is not None:
+                if current_iteration % self.alice.double_copy_period == 0:
+                    self.alice.net = copy.deepcopy(self.alice.training_net)
         else:
             alice_loss = self.last_alice_loss
 
         # Bob
-        selections = to_device_tensor(game_reports.selections)
-        codes = to_device_tensor(game_reports.codes)
-        decision_nos = to_device_tensor(game_reports.decision_nos).long()
+        selections = to_device_tensor(self.game_reports.selections)
+        codes = to_device_tensor(self.game_reports.codes)
+        decision_nos = to_device_tensor(self.game_reports.decision_nos).long()
         bob_loss = self.bob_train(selections, codes, decision_nos,
-                                  game_reports.rewards)
+                                  self.game_reports.rewards)
         self.bob_optimizer.zero_grad()
         bob_loss.backward()
         self.bob_optimizer.step()
@@ -309,7 +335,7 @@ class Session:
     def bob_play_circular_vocab(self, selections, codes):
         selections = torch.transpose(selections, 0, 1)
         bob_q_estimates = list()
-        for selection in selections:  # TODO Could do all in a single net run
+        for selection in selections:  # TODO Could do all in a single net sessopm
             bob_input = torch.cat(
                 [torch.flatten(selection, start_dim=1), codes], 1
             )
