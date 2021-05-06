@@ -75,6 +75,7 @@ class Nets:
         self.last_alice_loss = None
         self.current_iteration = None
         self.noise = Noise(h.NOISE)
+        self.noise_end = h.N_ITERATIONS - 1.1 * h.BUFFER_CAPACITY / h.GAMESIZE
 
     def optimizer(self, h_label, parameter_label):
         values = eval('h.' + h_label.upper() + '_OPTIMIZER')
@@ -102,7 +103,8 @@ class Nets:
         targets_t = to_device_tensor(targets)
         greedy_codes = self.alice_play(targets_t)
         codes, chooser_a = self.alice_eps_greedy(greedy_codes)
-        if game_origins.iteration >= h.NOISE_START:
+        if (game_origins.iteration >= h.NOISE_START) and (
+                game_origins.iteration < self.noise_end):
             codes = self.noise.inject(codes)
         selections = to_device_tensor(game_origins.selections)
         bob_q_estimates_argmax = self.bob_play(selections, codes)

@@ -280,6 +280,17 @@ However, another run, \verb|21-05-05_13:13:06|, with the same parameters, except
 \end{figure}
 Perhaps suggests introducing some noise?
 
+\subsection{Noise}
+
+From \verb|21-05-05_21:56:16|, noise doesn't seem to help on this individual run --- see \fref{fig:figmeanrewards21-05-05215616}.  However, does it make the model more robust to changes in random seeds?
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{Fig_Mean_Rewards_21-05-05_21:56:16}
+	\caption{From \figstamp{21-05-05}{21:56:16}, with noise of 0.01 (green), 0.03 (orange), 0.1 (grey), starting at iteration $\num{175000}$ (earlier starts were poorer).  The noise is cut off before the end to allow comparison.  Plot smoothing is at 0.9, and lesser smoothing doesn't show more post--noise recovery.}
+	\label{fig:figmeanrewards21-05-05215616}
+\end{figure}
+
+
 \section{Things to try}
 
 \begin{enumerate}

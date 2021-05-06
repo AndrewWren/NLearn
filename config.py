@@ -33,7 +33,7 @@ hyperparameters = {
     'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
     'ALICE_LAST_TRAINING': 100 * (10 ** 5),
     'NOISE_START': 175000,
-    'NOISE': [0.1, 0.2]
+    'NOISE': 0.01
 }
 
 
