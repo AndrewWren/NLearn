@@ -150,7 +150,7 @@ def save_log(entry: str):
         f.writelines(log_lines)
 
 
-def log(entry, backspaces=0):
+def log(entry='', backspaces=0):
     """
 
     :param entry: str or ready to be turned into str by str built-in

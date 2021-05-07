@@ -3,6 +3,7 @@ import os
 import random
 import numpy as np
 import torch
+import src.books as books
 import src.ml_utilities as mlu
 from src.ml_utilities import c, h, to_array, to_device_tensor, writer
 from src.session import LossInfo, Session
@@ -78,82 +79,14 @@ def run_tuples():
     return [None], 0
 
 
-@torch.no_grad()
-def code_book(model_file, modulus, n_select, print_list=False,
-              print_dict=True, print_full_dict=False):
-    model_file = os.path.join(c.MODEL_FOLDER, model_file)
-    model = torch.load(model_file)
-    elt = ElementCircular(modulus, n_select)
-    inputs = to_device_tensor(elt.domain)
-    outputs = to_array(model(inputs).squeeze())
-    codes = np.sign(outputs)
-    return codes, print_book(codes, outputs, print_dict, print_full_dict,
-                        print_list)
-
-
-@torch.no_grad()  #TODO print to mlu
-def code_decode_book(model_file_alice, model_file_bob, modulus, n_select):
-    print(f'{model_file_alice=}\n{model_file_bob=}')
-    _, code_dict = code_book(model_file_alice, modulus, n_select)
-    model_file_bob = os.path.join(c.MODEL_FOLDER, model_file_bob)
-    model_bob = torch.load(model_file_bob)
-    elt = ElementCircular(modulus, n_select)
-    domain = to_device_tensor(elt.domain)
-    decode_dict = dict()
-    for nice_code in code_dict.keys():
-        code_repeated = to_device_tensor(nice_code.raw()).repeat(modulus, 1)
-        bob_input = torch.cat(
-            [domain, code_repeated], 1
-        )
-        bob_q_estimates = model_bob(bob_input).squeeze()
-        decode_dict[nice_code] = torch.argmax(bob_q_estimates).item()
-    print()
-    for nice_code in decode_dict:
-        print(f'{nice_code}\t{decode_dict[nice_code]}')
-    print()
-
-
-def print_book(codes, outputs=None, print_dict=True, print_full_dict=False,
-               print_list=True):  #TODO print to mlu
-    if outputs is None:
-        outputs = np.empty(codes.shape)
-    code_dict = dict()
-    for i, (code, output) in enumerate(zip(codes, outputs)):
-        nice_code = NiceCode(code)
-        if print_list:
-            print(f'{i}\t{nice_code}\t{output}')
-        if print_full_dict:
-            try:
-                code_dict[nice_code].append((i, output))
-            except:
-                code_dict[nice_code] = [(i, output)]
-        elif print_dict:
-            try:
-                code_dict[nice_code].append(i)
-            except:
-                code_dict[nice_code] = [i]
-    if (print_dict or print_full_dict):
-        print()
-        for nice_code in code_dict:
-            print(f'{nice_code}\t{code_dict[nice_code]}')
-    print()
-    return code_dict
-
-def code_books_0():
-    for hp_run in range(1, 4 + 1):
-        code_book(f'21-05-02_17:29:40BST_NLearn_model_'
-                  f'{hp_run}_Alice_iter500000',
-                  16, 5)
-
-
 if __name__ == '__main__':
     #run_tuples()
     full_results = train_ab()
     for full_result in full_results:
         saved_alice_model_title, saved_bob_model_title = full_result[1]
-        code_decode_book(
-            saved_alice_model_title,
-            saved_bob_model_title,
+        books.code_decode_book(
+            torch.load(saved_alice_model_title),
+            torch.load(saved_bob_model_title),
             16,
             16
         )  #TODO Automate those 16s

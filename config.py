@@ -1,6 +1,6 @@
 
 hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
-    'N_ITERATIONS': 5 * (10 ** 5),  # 15 * (10 ** 4),
+    'N_ITERATIONS':  50000,  #15 * (10 ** 4),  # 5 * (10 ** 5),
     'RANDOM_SEEDS': (81821, 18755, 28414, 111000),  # order n, ne, t, te
                       # (42, 100, 4242, 4242)
     'ALICE_NET': 'FFs(3, 50)',
@@ -13,17 +13,18 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
     'N_SELECT': 16,
     'EPSILON_ONE_END': 40000,
     'EPSILON_MIN': 0.01,
-    'EPSILON_MIN_POINT': 3 * (10 ** 5),
+    'EPSILON_MIN_POINT': 13 * (10 ** 4),  # 3 * (10 ** 5)
     'ALICE_PLAY': 'Basic',
     'ALICE_TRAIN': 'FromDecisions',
     'BOB_STRATEGY': 'circular_vocab',
     'ALICE_OPTIMIZER': [
-                        'SGD(lr=0.01)'
+                        'SGD(lr=0.001)',
+                        'SGD(lr=1.)'
                         ],
     'BOB_OPTIMIZER': [
                         ('SGD', '{"lr": 0.01}')
                         ],
-    'ALICE_LOSS_FUNCTION': 'MSEBits', # ('MSE', {}),
+    'ALICE_LOSS_FUNCTION': 'MSEBits',
     'BOB_LOSS_FUNCTION': ('torch.nn.MSE', {}), # 'Same',
     'ALICE_PROXIMITY_BONUS': 30000,
     'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,

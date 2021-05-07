@@ -306,7 +306,19 @@ In \verb|21-05-06_20:41:41| find that phasing in (over $\num{10000}$ iterations)
 
 \section{After correcting error in the construction of \texttt{MSEBits}}
 	
-Just before \verb|21-05-07_14:03:47|, corrected an error in the construction of \texttt{MSEBits} which meant it was looking at \verb|closeness| not \verb|alice_outputs_from_target| for the bits!  This meant that trying to push closeness towards $\pm 1$ whatever it should have been!  Surprised it was so successful {\em before}.  However,  \verb|21-05-07_14:03:47| is very unsuccessful, mean reward just oscillating around zero.
+Just before \verb|21-05-07_14:03:47|, corrected an error in the construction of \texttt{MSEBits} which meant it was looking at \verb|closeness| not \verb|alice_outputs_from_target| for the bits!  This meant that trying to push closeness towards $\pm 1$ whatever it should have been!  Surprised it was so successful {\em before}.  However,  \verb|21-05-07_14:03:47| is very unsuccessful, mean reward just oscillating around zero~--- this is because I messed up taking the means in commit \verb|a3038c3| and I think previously.
+
+That previous loss function was
+\begin{lstlisting}
+self.loss_fn = lambda x, y: torch.mean(
+	torch.sum(
+		torch.nn.functional.mse_loss(x, y, reduction='none')
+		+ (mu / 2) * torch.square(x - torch.sign(x)),
+		dim=-1
+	)
+)
+\end{lstlisting}
+which had the effect of trying to push the \verb|closeness| to $\pm 1$ with the second term, and~--- taking a sum over batches to be followed by a mean over a scalar~--- multiplying the learning rate by $32.$
 	
 \section{Things to try}
 

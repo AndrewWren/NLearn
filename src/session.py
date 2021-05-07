@@ -2,6 +2,7 @@ from collections import namedtuple
 import copy
 import numpy as np
 import torch
+import src.books as books
 import src.ml_utilities as mlu
 from src.ml_utilities import c, h, to_array, to_device_tensor, writer
 from src.game_set_up import GameOrigins, \
@@ -210,11 +211,14 @@ class Session:
             global_step=current_iteration
         )
         if current_iteration % 10000 == 0:
-            print('\b' * 20)
-            mlu.log(f'Iteration={current_iteration:>10}')
-            mlu.log('Codes=')
-            [mlu.log(NiceCode(code)) for code in set(codes)]
-            mlu.log('')
+            mlu.log(f'Iteration={current_iteration:>10} training nets give:',
+                    backspaces=20)
+            books.code_decode_book(
+                self.alice.training_net,
+                self.bob,
+                c.TUPLE_SPEC[0][0],
+                h.N_SELECT,
+            )
         elif current_iteration % 1000 == 0:
             print('\b' * 20 + f'Iteration={current_iteration:>10}', end='')
 
