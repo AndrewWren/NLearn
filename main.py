@@ -4,7 +4,7 @@ import random
 import numpy as np
 import torch
 import scr.ml_utilities as mlu
-from scr.ml_utilities import c, h, rng_c, to_array, to_device_tensor, writer
+from scr.ml_utilities import c, h, to_array, to_device_tensor, writer
 from scr.session import LossInfo, Session
 from scr.game_set_up import Domain, ElementCircular, NiceCode, ReplayBuffer,\
     TupleSpecs

@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import config as c
 import scr.ml_utilities as mlu
-from scr.ml_utilities import c, h, rng_c
+from scr.ml_utilities import c, h
 
 warnings.filterwarnings("ignore", category=UserWarning)
 margin = torch.ones(1).to(c.DEVICE)

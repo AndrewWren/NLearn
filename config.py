@@ -1,12 +1,8 @@
-import torch
 
-
-hyperparameters = {
+hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
     'N_ITERATIONS': 5 * (10 ** 5),  # 15 * (10 ** 4),
-    'RANDOM_SEED': 81821,  #42,
-    'ENVIRONMENT_SEED': 18755,  #100,
-    'TORCH_RANDOM_SEED': 28414,  #4242,
-    'TORCH_ENVIRONMENT_RANDOM_SEED': 111000,
+    'RANDOM_SEEDS': (81821, 18755, 28414, 111000),  # order n, ne, t, te
+                      # (42, 100, 4242, 4242)
     'ALICE_NET': 'FFs(3, 50)',
     'BOB_LAYERS': 3,
     'BOB_WIDTH': 50,
@@ -34,11 +30,11 @@ hyperparameters = {
     'ALICE_LAST_TRAINING': 100 * (10 ** 5),
     'NOISE_START': 10 ** 8,
     'NOISE': 0.,
-    'ALICE_DOUBLE': [5000, 1000, 100, None]
+    'ALICE_DOUBLE': None
 }
 
 
-RANDOM_SEED = 42
+#  RANDOM_SEED = 42
 TUPLE_SPEC = (
     (16,),
 )
@@ -49,7 +45,7 @@ SMOOTHING_LENGTH = 10000
 SAVE_PERIOD = 10 ** 5
 
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE = None
 
 MODEL_FOLDER = 'models'
 CONFIGS_FOLDER = 'configs'

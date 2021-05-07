@@ -21,11 +21,8 @@ as they are only evaluated when the function is first defined.
 c. constants can be used as default arguments.
 """
 
-
-try:
-    rng_c = np.random.default_rng(c.RANDOM_SEED)
-except:
-    rng_c = None
+c.DEVICE = c.DEVICE or torch.device(
+    "cuda" if torch.cuda.is_available() else "cpu")
 STD_NOW = datetime.datetime.now(tz=tzlocal()).strftime("%y-%m-%d_%H:%M:%S%Z")
 log_lines = ['****WARNING NOT CLOSED - MAY BE DUE TO ERROR***\n'] * 2
 writer = SummaryWriter()
@@ -213,6 +210,35 @@ n_h = np.prod([len(value) for value in values])
 last_key = len(keys) - 1
 
 
+def set_numpy_rng(index, key):
+    try:
+        h[key] = np.random.default_rng(h.RANDOM_SEEDS[index])
+    except:
+        exit(f'Error setting or seeding numpy rng with {index=}')
+
+
+def set_torch_rng(index, key):
+    try:
+        # See https://pytorch.org/docs/stable/generated/torch
+        # .Generator.html on manual_seed()
+        torch_seed_rng = np.random.default_rng(h.RANDOM_SEEDS[index])
+        zeros_ones = [0] * 16 + [1] * 16
+        torch_seed_rng.shuffle(zeros_ones)  # Note numpy shuffle is inplace
+        torch_seed = sum([bit * (2 ** (32 - b))
+                          for b, bit in enumerate(zeros_ones)])
+        h[key] = torch.Generator(device=c.DEVICE).manual_seed(
+            torch_seed)
+    except:
+        exit(f'Error setting or seeding torch rng with {index=}')
+
+
+def set_rngs():
+    set_numpy_rng(0, 'n_rng')
+    set_numpy_rng(1, 'ne_rng')
+    set_torch_rng(2, 't_rng')
+    set_torch_rng(3, 'te_rng')
+
+
 def set_and_log_h(keys, bundle, last_key=None, set_h=True):
     last_key = last_key or len(keys) - 1
     log('hyperparameters = {')
@@ -305,39 +331,7 @@ def over_hp(func):
             time_elapsed = perf_counter() - over_hp_start
             log_intro_hp_run(n_h, hp_run, time_elapsed)
             set_and_log_h(keys, bundle, last_key)
-            try:
-                h['n_rng'] = np.random.default_rng(h.RANDOM_SEED)
-            except:
-                h['n_rng'] = None
-            try:
-                h['ne_rng'] = np.random.default_rng(h.ENVIRONMENT_SEED)
-            except:
-                h['ne_rng'] = None
-            try:
-                # See https://pytorch.org/docs/stable/generated/torch
-                # .Generator.html on manual_seed()
-                torch_seed_rng = np.random.default_rng(h.TORCH_RANDOM_SEED)
-                zeros_ones = [0] * 16 + [1] * 16
-                torch_seed_rng.shuffle(zeros_ones)
-                torch_seed = sum([ bit * (2 ** (32 - b))
-                                   for b, bit in enumerate(zeros_ones)])
-                h['t_rng'] = torch.Generator(device=c.DEVICE).manual_seed(
-                   torch_seed)
-            except:
-                exit('Error setting or seeding torch Generator')
-            try:
-                # See https://pytorch.org/docs/stable/generated/torch
-                # .Generator.html on manual_seed()
-                torch_seed_rng = np.random.default_rng(
-                    h.TORCH_ENVIRONMENT_RANDOM_SEED)
-                zeros_ones = [0] * 16 + [1] * 16
-                torch_seed_rng.shuffle(zeros_ones)
-                torch_seed = sum([ bit * (2 ** (32 - b))
-                                   for b, bit in enumerate(zeros_ones)])
-                h['te_rng'] = torch.Generator(device=c.DEVICE).manual_seed(
-                   torch_seed)
-            except:
-                exit('Error setting or seeding torch environment Generator')
+            set_rngs()
             h['hp_run'] = hp_run  # Needed for TensorBoard and saved models
             best_of_this_hp_run, idx = func(*args, **kwargs)
             del h['hp_run']

@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch.nn import MSELoss
 from scr.loss_functions import MSEBitsLoss
 import scr.ml_utilities as mlu
-from scr.ml_utilities import c, h, rng_c, to_array, to_device_tensor, writer
+from scr.ml_utilities import c, h, to_array, to_device_tensor, writer
 from scr.net_class import Net
 from scr.game_set_up import Domain, ElementCircular, GameOrigins, \
     GameReports, NiceCode, ReplayBuffer, TupleSpecs
@@ -34,12 +34,14 @@ class Agent:
         self.session = session
         self.name = name.upper()
 
-    def set_methods(self, instance_name):  #TODO Does this need to be
+    #def set_methods(self, instance_name):  #TODO Does this need to be
         # separate from __init__ ?
-        self.instance_name = instance_name
+        #self.instance_name = instance_name
         self.play = self.use_key('play')
         self.train = self.use_key('train')
         self.net = self.use_key('net')  # Note the net class uses the .play
+        self.double_copy_period = None
+        self.training_net = self.net
         try:
             double_copy_period = h[f'{self.name}_DOUBLE']
             if double_copy_period:  # None is the correct setting to not establish a
@@ -47,8 +49,7 @@ class Agent:
                 self.double_copy_period = double_copy_period
                 self.training_net = copy.deepcopy(self.net)
         except:
-            self.double_copy_period = None
-            self.training_net = self.net
+            pass
         self.optimizer = self.get_optimizer()
         self.loss_function = self.use_key('loss_function')
 
@@ -71,8 +72,7 @@ class Agent:
             item = item.replace('(', f'({first_arg}, ', 1)
         else:
             item += f'({first_arg})'
-        eval1 = f'torch.optim.{item}'
-        return eval(eval1)
+        return eval(f'torch.optim.{item}')
 
 
 class Session:
@@ -85,7 +85,7 @@ class Session:
                                         None, None)
         self.current_iteration = None
         self.alice = Agent(self, 'alice')
-        self.alice.set_methods('alice')
+        #self.alice.set_methods('alice')
         self.set_widths()
         self.bob = FFs(
             input_width=self.bob_input_width,
