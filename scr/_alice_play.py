@@ -23,9 +23,3 @@ class Basic(AlicePlay):
         super().__call__()
         alice_outputs = self.alice.net(self.targets)
         return torch.sign(alice_outputs)
-
-
-FromDecisions = Basic
-
-
-

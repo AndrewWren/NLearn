@@ -18,7 +18,7 @@ hyperparameters = {
     'EPSILON_ONE_END': 40000,
     'EPSILON_MIN': 0.01,
     'EPSILON_MIN_POINT': 3 * (10 ** 5),
-    'ALICE_PLAY': 'FromDecisions',
+    'ALICE_PLAY': 'Basic',
     'ALICE_TRAIN': 'FromDecisions',
     'BOB_STRATEGY': 'circular_vocab',
     'ALICE_OPTIMIZER': [
@@ -34,7 +34,7 @@ hyperparameters = {
     'ALICE_LAST_TRAINING': 100 * (10 ** 5),
     'NOISE_START': 10 ** 8,
     'NOISE': 0.,
-    'ALICE_DOUBLE': [5000, None]
+    'ALICE_DOUBLE': [5000, 1000, 100, None]
 }
 
 
