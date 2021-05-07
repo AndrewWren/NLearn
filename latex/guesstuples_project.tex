@@ -319,7 +319,21 @@ self.loss_fn = lambda x, y: torch.mean(
 )
 \end{lstlisting}
 which had the effect of trying to push the \verb|closeness| to $\pm 1$ with the second term, and~--- taking a sum over batches to be followed by a mean over a scalar~--- multiplying the learning rate by $32.$
-	
+
+The `correct' formulation is
+\begin{lstlisting}
+self.loss_fn = (
+	lambda x, y, z:
+	torch.nn.functional.mse_loss(x, y)
+	+ (mu / 2)
+	* torch.nn.functional.mse_loss(z, torch.sign(z))
+)  # for both the mse_loss functions this implies reduction='mean'
+\end{lstlisting}
+with \verb|z| representing the raw output.
+
+Reverting to the `previous' get a good run at \verb|21-05-07_17:41:29|, but now have code and decode books on view in the run~--- and Alice's code book doesn't change at all!!!
+
+
 \section{Things to try}
 
 \begin{enumerate}

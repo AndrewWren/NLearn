@@ -57,6 +57,9 @@ def code_decode_book(model_alice, model_bob, modulus, n_select):
         decode_dict[nice_code] = torch.argmax(bob_q_estimates).item()
     mlu.log()
     for nice_code in decode_dict:
-        mlu.log(f'{nice_code}\t{decode_dict[nice_code]}')
+        decode = decode_dict[nice_code]
+        status = (decode in code_dict[nice_code])
+        mlu.log(f'{nice_code}\t{decode}\t{status}')
     mlu.log()
+    mlu.log(f'Number of codes used={len(code_dict)}')
     mlu.log()

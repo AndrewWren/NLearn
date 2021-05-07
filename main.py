@@ -85,8 +85,8 @@ if __name__ == '__main__':
     for full_result in full_results:
         saved_alice_model_title, saved_bob_model_title = full_result[1]
         books.code_decode_book(
-            torch.load(saved_alice_model_title),
-            torch.load(saved_bob_model_title),
+            mlu.load_model(saved_alice_model_title),
+            mlu.load_model(saved_bob_model_title),
             16,
             16
         )  #TODO Automate those 16s

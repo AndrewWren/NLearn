@@ -6,27 +6,34 @@ class MSE(torch.nn.MSELoss):
         super().__init__()
         self.alice = alice
 
-    def __call__(self, predictions, targets, dummy):
+    def __call__(self, predictions, targets, *args, **kwargs):
         return self.forward(predictions, targets)
 
 
 class MSEBits(MSE):
     def __init__(self, alice, mu=1.):
         super().__init__(alice)
-        self.loss_fn = lambda x, y, z=0: torch.mean(
+        self.loss_fn = (
+            lambda x, y, z:
+            torch.nn.functional.mse_loss(x, y)
+            + (mu / 2)
+            * torch.nn.functional.mse_loss(z, torch.sign(z))
+        )  # for both the mse_loss functions this implies reduction='mean'
 
-                torch.nn.functional.mse_loss(
-                    x.unsqueeze(-1),
-                    y.unsqueeze(-1),
-                    reduction='none'
-                )
-                + (mu / (2 * c.N_CODE))
-                * torch.nn.functional.mse_loss(z, torch.sign(z),
-                                               reduction='none')
+    def __call__(self, predictions, targets, outputs=0, *args, **kwargs):
+        return self.loss_fn(predictions, targets, outputs)
+
+
+class MSEAccidental(MSE):
+    def __init__(self, alice, mu=1.):
+        super().__init__(alice)
+        self.loss_fn = lambda x, y: torch.sum(
+                torch.nn.functional.mse_loss(x, y, reduction='none')
+                + (mu / 2) * torch.square(x - torch.sign(x)),
             )
 
-    def __call__(self, predictions, targets, outputs):
-        return self.loss_fn(predictions, targets, outputs)
+    def __call__(self, predictions, targets, *args, **kwargs):
+        return self.loss_fn(predictions, targets)
 
 
 class Huber(torch.nn.SmoothL1Loss):
@@ -34,19 +41,20 @@ class Huber(torch.nn.SmoothL1Loss):
         super().__init__(beta)
         self.alice = alice
 
+    def __call__(self, predictions, targets, *args, **kwargs):
+        return self.forward(predictions, targets)
+
 
 class HuberBits(Huber):
     def __init__(self, alice, beta=1., beta_bits=1., mu=1.):
         super().__init__(alice, beta)
-        self.loss_fn = lambda x, y: torch.mean(
-            torch.sum(
-                torch.nn.functional.smooth_l1_loss(x, y, reduction='none',
-                                                   beta=beta)
-                + (mu / 2) * torch.nn.functional.smooth_l1_loss(
-                    x, torch.sign(x), reduction='none', beta=beta_bits),
-                dim=-1
-            )
-        )
+        self.loss_fn = (
+            lambda x, y, z:
+            torch.nn.functional.smooth_l1_loss(x, y, beta=beta)
+            + (mu / 2)
+            * torch.nn.functional.smooth_l1_loss(z, torch.sign(z),
+                                                 beta=beta_bits)
+        )  # for both the mse_loss functions this implies reduction='mean'
 
-    def forward(self, input, target):
-        return self.loss_fn(input, target)
+        def __call__(self, predictions, targets, outputs=0, *args, **kwargs):
+            return self.loss_fn(predictions, targets, outputs)

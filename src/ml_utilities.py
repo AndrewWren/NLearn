@@ -397,6 +397,10 @@ def save_model(model, title=None, parameter_name=None, parameter=None):
     return model_title
 
 
+def load_model(model_title):
+    return torch.load(os.path.join(c.MODEL_FOLDER, model_title))
+
+
 def to_device_tensor(x):
     """
     Convert array to device tensor
