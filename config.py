@@ -15,7 +15,7 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
     'EPSILON_MIN': 0.01,
     'EPSILON_MIN_POINT': 3 * (10 ** 5),
     'ALICE_PLAY': 'Basic',
-    'ALICE_TRAIN': 'FromDecisions',
+    'ALICE_TRAIN': 'Basic',  # 'FromDecisions',
     'BOB_STRATEGY': 'circular_vocab',
     'ALICE_OPTIMIZER': [
                         'SGD(lr=0.32)'
@@ -23,7 +23,7 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
     'BOB_OPTIMIZER': [
                         ('SGD', '{"lr": 0.01}')
                         ],
-    'ALICE_LOSS_FUNCTION': 'MSE',
+    'ALICE_LOSS_FUNCTION': 'Huber(beta=0.1)',
     'BOB_LOSS_FUNCTION': ('torch.nn.MSE', {}), # 'Same',
     'ALICE_PROXIMITY_BONUS': 30000 * (10 ** 3),
     'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,

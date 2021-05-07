@@ -21,7 +21,7 @@ class Basic(AliceTrain):
 
     def __call__(self):
         super().__call__()
-        alice_outputs = self.alice(self.targets)
+        alice_outputs = self.alice.net(self.targets)
         alice_qs = torch.einsum('bj, bj -> b', alice_outputs, self.codes)
         return self.alice.loss_function(alice_qs, self.rewards, alice_outputs)
 
