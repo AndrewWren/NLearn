@@ -294,6 +294,18 @@ From \verb|21-05-05_21:56:16|, noise doesn't seem to help on this individual run
 
 As in \verb|21-05-06_09:44:04|, this doesn't work --- reward oscillates around zero.  Is also slower.
 
+\subsection{Phasing in proximity bonus, double deep learning for Alice}
+
+In \verb|21-05-06_20:41:41| find that phasing in (over $\num{10000}$ iterations) helps --- getting to 0.96 --- but adding double deep learning for Alice may not.  See \fref{fig:figmeanrewards21-05-06204141}.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{Fig_Mean_Rewards_21-05-06_20:41:41}
+	\caption{From \figstamp{21-05-06}{20:41:41}, all have phased--in proximity bonus with \texttt{ALICE\_DOUBLE} set to $\text{None}$ (green), $\num{1000}$ (pink), $100$ (blue) and $\num{5000}$ (orange).  Smoothing 0.9.}
+	\label{fig:figmeanrewards21-05-06204141}
+\end{figure}
+
+	
+	
 \section{Things to try}
 
 \begin{enumerate}
