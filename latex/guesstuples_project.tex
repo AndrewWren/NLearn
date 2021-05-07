@@ -304,7 +304,9 @@ In \verb|21-05-06_20:41:41| find that phasing in (over $\num{10000}$ iterations)
 	\label{fig:figmeanrewards21-05-06204141}
 \end{figure}
 
+\section{After correcting error in the construction of \texttt{MSEBits}}
 	
+Just before \verb|21-05-07_14:03:47|, corrected an error in the construction of \texttt{MSEBits} which meant it was looking at \verb|closeness| not \verb|alice_outputs_from_target| for the bits!  This meant that trying to push closeness towards $\pm 1$ whatever it should have been!  Surprised it was so successful {\em before}.  However,  \verb|21-05-07_14:03:47| is very unsuccessful, mean reward just oscillating around zero.
 	
 \section{Things to try}
 

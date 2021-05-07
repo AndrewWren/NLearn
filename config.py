@@ -24,7 +24,7 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
                         ('SGD', '{"lr": 0.01}')
                         ],
     'ALICE_LOSS_FUNCTION': 'MSEBits', # ('MSE', {}),
-    'BOB_LOSS_FUNCTION': ('MSE', {}), # 'Same',
+    'BOB_LOSS_FUNCTION': ('torch.nn.MSE', {}), # 'Same',
     'ALICE_PROXIMITY_BONUS': 30000,
     'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
     'ALICE_LAST_TRAINING': 100 * (10 ** 5),
