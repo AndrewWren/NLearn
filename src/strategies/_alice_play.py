@@ -1,6 +1,6 @@
 import torch
-from src.lib.torch_bin_dec import dec_2_bin
-from src.lib.ml_utilities import c
+from src.lib.torch_bin_dec import dec_2_bin, initialise_bin_dec
+from src.lib.ml_utilities import c, h
 
 
 class AlicePlay:
@@ -28,6 +28,7 @@ class QPerCode(AlicePlay):
         super().__init__(alice)
         self.input_width = alice.session.tuple_specs.n_elements * 2
         self.output_width = 2 ** h.N_CODE
+        initialise_bin_dec()
 
     def __call__(self):
         super().__call__()

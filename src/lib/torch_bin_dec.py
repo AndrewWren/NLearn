@@ -2,16 +2,17 @@ import torch
 from src.lib.ml_utilities import c, h
 
 
-BINARY_LENGTH = h.N_CODE  # Change what BINARY_LENGTH is as needed
 DEVICE = c.DEVICE # Change what DEVICE is as needed
 
-BIN_TEMPLATE = torch.LongTensor([2 ** n for n in range(BINARY_LENGTH - 1, -1,
-                                                        -1)]).to(DEVICE)
-DEC_TEMPLATE = BIN_TEMPLATE / 2
+def initialise_bin_dec():
+    global BIN_TEMPLATE, DEC_TEMPLATE
+    BIN_TEMPLATE = torch.LongTensor([2 ** n for n in range(
+        h.N_CODE - 1,  -1, -1)]).to(DEVICE)
+    DEC_TEMPLATE = BIN_TEMPLATE / 2
 
 
 def dec_2_bin(d_tensor):
-    d_tensor = d_tensor.unsqueeze(-1).repeat(1, BINARY_LENGTH)
+    d_tensor = d_tensor.unsqueeze(-1).repeat(1, h.N_CODE)
     return 2 * torch.bitwise_and(BIN_TEMPLATE, d_tensor) / BIN_TEMPLATE \
            - 1
 
