@@ -338,6 +338,62 @@ Reverting to the `previous' get a pretty good run at \verb|21-05-07_17:41:29|, b
 
 \verb|QPerCode| is a strategy for Alice with its net outputting $2^{N_\text{code}}$ Q--values.  For SGD learning rates of $0.1$ and above doesn't do well, but with $lr=0.001$ at \verb|21-05-08_14:45:11BST| (and double with period $500$ and Huber \verb|beta=0.5|) get good results, peaking at reward of $0.870.$
 
+The run \verb|21-05-08_15:50:47| for three choices of random seeds shows that this approach is robust.  It's also quick ($\num{50000}$ iteration).  See \fref{fig:figmeanrewards21-05-08155047}.
+\begin{figure}
+	\centering
+	\includegraphics[width=0.7\linewidth]{Fig_Mean_Rewards_21-05-08_15:50:47}
+	\caption{The rewards for \figstamp{21-05-08}{15:50:47}, for the three hp runs: 1 (pink), 2 (blue) and 3 (green) with different tuples of random seeds.  Smoothing 0.9.}
+	\label{fig:figmeanrewards21-05-08155047}
+\end{figure}
+The config has
+\begin{lstlisting}
+	hyperparameters = {  
+		'N_ITERATIONS': 50 * (10 ** 3),   # 5 * (10 ** 5),
+		'RANDOM_SEEDS': [
+		(868291, 274344, 358840, 94453),
+		(382832, 68444, 754888, 857796),
+		(736520, 815195, 305871, 974216)
+		],
+		'ALICE_NET': 'FFs(3, 50)',
+		'BOB_LAYERS': 3,
+		'BOB_WIDTH': 50,
+		'BATCHSIZE': 32,
+		'GAMESIZE': 32,
+		'BUFFER_CAPACITY': 32 * 20000,
+		'START_TRAINING': 20000,
+		'N_SELECT': 16,
+		'EPSILON_ONE_END': 2000,
+		'EPSILON_MIN': 0.01,
+		'EPSILON_MIN_POINT': 40000,
+		'ALICE_PLAY': 'QPerCode',
+		'ALICE_TRAIN': 'QPerCode',
+		'BOB_STRATEGY': 'circular_vocab',
+		'ALICE_OPTIMIZER': [
+		'SGD(lr=0.01)'
+		],
+		'BOB_OPTIMIZER': [
+		('SGD', '{"lr": 0.01}')
+		],
+		'ALICE_LOSS_FUNCTION': 'Huber(beta=0.5)',
+		'BOB_LOSS_FUNCTION': ('torch.nn.MSE', {}), 
+		'ALICE_PROXIMITY_BONUS':  10 ** 8, 
+		'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
+		'ALICE_LAST_TRAINING': 100 * (10 ** 5),
+		'NOISE_START': 10 ** 8,
+		'NOISE': 0.,
+		'ALICE_DOUBLE': 500
+	}
+	
+	TUPLE_SPEC = (
+	(16,),
+	)
+	N_CODE = 8
+	
+	SMOOTHING_LENGTH = 10000
+	SAVE_PERIOD = 10 ** 5
+\end{lstlisting}
+
+
 \section{Things to try}
 
 \begin{enumerate}
