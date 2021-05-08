@@ -1,6 +1,3 @@
-import torch
-from src.ml_utilities import c, h, to_array, \
-    to_device_tensor, writer
 import src.nets
 
 

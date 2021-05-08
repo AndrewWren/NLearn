@@ -1,7 +1,7 @@
 import numpy as np
 import torch
-import src.ml_utilities as mlu
-from src.ml_utilities import c, h, to_array, to_device_tensor, writer
+import src.lib.ml_utilities as mlu
+from src.lib.ml_utilities import to_array, to_device_tensor
 from src.game_set_up import ElementCircular, NiceCode
 
 

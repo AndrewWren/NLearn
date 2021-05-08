@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-from src.ml_utilities import c, h, to_array, \
-    to_device_tensor, writer
+from src.lib.ml_utilities import c
 
 
 class FFs(torch.nn.Module):

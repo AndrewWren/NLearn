@@ -1,5 +1,5 @@
 import torch
-from src.ml_utilities import c
+from src.lib.ml_utilities import c
 
 
 BINARY_LENGTH = c.N_CODE  # Change what BINARY_LENGTH is as needed

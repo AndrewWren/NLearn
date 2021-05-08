@@ -1,6 +1,6 @@
 import torch
-from src.lib.torch_bin_dec import bin_2_dec, dec_2_bin
-from src.ml_utilities import c, h
+from src.lib.torch_bin_dec import bin_2_dec
+from src.lib.ml_utilities import c, h
 
 
 class AliceTrain:

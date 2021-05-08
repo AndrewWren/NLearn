@@ -7,9 +7,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import config as c
-import src.ml_utilities as mlu
-from src.ml_utilities import c, h
+import src.lib.ml_utilities as mlu
+from src.lib.ml_utilities import c, h
 
 warnings.filterwarnings("ignore", category=UserWarning)
 margin = torch.ones(1).to(c.DEVICE)

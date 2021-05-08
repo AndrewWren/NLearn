@@ -335,6 +335,9 @@ def over_hp(func):
             h['hp_run'] = hp_run  # Needed for TensorBoard and saved models
             best_of_this_hp_run, idx = func(*args, **kwargs)
             del h['hp_run']
+            log(f'\nEnd of hp run {hp_run}.  Result of run:')
+            log(best_of_this_hp_run)
+            log(result)
             result = best_of_this_hp_run[idx]
             results.append(result)
             full_results.append(best_of_this_hp_run)

@@ -3,14 +3,13 @@ import copy
 import numpy as np
 import torch
 import src.books as books
-import src.ml_utilities as mlu
-from src.ml_utilities import c, h, to_array, to_device_tensor, writer
+import src.lib.ml_utilities as mlu
+from src.lib.ml_utilities import c, h, to_array, to_device_tensor, writer
 from src.game_set_up import GameOrigins, \
-    GameReports, NiceCode, TupleSpecs
+    GameReports, TupleSpecs
 from src.nets import FFs
 from src.noise import Noise
-import src.strategies._alice_play, src.strategies._alice_train, \
-    src.strategies._alice_net, src.strategies._alice_loss_function
+
 #import src.strategies._bob_play, src.strategies._bob_train,
 # src.strategies._bob_net, src.strategies._bob_loss_function
 
