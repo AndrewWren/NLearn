@@ -1,0 +1,375 @@
+The closed log for run 21-05-08_17:18:16BST
+
+TUPLE_SPEC = ((16,),)
+N_CODE = 8
+SMOOTHING_LENGTH = 10000
+SAVE_PERIOD = 100000
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Used: "cuda"
+MODEL_FOLDER = 'models'
+CONFIGS_FOLDER = 'configs'
+LOGS_FOLDER = 'logs'
+
+hyperparameters = {
+	'N_ITERATIONS': 50000,
+	'RANDOM_SEEDS': [(868291, 274344, 358840, 94453)],
+	'ALICE_NET': 'FFs(3, 50)',
+	'BOB_LAYERS': 3,
+	'BOB_WIDTH': 50,
+	'BATCHSIZE': 32,
+	'GAMESIZE': 32,
+	'BUFFER_CAPACITY': 640000,
+	'START_TRAINING': 20000,
+	'N_SELECT': 16,
+	'EPSILON_ONE_END': 2000,
+	'EPSILON_MIN': 0.0,
+	'EPSILON_MIN_POINT': 20000,
+	'ALICE_PLAY': 'QPerCode',
+	'ALICE_TRAIN': 'QPerCode',
+	'BOB_STRATEGY': 'circular_vocab',
+	'ALICE_OPTIMIZER': ['SGD(lr=0.01)'],
+	'BOB_OPTIMIZER': [('SGD', '{"lr": 0.01}')],
+	'ALICE_LOSS_FUNCTION': ['Huber(beta=1.)', 'Huber(beta=0.5)', 'Huber(beta=0.1)'],
+	'BOB_LOSS_FUNCTION': ('torch.nn.MSE', {}),
+	'ALICE_PROXIMITY_BONUS': 100000000,
+	'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
+	'ALICE_LAST_TRAINING': 10000000,
+	'NOISE_START': 100000000,
+	'NOISE': 0.0,
+	'ALICE_DOUBLE': 500
+}
+
+
+
+>>>> hp_run=1 of 3
+hyperparameters = {
+	'N_ITERATIONS': 50000,
+	'RANDOM_SEEDS': (868291, 274344, 358840, 94453),
+	'ALICE_NET': 'FFs(3, 50)',
+	'BOB_LAYERS': 3,
+	'BOB_WIDTH': 50,
+	'BATCHSIZE': 32,
+	'GAMESIZE': 32,
+	'BUFFER_CAPACITY': 640000,
+	'START_TRAINING': 20000,
+	'N_SELECT': 16,
+	'EPSILON_ONE_END': 2000,
+	'EPSILON_MIN': 0.0,
+	'EPSILON_MIN_POINT': 20000,
+	'ALICE_PLAY': 'QPerCode',
+	'ALICE_TRAIN': 'QPerCode',
+	'BOB_STRATEGY': 'circular_vocab',
+	'ALICE_OPTIMIZER': 'SGD(lr=0.01)',
+	'BOB_OPTIMIZER': ('SGD', '{"lr": 0.01}'),
+	'ALICE_LOSS_FUNCTION': 'Huber(beta=1.)',
+	'BOB_LOSS_FUNCTION': ('torch.nn.MSE', {}),
+	'ALICE_PROXIMITY_BONUS': 100000000,
+	'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
+	'ALICE_LAST_TRAINING': 10000000,
+	'NOISE_START': 100000000,
+	'NOISE': 0.0,
+	'ALICE_DOUBLE': 500
+}
+
+tuple_specs.random_reward_sd()=0.7071067811865476
+Iteration=     20000 training nets give:
+alice_loss.item()=0.304502934217453	bob_loss.item()=0.5239346027374268
+
+11100001	[0, 13, 14, 15]
+01011011	[1, 2]
+11111010	[3]
+11100010	[4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+11100001	14	True
+01011011	0	False
+11111010	14	False
+11100010	14	False
+
+Number of codes used=4
+
+Iteration=     30000 training nets give:
+alice_loss.item()=0.13420221209526062	bob_loss.item()=0.30967211723327637
+
+01011011	[0, 1, 2, 3]
+11111001	[4]
+00110010	[5, 6, 7, 8, 9, 10, 11]
+11100001	[12, 13, 14, 15]
+
+01011011	2	True
+11111001	2	False
+00110010	8	True
+11100001	15	True
+
+Number of codes used=4
+
+Iteration=     40000 training nets give:
+alice_loss.item()=0.005984462797641754	bob_loss.item()=0.1019936054944992
+
+01011011	[0, 1, 2]
+11111001	[3, 4]
+11001000	[5, 6]
+00110010	[7, 8, 9, 10, 11]
+11100001	[12, 13, 14, 15]
+
+01011011	2	True
+11111001	3	True
+11001000	7	False
+00110010	8	True
+11100001	15	True
+
+Number of codes used=5
+
+Iteration=     50000 training nets give:
+alice_loss.item()=0.0007409193203784525	bob_loss.item()=0.023068130016326904
+
+11100001	[0, 12, 13, 14, 15]
+01011011	[1, 2]
+11111001	[3, 4]
+11001000	[5, 6]
+00110010	[7, 8, 9, 10, 11]
+
+11100001	14	True
+01011011	1	True
+11111001	3	True
+11001000	7	False
+00110010	8	True
+
+Number of codes used=5
+
+
+
+>>>> hp_run=2 of 3, time elapsed 0:13:01 of estimated 0:39:02, 
+implying ending at 17:57:20BST on Saturday 8 May 2021
+hyperparameters = {
+	'N_ITERATIONS': 50000,
+	'RANDOM_SEEDS': (868291, 274344, 358840, 94453),
+	'ALICE_NET': 'FFs(3, 50)',
+	'BOB_LAYERS': 3,
+	'BOB_WIDTH': 50,
+	'BATCHSIZE': 32,
+	'GAMESIZE': 32,
+	'BUFFER_CAPACITY': 640000,
+	'START_TRAINING': 20000,
+	'N_SELECT': 16,
+	'EPSILON_ONE_END': 2000,
+	'EPSILON_MIN': 0.0,
+	'EPSILON_MIN_POINT': 20000,
+	'ALICE_PLAY': 'QPerCode',
+	'ALICE_TRAIN': 'QPerCode',
+	'BOB_STRATEGY': 'circular_vocab',
+	'ALICE_OPTIMIZER': 'SGD(lr=0.01)',
+	'BOB_OPTIMIZER': ('SGD', '{"lr": 0.01}'),
+	'ALICE_LOSS_FUNCTION': 'Huber(beta=0.5)',
+	'BOB_LOSS_FUNCTION': ('torch.nn.MSE', {}),
+	'ALICE_PROXIMITY_BONUS': 100000000,
+	'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
+	'ALICE_LAST_TRAINING': 10000000,
+	'NOISE_START': 100000000,
+	'NOISE': 0.0,
+	'ALICE_DOUBLE': 500
+}
+
+tuple_specs.random_reward_sd()=0.7071067811865476
+Iteration=     20000 training nets give:
+alice_loss.item()=0.5666577816009521	bob_loss.item()=0.5933669805526733
+
+11001100	[0, 1, 14, 15]
+10111001	[2, 3]
+10011011	[4, 5, 6, 7]
+11001000	[8, 9, 10]
+10100111	[11, 12, 13]
+
+11001100	2	False
+10111001	15	False
+10011011	11	False
+11001000	0	False
+10100111	15	False
+
+Number of codes used=5
+
+Iteration=     30000 training nets give:
+alice_loss.item()=0.10802073776721954	bob_loss.item()=0.17136253416538239
+
+11001100	[0, 1, 2, 3]
+01101011	[4, 5, 6, 7, 8, 9, 10]
+00100000	[11]
+10100111	[12, 13, 14, 15]
+
+11001100	1	True
+01101011	7	True
+00100000	14	False
+10100111	13	True
+
+Number of codes used=4
+
+Iteration=     40000 training nets give:
+alice_loss.item()=0.0016325251199305058	bob_loss.item()=0.031743623316287994
+
+11001100	[0, 1, 2, 3, 4]
+01101011	[5, 6, 7, 8, 9, 10]
+10100111	[11, 12, 13, 14, 15]
+
+11001100	1	True
+01101011	7	True
+10100111	13	True
+
+Number of codes used=3
+
+Iteration=     50000 training nets give:
+alice_loss.item()=2.2018899471731856e-05	bob_loss.item()=0.030888359993696213
+
+11001100	[0, 1, 2, 3, 4]
+01101011	[5, 6, 7, 8, 9, 10]
+10100111	[11, 12, 13, 14, 15]
+
+11001100	1	True
+01101011	7	True
+10100111	13	True
+
+Number of codes used=3
+
+
+
+>>>> hp_run=3 of 3, time elapsed 0:26:24 of estimated 0:39:36, 
+implying ending at 17:57:54BST on Saturday 8 May 2021
+hyperparameters = {
+	'N_ITERATIONS': 50000,
+	'RANDOM_SEEDS': (868291, 274344, 358840, 94453),
+	'ALICE_NET': 'FFs(3, 50)',
+	'BOB_LAYERS': 3,
+	'BOB_WIDTH': 50,
+	'BATCHSIZE': 32,
+	'GAMESIZE': 32,
+	'BUFFER_CAPACITY': 640000,
+	'START_TRAINING': 20000,
+	'N_SELECT': 16,
+	'EPSILON_ONE_END': 2000,
+	'EPSILON_MIN': 0.0,
+	'EPSILON_MIN_POINT': 20000,
+	'ALICE_PLAY': 'QPerCode',
+	'ALICE_TRAIN': 'QPerCode',
+	'BOB_STRATEGY': 'circular_vocab',
+	'ALICE_OPTIMIZER': 'SGD(lr=0.01)',
+	'BOB_OPTIMIZER': ('SGD', '{"lr": 0.01}'),
+	'ALICE_LOSS_FUNCTION': 'Huber(beta=0.1)',
+	'BOB_LOSS_FUNCTION': ('torch.nn.MSE', {}),
+	'ALICE_PROXIMITY_BONUS': 100000000,
+	'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
+	'ALICE_LAST_TRAINING': 10000000,
+	'NOISE_START': 100000000,
+	'NOISE': 0.0,
+	'ALICE_DOUBLE': 500
+}
+
+tuple_specs.random_reward_sd()=0.7071067811865476
+Iteration=     20000 training nets give:
+alice_loss.item()=0.649752140045166	bob_loss.item()=0.5317696332931519
+
+00000000	[0, 1, 2, 3, 4, 5, 6, 7, 13, 14, 15]
+00010100	[8, 9, 10, 11, 12]
+
+00000000	7	True
+00010100	13	False
+
+Number of codes used=2
+
+Iteration=     30000 training nets give:
+alice_loss.item()=0.2014576941728592	bob_loss.item()=0.3325809836387634
+
+00101000	[0, 1, 14, 15]
+00101010	[2, 3]
+00000000	[4, 5, 6]
+11010100	[7, 8, 9, 10]
+00010100	[11, 12, 13]
+
+00101000	15	True
+00101010	1	False
+00000000	4	True
+11010100	8	True
+00010100	11	True
+
+Number of codes used=5
+
+Iteration=     40000 training nets give:
+alice_loss.item()=0.10093794018030167	bob_loss.item()=0.08274608850479126
+
+00101000	[0, 14, 15]
+00101010	[1, 2, 3]
+00000000	[4, 5, 6]
+11010100	[7, 8, 9, 10]
+00010100	[11, 12, 13]
+
+00101000	0	True
+00101010	2	True
+00000000	4	True
+11010100	8	True
+00010100	11	True
+
+Number of codes used=5
+
+Iteration=     50000 training nets give:
+alice_loss.item()=0.026696521788835526	bob_loss.item()=0.016861839219927788
+
+00101000	[0, 14, 15]
+00101010	[1, 2, 3]
+00000000	[4, 5, 6]
+11010100	[7, 8, 9, 10]
+00010100	[11, 12, 13]
+
+00101000	15	True
+00101010	2	True
+00000000	4	True
+11010100	8	True
+00010100	11	True
+
+Number of codes used=5
+
+
+
+
+Time taken over all 3 given sets of hyperparameters=0:39:54, averaging 0:13:18 per run
+
+
+ ---- Table of results ----
+
+ code  hp_run  result
+ 0000       1  (-0.843, 50000)
+ 0001       2  (-0.803, 50000)
+ 0002       3  (-0.894, 50000)
+ --------------------------
+
+++++ Best result was (-0.894, 50000) on hp_run=3 with
+hyperparameters = {
+	'N_ITERATIONS': 50000,
+	'RANDOM_SEEDS': (868291, 274344, 358840, 94453),
+	'ALICE_NET': 'FFs(3, 50)',
+	'BOB_LAYERS': 3,
+	'BOB_WIDTH': 50,
+	'BATCHSIZE': 32,
+	'GAMESIZE': 32,
+	'BUFFER_CAPACITY': 640000,
+	'START_TRAINING': 20000,
+	'N_SELECT': 16,
+	'EPSILON_ONE_END': 2000,
+	'EPSILON_MIN': 0.0,
+	'EPSILON_MIN_POINT': 20000,
+	'ALICE_PLAY': 'QPerCode',
+	'ALICE_TRAIN': 'QPerCode',
+	'BOB_STRATEGY': 'circular_vocab',
+	'ALICE_OPTIMIZER': 'SGD(lr=0.01)',
+	'BOB_OPTIMIZER': ('SGD', '{"lr": 0.01}'),
+	'ALICE_LOSS_FUNCTION': 'Huber(beta=0.1)',
+	'BOB_LOSS_FUNCTION': ('torch.nn.MSE', {}),
+	'ALICE_PROXIMITY_BONUS': 100000000,
+	'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
+	'ALICE_LAST_TRAINING': 10000000,
+	'NOISE_START': 100000000,
+	'NOISE': 0.0,
+	'ALICE_DOUBLE': 500
+	'n_rng': Generator(PCG64)
+	'ne_rng': Generator(PCG64)
+	't_rng': <torch._C.Generator object at 0x7f8a1b4aafd0>
+	'te_rng': <torch._C.Generator object at 0x7f8a1b4aadf0>
+}
+
+
+End closed log for run 21-05-08_17:18:16BST

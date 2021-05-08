@@ -17,7 +17,7 @@ def train_ab():
         if ('BOB' in key) and (value == 'Same'):
             h[key] = h[key.replace('BOB', 'ALICE')]
     tuple_specs = TupleSpecs()
-    mlu.log(f'{tuple_specs.random_reward_sd()=}')
+    mlu.log(f'{tuple_specs.random_reward_sd()=}\n')
     session = Session(tuple_specs)
     buffer = ReplayBuffer(h.BUFFER_CAPACITY)
     best_non_random_reward = - np.inf
