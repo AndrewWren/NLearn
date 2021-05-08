@@ -1,5 +1,6 @@
 import torch
-from src.ml_utilities import c, h, to_array, to_device_tensor, writer
+from src.lib.torch_bin_dec import bin_2_dec, dec_2_bin
+from src.ml_utilities import c, h
 
 
 class AliceTrain:
@@ -59,3 +60,15 @@ class FromDecisions(AliceTrain):
             self.rewards + rewards_bonus,
             alice_outputs_from_targets
         )
+
+
+class QPerCode(AliceTrain):
+    def __init__(self, alice):
+        super().__init__(alice)
+
+    def __call__(self):
+        super().__call__()
+        alice_outputs = self.alice.training_net(self.targets)
+        code_decs =  bin_2_dec(self.codes)
+        alice_qs = alice_outputs[torch.arange(h.BATCHSIZE), code_decs]
+        return self.alice.loss_function(alice_qs, self.rewards)

@@ -1,5 +1,7 @@
+import warnings
 import torch
 from src.ml_utilities import c
+
 
 class MSE(torch.nn.MSELoss):
     def __init__(self, alice):
@@ -7,7 +9,7 @@ class MSE(torch.nn.MSELoss):
         self.alice = alice
 
     def __call__(self, predictions, targets, *args, **kwargs):
-        return self.forward(predictions, targets)
+       return self.forward(predictions, targets)
 
 
 class MSEBits(MSE):
@@ -38,7 +40,7 @@ class MSEAccidental(MSE):
 
 class Huber(torch.nn.SmoothL1Loss):
     def __init__(self, alice, beta=1.):
-        super().__init__(beta)
+        super().__init__(beta=beta)
         self.alice = alice
 
     def __call__(self, predictions, targets, *args, **kwargs):
@@ -47,7 +49,7 @@ class Huber(torch.nn.SmoothL1Loss):
 
 class HuberBits(Huber):
     def __init__(self, alice, beta=1., beta_bits=1., mu=1.):
-        super().__init__(alice, beta)
+        super().__init__(alice, beta=beta)
         self.loss_fn = (
             lambda x, y, z:
             torch.nn.functional.smooth_l1_loss(x, y, beta=beta)

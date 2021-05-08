@@ -31,20 +31,20 @@ def log_book(codes, outputs=None, log_dict=True, log_full_dict=False,
 
 
 @torch.no_grad()
-def code_book(model, modulus, n_select, print_list=False,
+def code_book(alice, modulus, n_select, print_list=False,
               print_dict=True, print_full_dict=False):
     elt = ElementCircular(modulus, n_select)
-    inputs = to_device_tensor(elt.domain)
-    outputs = to_array(model(inputs).squeeze())
+    alice.session.targets_t = to_device_tensor(elt.domain)
+    outputs = to_array(alice.play().squeeze())
     codes = np.sign(outputs)
     return codes, log_book(codes, outputs, print_dict, print_full_dict,
                         print_list)
 
 
 @torch.no_grad()  #TODO print to mlu
-def code_decode_book(model_alice, model_bob, modulus, n_select):
+def code_decode_book(alice, model_bob, modulus, n_select):
     mlu.log()
-    _, code_dict = code_book(model_alice, modulus, n_select)
+    _, code_dict = code_book(alice, modulus, n_select)
     elt = ElementCircular(modulus, n_select)
     domain = to_device_tensor(elt.domain)
     decode_dict = dict()

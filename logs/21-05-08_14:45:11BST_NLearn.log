@@ -1,0 +1,183 @@
+The closed log for run 21-05-08_14:45:11BST
+
+TUPLE_SPEC = ((16,),)
+N_CODE = 8
+SMOOTHING_LENGTH = 10000
+SAVE_PERIOD = 100000
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Used: "cuda"
+MODEL_FOLDER = 'models'
+CONFIGS_FOLDER = 'configs'
+LOGS_FOLDER = 'logs'
+
+hyperparameters = {
+	'N_ITERATIONS': 50000,
+	'RANDOM_SEEDS': (81821, 18755, 28414, 111000),
+	'ALICE_NET': 'FFs(3, 50)',
+	'BOB_LAYERS': 3,
+	'BOB_WIDTH': 50,
+	'BATCHSIZE': 32,
+	'GAMESIZE': 32,
+	'BUFFER_CAPACITY': 640000,
+	'START_TRAINING': 20000,
+	'N_SELECT': 16,
+	'EPSILON_ONE_END': 2000,
+	'EPSILON_MIN': 0.01,
+	'EPSILON_MIN_POINT': 40000,
+	'ALICE_PLAY': 'QPerCode',
+	'ALICE_TRAIN': 'QPerCode',
+	'BOB_STRATEGY': 'circular_vocab',
+	'ALICE_OPTIMIZER': ['SGD(lr=0.01)'],
+	'BOB_OPTIMIZER': [('SGD', '{"lr": 0.01}')],
+	'ALICE_LOSS_FUNCTION': 'Huber(beta=0.5)',
+	'BOB_LOSS_FUNCTION': ('torch.nn.MSE', {}),
+	'ALICE_PROXIMITY_BONUS': 100000000,
+	'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
+	'ALICE_LAST_TRAINING': 10000000,
+	'NOISE_START': 100000000,
+	'NOISE': 0.0,
+	'ALICE_DOUBLE': 500
+}
+
+
+
+>>>> hp_run=1 of 1
+hyperparameters = {
+	'N_ITERATIONS': 50000,
+	'RANDOM_SEEDS': (81821, 18755, 28414, 111000),
+	'ALICE_NET': 'FFs(3, 50)',
+	'BOB_LAYERS': 3,
+	'BOB_WIDTH': 50,
+	'BATCHSIZE': 32,
+	'GAMESIZE': 32,
+	'BUFFER_CAPACITY': 640000,
+	'START_TRAINING': 20000,
+	'N_SELECT': 16,
+	'EPSILON_ONE_END': 2000,
+	'EPSILON_MIN': 0.01,
+	'EPSILON_MIN_POINT': 40000,
+	'ALICE_PLAY': 'QPerCode',
+	'ALICE_TRAIN': 'QPerCode',
+	'BOB_STRATEGY': 'circular_vocab',
+	'ALICE_OPTIMIZER': 'SGD(lr=0.01)',
+	'BOB_OPTIMIZER': ('SGD', '{"lr": 0.01}'),
+	'ALICE_LOSS_FUNCTION': 'Huber(beta=0.5)',
+	'BOB_LOSS_FUNCTION': ('torch.nn.MSE', {}),
+	'ALICE_PROXIMITY_BONUS': 100000000,
+	'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
+	'ALICE_LAST_TRAINING': 10000000,
+	'NOISE_START': 100000000,
+	'NOISE': 0.0,
+	'ALICE_DOUBLE': 500
+}
+
+tuple_specs.random_reward_sd()=0.7071067811865476
+Iteration=     20000 training nets give:
+
+00111011	[0, 1, 2, 3, 15]
+00101100	[4, 5, 6, 7]
+01010001	[8]
+01101100	[9]
+11110000	[10, 11, 12, 13, 14]
+
+00111011	4	False
+00101100	4	True
+01010001	3	False
+01101100	2	False
+11110000	3	False
+
+Number of codes used=5
+
+Iteration=     30000 training nets give:
+
+10101110	[0, 1, 2, 13, 14, 15]
+00101100	[3, 4, 5, 6, 7]
+11101101	[8, 9, 10, 11, 12]
+
+10101110	0	True
+00101100	5	True
+11101101	9	True
+
+Number of codes used=3
+
+Iteration=     40000 training nets give:
+
+10101110	[0, 1, 15]
+00111011	[2, 3, 4]
+00101100	[5, 6]
+11101101	[7, 8, 9, 10, 11]
+11101110	[12, 13, 14]
+
+10101110	0	True
+00111011	2	True
+00101100	5	True
+11101101	9	True
+11101110	15	False
+
+Number of codes used=5
+
+Iteration=     50000 training nets give:
+
+10101110	[0]
+00111011	[1, 2, 3]
+00101100	[4, 5, 6]
+11101101	[7, 8, 9, 10]
+10011101	[11, 12, 13]
+11101110	[14, 15]
+
+10101110	0	True
+00111011	2	True
+00101100	5	True
+11101101	9	True
+10011101	12	True
+11101110	14	True
+
+Number of codes used=6
+
+
+
+
+Time taken over all 1 given sets of hyperparameters=0:13:45, averaging 0:13:45 per run
+
+
+ ---- Table of results ----
+
+ code  hp_run  result
+   00       1  (-0.870, 50000)
+ --------------------------
+
+++++ Best result was (-0.870, 50000) on hp_run=1 with
+hyperparameters = {
+	'N_ITERATIONS': 50000,
+	'RANDOM_SEEDS': (81821, 18755, 28414, 111000),
+	'ALICE_NET': 'FFs(3, 50)',
+	'BOB_LAYERS': 3,
+	'BOB_WIDTH': 50,
+	'BATCHSIZE': 32,
+	'GAMESIZE': 32,
+	'BUFFER_CAPACITY': 640000,
+	'START_TRAINING': 20000,
+	'N_SELECT': 16,
+	'EPSILON_ONE_END': 2000,
+	'EPSILON_MIN': 0.01,
+	'EPSILON_MIN_POINT': 40000,
+	'ALICE_PLAY': 'QPerCode',
+	'ALICE_TRAIN': 'QPerCode',
+	'BOB_STRATEGY': 'circular_vocab',
+	'ALICE_OPTIMIZER': 'SGD(lr=0.01)',
+	'BOB_OPTIMIZER': ('SGD', '{"lr": 0.01}'),
+	'ALICE_LOSS_FUNCTION': 'Huber(beta=0.5)',
+	'BOB_LOSS_FUNCTION': ('torch.nn.MSE', {}),
+	'ALICE_PROXIMITY_BONUS': 100000000,
+	'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
+	'ALICE_LAST_TRAINING': 10000000,
+	'NOISE_START': 100000000,
+	'NOISE': 0.0,
+	'ALICE_DOUBLE': 500
+	'n_rng': Generator(PCG64)
+	'ne_rng': Generator(PCG64)
+	't_rng': <torch._C.Generator object at 0x7f4b9fff3690>
+	'te_rng': <torch._C.Generator object at 0x7f4cce0ad970>
+}
+
+
+End closed log for run 21-05-08_14:45:11BST

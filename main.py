@@ -81,22 +81,7 @@ def run_tuples():
 
 if __name__ == '__main__':
     #run_tuples()
+    pass
     full_results = train_ab()
-    for full_result in full_results:
-        saved_alice_model_title, saved_bob_model_title = full_result[1]
-        books.code_decode_book(
-            mlu.load_model(saved_alice_model_title),
-            mlu.load_model(saved_bob_model_title),
-            16,
-            16
-        )  #TODO Automate those 16s
 
-    #code_books_0()
-    """code_book('21-05-03_20:36:57BST_NLearn_model_2_Alice_iter500000', 16,
-              16, print_full_dict=True)
-    """
-    """code_decode_book('21-05-05_15:59:30BST_NLearn_model_1_Alice_iter150000',
-                     '21-05-05_15:59:30BST_NLearn_model_1_Bob_iter150000',
-                     16, 16)
-    """
     mlu.close_log()

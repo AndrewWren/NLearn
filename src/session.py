@@ -29,10 +29,6 @@ class Agent:
         self.prefix = f'src.strategies._{name.lower()}_'
         self.session = session
         self.name = name.upper()
-
-    #def set_methods(self, instance_name):  #TODO Does this need to be
-        # separate from __init__ ?
-        #self.instance_name = instance_name
         self.play = self.use_key('play')
         self.train = self.use_key('train')
         self.net = self.use_key('net')  # Note the net class uses the .play
@@ -47,6 +43,7 @@ class Agent:
         except:
             pass
         self.optimizer = self.get_optimizer()
+        #with AvoidDeprecationWarning():
         self.loss_function = self.use_key('loss_function')
 
     def use_key(self, label):
@@ -81,7 +78,6 @@ class Session:
                                         None, None)
         self.current_iteration = None
         self.alice = Agent(self, 'alice')
-        #self.alice.set_methods('alice')
         self.set_widths()
         self.bob = FFs(
             input_width=self.bob_input_width,
@@ -210,11 +206,11 @@ class Session:
              },
             global_step=current_iteration
         )
-        if current_iteration % 10000 == 0:
+        if current_iteration % 10000 == 0:  #10000
             mlu.log(f'Iteration={current_iteration:>10} training nets give:',
                     backspaces=20)
             books.code_decode_book(
-                self.alice.training_net,
+                self.alice,
                 self.bob,
                 c.TUPLE_SPEC[0][0],
                 h.N_SELECT,
