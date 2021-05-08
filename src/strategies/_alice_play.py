@@ -15,7 +15,7 @@ class Basic(AlicePlay):
     def __init__(self, alice):
         super().__init__(alice)
         self.input_width = alice.session.tuple_specs.n_elements * 2
-        self.output_width = c.N_CODE
+        self.output_width = h.N_CODE
 
     def __call__(self):
         super().__call__()
@@ -27,7 +27,7 @@ class QPerCode(AlicePlay):
     def __init__(self, alice):
         super().__init__(alice)
         self.input_width = alice.session.tuple_specs.n_elements * 2
-        self.output_width = 2 ** c.N_CODE
+        self.output_width = 2 ** h.N_CODE
 
     def __call__(self):
         super().__call__()

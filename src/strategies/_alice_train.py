@@ -40,7 +40,7 @@ class FromDecisions(AliceTrain):
             alice_codes_from_decisions = torch.sign(self.alice.training_net(
                 decisions))
         closeness = torch.einsum('ij, ij -> i', alice_codes_from_targets,
-                                 alice_codes_from_decisions) / c.N_CODE
+                                 alice_codes_from_decisions) / h.N_CODE
         if  self.current_iteration < h.ALICE_PROXIMITY_BONUS:
             return self.alice.loss_function(
                 closeness,

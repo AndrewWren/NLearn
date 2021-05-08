@@ -2,7 +2,7 @@ import torch
 from src.lib.ml_utilities import c
 
 
-BINARY_LENGTH = c.N_CODE  # Change what BINARY_LENGTH is as needed
+BINARY_LENGTH = h.N_CODE  # Change what BINARY_LENGTH is as needed
 DEVICE = c.DEVICE # Change what DEVICE is as needed
 
 BIN_TEMPLATE = torch.LongTensor([2 ** n for n in range(BINARY_LENGTH - 1, -1,

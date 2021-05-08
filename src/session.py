@@ -9,7 +9,8 @@ from src.game_set_up import GameOrigins, \
     GameReports, TupleSpecs
 from src.nets import FFs
 from src.noise import Noise
-
+import src.strategies._alice_play, src.strategies._alice_train, \
+    src.strategies._alice_net, src.strategies._alice_loss_function
 #import src.strategies._bob_play, src.strategies._bob_train,
 # src.strategies._bob_net, src.strategies._bob_loss_function
 
@@ -224,14 +225,14 @@ class Session:
         """
 
         :param greedy_codes: torch.float32, size (h.GAMESIZE or h.BATCHSIZE,
-        c.N_CODE)
+        h.N_CODE)
         :return: torch.int64, size (h.GAMESIZE or h.BATCHSIZE respectively,
-        c.N_CODE)
+        h.N_CODE)
         """
         indicator = torch.empty(self.size0).to(c.DEVICE)
         indicator.uniform_()
         chooser = (indicator >= self.epsilon).long()
-        random_codes = torch.empty(self.size0, c.N_CODE).to(
+        random_codes = torch.empty(self.size0, h.N_CODE).to(
             c.DEVICE)
         random_codes.random_(to=2).long()
         random_codes = 2 * random_codes - 1
@@ -294,14 +295,14 @@ class Session:
     def set_widths(self):
         """if (h.ALICE_STRATEGY == 'circular') or (h.ALICE_STRATEGY ==
                                                 'from_decisions'):
-            self.alice_output_width = c.N_CODE
+            self.alice_output_width = h.N_CODE
         """
         if h.BOB_STRATEGY == 'circular':
             self.bob_input_width = (h.N_SELECT * self.tuple_specs.n_elements
-                                    * 2 + c.N_CODE)
+                                    * 2 + h.N_CODE)
             self.bob_output_width = h.N_SELECT
         elif h.BOB_STRATEGY == 'circular_vocab':
-            self.bob_input_width = self.tuple_specs.n_elements * 2 + c.N_CODE
+            self.bob_input_width = self.tuple_specs.n_elements * 2 + h.N_CODE
             self.bob_output_width = 1
 
     """def alice_play_circular(self, targets):
@@ -369,7 +370,7 @@ class Session:
             decisions = torch.flatten(decisions, start_dim=1)
             alice_codes_from_decisions = torch.sign(self.alice(decisions))
         closeness = torch.einsum('ij, ij -> i', alice_codes_from_targets,
-                                 alice_codes_from_decisions) / c.N_CODE
+                                 alice_codes_from_decisions) / h.N_CODE
         if self.current_iteration < h.ALICE_PROXIMITY_BONUS:
             return self.alice_loss_function(closeness, rewards)
         bonus_prop = min(1, (self.current_iteration -

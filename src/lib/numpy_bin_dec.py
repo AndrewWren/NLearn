@@ -1,7 +1,7 @@
 import numpy as np
 
 
-BINARY_LENGTH = 8   # Change what BINARY_LENGTH is as needed
+BINARY_LENGTH = h.N_CODE   # Change what BINARY_LENGTH is as needed
 
 BIN_TEMPLATE = np.array([2 ** n for n in range(BINARY_LENGTH - 1, -1, -1)])
 DEC_TEMPLATE = BIN_TEMPLATE / 2

@@ -1,8 +1,8 @@
 
 hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
-    'N_ITERATIONS': 50 * (10 ** 3),   # 5 * (10 ** 5),
+    'N_ITERATIONS': 70 * (10 ** 3),   # 5 * (10 ** 5),
     'RANDOM_SEEDS': [
-        (868291, 274344, 358840, 94453)
+        (406320, 665309, 640372, 353471)
         ],
     'ALICE_NET': 'FFs(3, 50)',
     'BOB_LAYERS': 3,
@@ -25,17 +25,16 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
                         ('SGD', '{"lr": 0.01}')
                         ],
     'ALICE_LOSS_FUNCTION': [
-        'Huber(beta=1.)',
-        'Huber(beta=0.5)',
         'Huber(beta=0.1)'
     ],
     'BOB_LOSS_FUNCTION': ('torch.nn.MSE', {}), # 'Same',
     'ALICE_PROXIMITY_BONUS':  10 ** 8, # 30000 * (10 ** 3),
     'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
     'ALICE_LAST_TRAINING': 100 * (10 ** 5),
-    'NOISE_START': 10 ** 8,
-    'NOISE': 0.,
-    'ALICE_DOUBLE': 500
+    'NOISE_START': 30000,
+    'NOISE': [0.1],
+    'ALICE_DOUBLE': [None, 100, 300, 1000, 3000],
+    'N_CODE': [16, 256]
 }
 
 
@@ -43,8 +42,6 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
 TUPLE_SPEC = (
     (16,),
 )
-N_CODE = 8
-# TRAINING_METHOD = 'q'
 
 SMOOTHING_LENGTH = 10000
 SAVE_PERIOD = 10 ** 5
