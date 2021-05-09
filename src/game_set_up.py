@@ -114,7 +114,8 @@ class GameReports:
 
 
 class TupleSpecs:
-    def __init__(self, specs: list = c.TUPLE_SPEC):
+    def __init__(self, specs: list =None):
+        specs = specs or ((h.N_NUMBERS,),)
         spec_list = list()
         for spec in specs:
             if not isinstance(spec, ElementCircular):

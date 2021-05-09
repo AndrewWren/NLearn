@@ -213,7 +213,7 @@ class Session:
             books.code_decode_book(
                 self.alice,
                 self.bob,
-                c.TUPLE_SPEC[0][0],
+                h.N_NUMBERS,
                 h.N_SELECT,
             )
         elif current_iteration % 1000 == 0:

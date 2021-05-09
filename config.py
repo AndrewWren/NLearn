@@ -34,15 +34,16 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
     'NOISE_START': 30000,
     'NOISE': [0.1],
     'ALICE_DOUBLE': [None, 100, 300, 1000, 3000],
-    'N_CODE': [16, 256]
+    'N_CODE': [8, 16],
+    'N_NUMBERS': [16, 256]
 }
 
 
 #  RANDOM_SEED = 42
-TUPLE_SPEC = (
+"""TUPLE_SPEC = (
     (16,),
 )
-
+"""
 SMOOTHING_LENGTH = 10000
 SAVE_PERIOD = 10 ** 5
 
