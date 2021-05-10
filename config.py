@@ -2,8 +2,11 @@
 hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
     'N_ITERATIONS': 70 * (10 ** 3),   # 5 * (10 ** 5),
     'RANDOM_SEEDS': [
-        (406320, 665309, 640372, 353471)
-        ],
+        (714844, 936892, 888616, 165835),
+        (508585, 487266, 751926, 247136),
+        (843402, 443788, 742412, 270619),
+        (420915, 961830, 723900, 510954)
+    ],
     'ALICE_NET': 'FFs(3, 50)',
     'BOB_LAYERS': 3,
     'BOB_WIDTH': 50,
@@ -11,7 +14,7 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
     'GAMESIZE': 32,
     'BUFFER_CAPACITY': 32 * 20000,
     'START_TRAINING': 20000,
-    'N_SELECT': 16,
+    'N_SELECT': 256,  #16,
     'EPSILON_ONE_END': 2000,  #25000,  # 40000,
     'EPSILON_MIN': 0.0,
     'EPSILON_MIN_POINT': 20000,  #3 * (10 ** 5),
@@ -32,10 +35,10 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
     'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
     'ALICE_LAST_TRAINING': 100 * (10 ** 5),
     'NOISE_START': 30000,
-    'NOISE': [0.1],
-    'ALICE_DOUBLE': [None, 100, 300, 1000, 3000],
-    'N_CODE': [8, 16],
-    'N_NUMBERS': [16, 256]
+    'NOISE': 0.1,
+    'ALICE_DOUBLE': [None, 500],
+    'N_CODE': 8,
+    'N_NUMBERS': 256
 }
 
 

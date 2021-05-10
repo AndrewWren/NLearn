@@ -458,7 +458,11 @@ getting
 	00000411      20  (-0.728, 40000)
 	--------------------------
 \end{lstlisting}
-\verb|ALICE_DOUBLE: None| is the best, which deals pretty easily with all the sub--options, working marginally better with \verb|N_CODE: 8| for both \verb|N_NUMBERS: 16| and \verb|N_NUMBERS: 256|.  However, perhaps need to run longer than $\num{70000}$ iterations for higher \verb|N_NUMBERS| and \verb|N_NUMBERS|?
+\verb|ALICE_DOUBLE: None| is the best, which deals pretty easily with all the sub--options, working marginally better with \verb|N_CODE: 8| for both \verb|N_NUMBERS: 16| and \verb|N_NUMBERS: 256|.  However, perhaps need to run longer than $\num{70000}$ iterations for higher \verb|N_NUMBERS| and \verb|N_NUMBERS|? Also, perhaps some \verb|ALICE_DOUBLE|, say $100$ to $\num{1000},$ may help stabilise?  Could revert to \verb|ALICE_DOUBLE: 500| as in \verb|21-05-08_18:30:55|.  May also need to pay more attention to the Bob side of things.
+
+For session \verb|21-05-09_12:21:11| (terminated early), with \verb|N_CODE: 8|, \verb|N_NUMBERS: 256| increasing \verb|N_SELECT: 16| to \verb|N_SELECT: 256| makes it a lot harder. More in the 0.7s and flat. It's also much slower has Bob has to try 256 rather than 16.  However, \verb|21-05-09_17:56:02| with four alternative tuples of seeds, does everything quickly and to near 1.  It also suggest \verb|DOUBLE| None or 500 doesn't make much difference~--- may None slightly more successful overall and should also be chosen on Occam principle.
+
+Maybe set Python seed too?
 
 \section{Things to try}
 
