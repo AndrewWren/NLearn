@@ -38,13 +38,18 @@ def train_ab():
                     f'nan error at iteration={game_origins.iteration}'], 0
         if (game_origins.iteration % c.SAVE_PERIOD == 0) or (
                 game_origins.iteration == h.N_ITERATIONS):
-            saved_alice_model_title = mlu.save_model(session.alice.net,
-                                                     title='Alice',
-                               parameter_name='iter',
-                   parameter=game_origins.iteration)
-            saved_bob_model_title = mlu.save_model(session.bob, title='Bob',
-                                           parameter_name='iter',
-                       parameter=game_origins.iteration)
+            saved_alice_model_title = mlu.save_model(
+                session.alice.net,
+                title='Alice',
+                parameter_name='iter',
+                parameter=game_origins.iteration
+            )
+            saved_bob_model_title = mlu.save_model(
+                session.bob.net,
+                title='Bob',
+                parameter_name='iter',
+                parameter=game_origins.iteration
+            )
         if (game_origins.iteration % c.SMOOTHING_LENGTH == 0) and \
             ((nrr_buffer_n := np.concatenate(nrr_buffer)).shape[0] >=
                                 c.SMOOTHING_LENGTH):

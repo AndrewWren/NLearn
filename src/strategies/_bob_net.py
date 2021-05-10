@@ -3,10 +3,10 @@ import src.nets
 
 
 class FFs(src.nets.FFs):
-    def __init__(self, alice, layers, width):
+    def __init__(self, bob, layers, width):
         super().__init__(
-            input_width=alice.play.input_width,
-            output_width=alice.play.output_width,
+            input_width=bob.play.input_width,
+            output_width=bob.play.output_width,
             layers=layers,
             width=width
         )
