@@ -10,7 +10,6 @@ class BobPlay:
     def __call__(self):
         self.codes = self.bob.session.codes
         self.selections = self.bob.session.selections
-        # self.targets = torch.flatten(self.bob.session.targets_t, start_dim=1)
 
 
 class Circular(BobPlay):
@@ -46,7 +45,11 @@ class CircularVocab(BobPlay):
             )
             bob_q_estimates.append(self.bob.net(bob_input))
         return torch.argmax(
-            torch.reshape(torch.stack(bob_q_estimates, dim=1),
-                              (self.bob.session.size0, h.N_SELECT)),
+            torch.reshape(
+                torch.stack(bob_q_estimates, dim=1), (
+                    self.bob.session.size0,
+                    self.bob.session.n_select
+                )
+            ),
             dim=1
         )

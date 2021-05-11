@@ -31,7 +31,7 @@ class Agent:
         self.name = name.upper()
         self.play = self.use_key('play')
         self.train = self.use_key('train')
-        self.net = self.use_key('net')  # Note the net class uses the .play
+        self.net = self.use_key('net').to(c.DEVICE)  # Note the net class uses the .play
         self.double_copy_period = None
         self.training_net = self.net
         try:
@@ -80,6 +80,7 @@ class Session:
         self.alice = Agent(self, 'alice')
         self.bob = Agent(self, 'bob')
         self.selections = tuple_specs.selections
+        self.n_select = h.N_SELECT
         self.epsilon_slope = (1 - h.EPSILON_MIN) / (
                 h.EPSILON_MIN_POINT - h.EPSILON_ONE_END)
         self.size0 = None
@@ -183,7 +184,7 @@ class Session:
              },
             global_step=current_iteration
         )
-        if current_iteration % 10000 == 0:  #10000
+        if current_iteration % 3000 == 0:  #10000
             mlu.log(f'Iteration={current_iteration:>10} training nets give:',
                     backspaces=20)
             mlu.log(f'{alice_loss.item()=}\t{bob_loss.item()=}')
