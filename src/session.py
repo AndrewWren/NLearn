@@ -184,7 +184,7 @@ class Session:
              },
             global_step=current_iteration
         )
-        if current_iteration % 3000 == 0:  #10000
+        if current_iteration % 10000 == 0:  #10000
             mlu.log(f'Iteration={current_iteration:>10} training nets give:',
                     backspaces=20)
             mlu.log(f'{alice_loss.item()=}\t{bob_loss.item()=}')
