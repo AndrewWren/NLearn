@@ -1,3 +1,7 @@
+"""
+Note: do not make session, alice or bob an attribute of these nets -
+otherwise will cause pickling problems
+"""
 #TODO Does this need to be separate from the corresponding alice file?
 import src.lib.max_tempered_layers
 from src.lib.ml_utilities import c
@@ -15,7 +19,8 @@ class FFs(src.nets.FFs):
 
 
 class MaxNet(src.lib.max_tempered_layers.Net):
-    def __init__(self, alice, focus, layers, width, beta=0.2):
+    def __init__(self, alice, focus, layers, width, beta=0.2,
+                 bias_included=False):
         super().__init__(
             alice.play.input_width,
             alice.play.output_width,
@@ -23,5 +28,4 @@ class MaxNet(src.lib.max_tempered_layers.Net):
             layers,
             width,
             beta)
-        self.alice = alice
 

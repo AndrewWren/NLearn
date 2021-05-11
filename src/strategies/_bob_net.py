@@ -1,3 +1,7 @@
+"""
+Note: do not make session, alice or bob an attribute of these nets -
+otherwise will cause pickling problems
+"""
 #TODO Does this need to be separate from the corresponding alice file?
 import src.nets
 

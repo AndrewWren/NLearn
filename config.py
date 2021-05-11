@@ -1,6 +1,6 @@
 
 hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
-    'N_ITERATIONS': 70 * (10 ** 3),   # 5 * (10 ** 5),
+    'N_ITERATIONS': 1000,  #70 * (10 ** 3),   # 5 * (10 ** 5),
     'RANDOM_SEEDS': [
         (714844, 936892, 888616, 165835)  #,
         # (508585, 487266, 751926, 247136),
@@ -12,7 +12,7 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
     'BATCHSIZE': 32,
     'GAMESIZE': 32,
     'BUFFER_CAPACITY': 32 * 20000,
-    'START_TRAINING': 20000,
+    'START_TRAINING': 500,  #20000,
     'N_SELECT': 16,  # 256,  #16,
     'EPSILON_ONE_END': 2000,  #25000,  # 40000,
     'EPSILON_MIN': 0.0,
