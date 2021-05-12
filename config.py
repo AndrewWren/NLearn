@@ -1,6 +1,6 @@
 
 hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
-    'N_ITERATIONS': 3000,  # 70 * (10 ** 3),   # 5 * (10 ** 5),
+    'N_ITERATIONS': 70 * (10 ** 3),   # 5 * (10 ** 5),
     'RANDOM_SEEDS': [
         (714844, 936892, 888616, 165835)  #,
         # (508585, 487266, 751926, 247136),
@@ -12,23 +12,23 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
         #'MaxNet("In", 3, 50)',
         #'MaxNet("In", 3, 50, bias_included=0.5)'
         ],  # 'FFs(3, 50)',
-    'BOB_NET': #[
-        #'FFs(3, 50)',
-        'MaxNet("Out", 3, 50)',
-        #'MaxNet("In", 3, 50, bias_included=0.5)'
-        #],
+    'BOB_NET': [
+        'FFs(3, 50)',
+        'MaxNet("In", 3, 50)',
+        'MaxNet("In", 3, 50, bias_included=0.5)'
+        ],
     'BATCHSIZE': 32,
     'GAMESIZE': 32,
     'BUFFER_CAPACITY': 32 * 20000,
-    'START_TRAINING': 2000,  #20000,
+    'START_TRAINING': 20000,
     'N_SELECT': 16,  # 256,  #16,
     'EPSILON_ONE_END': 2000,  #25000,  # 40000,
     'EPSILON_MIN': 0.0,
     'EPSILON_MIN_POINT': 20000,  #3 * (10 ** 5),
     'ALICE_PLAY': 'QPerCode',
     'ALICE_TRAIN': 'QPerCode',  # 'FromDecisions',
-    'BOB_PLAY': 'CircularVocab',
-    'BOB_TRAIN': 'CircularVocab',
+    'BOB_PLAY': 'QPerNumber',
+    'BOB_TRAIN': 'QPerNumber',
     'ALICE_OPTIMIZER': 'SGD(lr=0.01)',
     'BOB_OPTIMIZER': 'SGD(lr=0.01)',
     'ALICE_LOSS_FUNCTION': 'Huber(beta=0.1)',
@@ -51,7 +51,7 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
 """
 SMOOTHING_LENGTH = 10000
 SAVE_PERIOD = 10 ** 5   # Also saves on the last iteration
-CODE_BOOK_PERIOD = 2000  #10000
+CODE_BOOK_PERIOD = 10000
 
 
 DEVICE = None

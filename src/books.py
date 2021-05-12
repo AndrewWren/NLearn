@@ -45,22 +45,25 @@ def code_book(alice, modulus, n_select, print_list=False,
 def code_decode_book(alice, bob, modulus, n_select):
     mlu.log()
     _, code_dict = code_book(alice, modulus, n_select)
-    elt = ElementCircular(modulus, n_select)
-    domain = to_device_tensor(elt.domain)
-    decode_dict = dict()
-    bob.session.size0 = 1
-    bob.session.n_select = modulus
-    for nice_code in code_dict.keys():
-        #code_repeated = to_device_tensor(nice_code.raw()).repeat(modulus, 1)
-        bob.session.codes = to_device_tensor(nice_code.raw()).unsqueeze(0)  #code_repeated
-        bob.session.selections = domain.unsqueeze(1).unsqueeze(0)
-        decode_dict[nice_code] = bob.play().squeeze().item()
-    bob.session.n_select = h.N_SELECT
-    mlu.log()
-    for nice_code in decode_dict:
-        decode = decode_dict[nice_code]
-        status = (decode in code_dict[nice_code])
-        mlu.log(f'{nice_code}\t{decode}\t{status}')
+    if (h.N_SELECT == h.N_NUMBERS) or (h.BOB_PLAY == 'CircularVocab'):
+        elt = ElementCircular(modulus, n_select)
+        domain = to_device_tensor(elt.domain)
+        decode_dict = dict()
+        bob.session.size0 = 1
+        bob.session.n_select = modulus
+        for nice_code in code_dict.keys():
+            #code_repeated = to_device_tensor(nice_code.raw()).repeat(modulus, 1)
+            bob.session.codes = to_device_tensor(nice_code.raw()).unsqueeze(0)
+
+            bob.session.selections = domain[domain_start].unsqueeze(
+                1).unsqueeze(0)
+            decode_dict[nice_code] = bob.play().squeeze().item()
+        bob.session.n_select = h.N_SELECT
+        mlu.log()
+        for nice_code in decode_dict:
+            decode = decode_dict[nice_code]
+            status = (decode in code_dict[nice_code])
+            mlu.log(f'{nice_code}\t{decode}\t{status}')
     mlu.log()
     mlu.log(f'Number of codes used={len(code_dict)}')
     mlu.log()

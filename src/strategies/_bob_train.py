@@ -48,3 +48,20 @@ class CircularVocab(BobTrain):
         decisions_qs = self.bob.net(bob_input).reshape((
             self.bob.session.size0,))
         return self.bob.loss_function(decisions_qs, self.rewards)
+
+
+class QPerNumber(BobTrain):
+    def __init__(self, bob):
+        super().__init__(bob)
+
+    def __call__(self):
+        super().__call__()
+        selections = torch.flatten(self.selections, start_dim=1)
+        q_estimates = self.bob.net(
+            torch.cat([selections, self.codes], 1)
+        )
+        decision_q_estimates = q_estimates[
+            torch.arange(self.bob.session.size0),
+            self.decision_nos
+        ]
+        return self.bob.loss_function(decision_q_estimates, self.rewards)
