@@ -7,12 +7,10 @@ import src.lib.ml_utilities as mlu
 from src.lib.ml_utilities import c, h, to_array, to_device_tensor, writer
 from src.game_set_up import GameOrigins, \
     GameReports, TupleSpecs
-from src.nets import FFs
 from src.noise import Noise
-import src.strategies._alice_play, src.strategies._alice_train, \
-    src.strategies._alice_net, src.strategies._alice_loss_function
-import src.strategies._bob_play, src.strategies._bob_train,  \
-      src.strategies._bob_net, src.strategies._bob_loss_function
+import src.strategies._alice_play, src.strategies._alice_train
+import src.strategies._bob_play, src.strategies._bob_train
+import src.strategies._net, src.strategies._loss_function
 
 
 LossInfo = namedtuple('LossInfo', 'bob_loss iteration alice_loss')
@@ -31,7 +29,8 @@ class Agent:
         self.name = name.upper()
         self.play = self.use_key('play')
         self.train = self.use_key('train')
-        self.net = self.use_key('net').to(c.DEVICE)  # Note the net class uses the .play
+        self.net = self.use_key('net', nameless=True).to(c.DEVICE)  # Note the
+        # net class uses the .play
         self.double_copy_period = None
         self.training_net = self.net
         try:
@@ -44,15 +43,18 @@ class Agent:
             pass
         self.optimizer = self.get_optimizer()
         #with AvoidDeprecationWarning():
-        self.loss_function = self.use_key('loss_function')
+        self.loss_function = self.use_key('loss_function', nameless=True)
 
-    def use_key(self, label):
+    def use_key(self, label, nameless=False):
         item = h[f'{self.name}_{label.upper()}']
         if '(' in item:
             item = item.replace('(', '(self, ', 1)
         else:
             item += '(self)'
-        return eval(f'{self.prefix}{label.lower()}.{item}')
+        if nameless:
+            return eval(f'src.strategies._{label.lower()}.{item}')
+        else:
+            return eval(f'{self.prefix}{label.lower()}.{item}')
 
     def get_optimizer(self):
         """
@@ -184,7 +186,7 @@ class Session:
              },
             global_step=current_iteration
         )
-        if current_iteration % 10000 == 0:  #10000
+        if current_iteration % c.CODE_BOOK_PERIOD == 0:
             mlu.log(f'Iteration={current_iteration:>10} training nets give:',
                     backspaces=20)
             mlu.log(f'{alice_loss.item()=}\t{bob_loss.item()=}')

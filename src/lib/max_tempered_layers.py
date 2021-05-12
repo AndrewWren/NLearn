@@ -5,34 +5,51 @@ from src.lib.ml_utilities import c
 
 
 class MaxTemperedOutFocused(torch.nn.Linear):
-    def __init__(self, in_features, out_features, beta=0.2, bias=True):
+    def __init__(self, in_features, out_features, beta=0.2, bias=True,
+                 bias_included=None):
+        """
+
+        :param in_features:
+        :param out_features:
+        :param beta:
+        :param bias:
+        :param bias_included: a dummy for compatibility with
+        MaxTemperedInFocused
+        """
         super().__init__(in_features, out_features, bias)
         self.beta = beta
         self.id_in = torch.diag_embed(torch.ones(in_features)).to(c.DEVICE)
 
     def forward(self, input):
         weighted_inputs = torch.einsum('oj, ji, bi -> boi', self.weight,
-                                    self.id_in, input)
+                                       self.id_in, input)
         batchsize = input.size()[0]
         lineared_inputs = torch.einsum('oi, bi -> bo', self.weight, input)
         return (1 - self.beta) * lineared_inputs \
-               + self.beta * torch.max(weighted_inputs,dim=-1).values \
+               + self.beta * torch.max(weighted_inputs, dim=-1).values \
                + self.bias.repeat(batchsize, 1)
 
 
 class MaxTemperedInFocused(torch.nn.Linear):
-    def __init__(self, in_features, out_features, beta=0.2, bias=True):
+    def __init__(self, in_features, out_features, beta=0.2,
+                 bias_included=False, bias=True):
         super().__init__(in_features, out_features, bias)
         self.beta = beta
         self.id_in = torch.diag_embed(torch.ones(in_features)).to(c.DEVICE)
+        self.bias_included = bias_included
 
     def forward(self, input):
+        batchsize = input.size()[0]
         summands = torch.max(
-            torch.einsum('oj, ji, bi -> bio', self.weight, self.id_in,
-                              input),
+            torch.einsum(
+                'oj, ji, bi -> bio',
+                self.weight,
+                self.id_in,
+                input
+            ) + self.bias_included * self.bias.repeat(batchsize,
+                                                          self.in_features, 1),
             dim=-1
         )
-        batchsize = input.size()[0]
         max_matrix = torch.zeros(
             batchsize,
             self.out_features,
@@ -47,14 +64,19 @@ class MaxTemperedInFocused(torch.nn.Linear):
             (b_index, o_index, i_index),
             summands.values.flatten()
         )
-        lineared_inputs = torch.einsum('oi, bi -> bo', self.weight, input)
+        bias_repeated = self.bias.repeat(batchsize, 1)
+        lineared_inputs = torch.einsum('oi, bi -> bo', self.weight, input) \
+            + bias_repeated
         return (1 - self.beta) * lineared_inputs \
-                + self.beta * torch.sum(max_matrix, dim=-1) \
-               + self.bias.repeat(batchsize, 1)
+               + self.beta * (
+                       torch.sum(max_matrix, dim=-1) \
+                       + (not self.bias_included) * bias_repeated
+               )
 
 
 class Net(torch.nn.Module):
-    def __init__(self, input_width, output_width, focus, layers, width, beta=0.2):
+    def __init__(self, input_width, output_width, focus, layers, width,
+                 beta=0.2, bias_included=False):
         super().__init__()
         if focus == 'Out':
             MaxLayer = MaxTemperedOutFocused
@@ -62,19 +84,22 @@ class Net(torch.nn.Module):
             MaxLayer = MaxTemperedInFocused
         self.beta = beta
         self.relu = torch.nn.ReLU(inplace=True)
-        self.layer_first = MaxLayer(input_width, width, beta=beta)
+        self.layer_first = MaxLayer(input_width, width, beta=beta,
+                                    bias_included=bias_included)
         self.hidden_layers = torch.nn.ModuleList(
-            [MaxLayer(width, width, beta=beta)
+            [MaxLayer(width, width, beta=beta,
+                      bias_included=bias_included)
              for _ in range(layers - 2)]
         )
-        self.layer_last = MaxLayer(width, output_width, beta=beta)
+        self.layer_last = MaxLayer(width, output_width, beta=beta,
+                                   bias_included=bias_included)
 
     def forward(self, x):
         x = self.layer_first(x)
-        #x = self.relu(x)
+        # x = self.relu(x)
         for layer in self.hidden_layers:
             x = layer(x)
-            #x = self.relu(x)
+            # x = self.relu(x)
         return self.layer_last(x).squeeze(dim=-1)
 
 
@@ -91,8 +116,9 @@ class FFs(torch.nn.Module):
 
     def _build(self):
         ffs = [torch.nn.Linear(self.input_width, self.width)]
-        ffs += [torch.nn.Linear(self.width, self.width) for _ in range(self.layers
-                                                                 - 2)]
+        ffs += [torch.nn.Linear(self.width, self.width) for _ in
+                range(self.layers
+                      - 2)]
         ffs += [torch.nn.Linear(self.width, self.output_width)]
         self.ffs = torch.nn.ModuleList(ffs)
 
@@ -105,7 +131,7 @@ class FFs(torch.nn.Module):
 
 def f(tensor):
     tensor = tensor.transpose(0, 1)
-    return tensor[0] ** 3 - 2 * torch.cos(tensor[0] * tensor[1] - tensor[2])\
+    return tensor[0] ** 3 - 2 * torch.cos(tensor[0] * tensor[1] - tensor[2]) \
            + 3 * tensor[2]
 
 
@@ -129,7 +155,7 @@ def train(net, input):
     loss = loss_function(prediction, target)
     end = perf_counter()
     time_taken = end - start
-    #print(f'Validation \t{loss} \t time {time_taken}')
+    # print(f'Validation \t{loss} \t time {time_taken}')
     return loss.item(), time_taken
 
 
