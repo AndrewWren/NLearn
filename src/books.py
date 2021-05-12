@@ -55,8 +55,7 @@ def code_decode_book(alice, bob, modulus, n_select):
             #code_repeated = to_device_tensor(nice_code.raw()).repeat(modulus, 1)
             bob.session.codes = to_device_tensor(nice_code.raw()).unsqueeze(0)
 
-            bob.session.selections = domain[domain_start].unsqueeze(
-                1).unsqueeze(0)
+            bob.session.selections = domain.unsqueeze(1).unsqueeze(0)
             decode_dict[nice_code] = bob.play().squeeze().item()
         bob.session.n_select = h.N_SELECT
         mlu.log()
