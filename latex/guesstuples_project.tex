@@ -15,7 +15,7 @@
 \end{abstract}
 
 
-\section{Configuring the nets}
+\section{Configuring the nets}\label{sec:configuring-the-nets}
 
 \subsection{Alice}
 
@@ -475,6 +475,15 @@ For \verb|N_SELECT=256|, the runs \verb|21-05-12_21:01:48| \verb|21-05-13_09:05:
 	\includegraphics[width=1.0\linewidth]{Fig_Mean_Rewards_21-05-12_21:01:48+21-05-13_09:05:41}
 	\caption{From \figstamp{21-05-12}{21:01:48}, \texttt{MaxLayer} with \texttt{bias\_included=False} (red) and \texttt{MaxLayer} \texttt{bias\_included=0.5} (grey) plus \figstamp{21-05-13}{09:05:41} feed forward (pink).  Smoothing 0.9.}
 	\label{fig:figmeanrewards21-05-1221014821-05-13090541}
+\end{figure}
+So with $\num{200000}$ iterations all about the same.  Recall that we switch off noise just over a bufferful before the end of the run.
+
+Now with $\num{70000}$ at \verb|21-05-13_14:17:04| compare feed forward with \verb|MaxLayer|, now with \verb|relu=True|, find the \verb|MaxLayer| with or without \verb|bias_included| does better than feed forward (essentially $1.0$ rather than $0.95$).  However takes about two hours rather than one--and--a--half.  Whether \verb|MaxLayer| is better depends on how few iterations needed to get feed forward or \verb|MaxLayer| to $1.0$.  Note that all the \verb|MaxLayer| so far have \verb|beta=0.2|, which means that its layers are $0.8$ a normal feed forward are $0.2$ a max--tempered layer~--- so should try higher beta too.  See \fref{fig:figmeanrewards21-05-13141704}.
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{Fig_Mean_Rewards_21-05-13_14:17:04}
+	\caption{From \figstamp{21-05-13}{14:17:04}, feed forward \texttt{FFs(3, 50)} (red), \texttt{MaxNet("In", 3, 50, relu=True)} (grey) and \texttt{MaxNet("In", 3, 50, bias\_included=True, relu=True)} (cyan).  Smoothing 0.9.}
+	\label{fig:figmeanrewards21-05-13141704}
 \end{figure}
 
 \section{Things to try}
