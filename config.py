@@ -7,11 +7,11 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
         # (843402, 443788, 742412, 270619),
         # (420915, 961830, 723900, 510954)
     ],
-    'ALICE_NET': [
-        #'FFs(3, 50)',
-        'MaxNet("In", 3, 50)',
-        'MaxNet("In", 3, 50, bias_included=0.5)'
-        ],  # 'FFs(3, 50)',
+    'ALICE_NET': #[
+        'FFs(3, 50)',
+        # 'MaxNet("In", 3, 50)',
+        # 'MaxNet("In", 3, 50, bias_included=0.5)'
+        # ],  # 'FFs(3, 50)',
     'BOB_NET': 'FFs(3, 50)',
     'BATCHSIZE': 32,
     'GAMESIZE': 32,
