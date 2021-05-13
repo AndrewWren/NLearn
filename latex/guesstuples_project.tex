@@ -469,6 +469,14 @@ Maybe set Python seed too?
 
 Defined \verb|MaxTempered| layers, of which \verb|MaxTemperedInFocused| seems better than \verb|MaxTemperedOutFocused|, in \verb|src.lib.max_tempered_layers.py|, and tried this out with Alice in \verb|21-05-11_17:21:41| which seems as good as \verb|21-05-08_23:17:59|'s first \verb|hp_run|, albeit doubtless slower.
 
+For \verb|N_SELECT=256|, the runs \verb|21-05-12_21:01:48| \verb|21-05-13_09:05:41| compare a feed forward and max layer networks--- see \fref{fig:figmeanrewards21-05-1221014821-05-13090541}.
+\begin{figure}
+	\centering
+	\includegraphics[width=1.0\linewidth]{Fig_Mean_Rewards_21-05-12_21:01:48+21-05-13_09:05:41}
+	\caption{From \figstamp{21-05-12}{21:01:48}, \texttt{MaxLayer} with \texttt{bias\_included=False} (red) and \texttt{MaxLayer} \texttt{bias\_included=0.5} (grey) plus \figstamp{21-05-13}{09:05:41} feed forward (pink).  Smoothing 0.9.}
+	\label{fig:figmeanrewards21-05-1221014821-05-13090541}
+\end{figure}
+
 \section{Things to try}
 
 \begin{enumerate}
