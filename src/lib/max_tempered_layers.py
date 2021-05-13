@@ -6,7 +6,7 @@ from src.lib.ml_utilities import c
 
 class MaxTemperedOutFocused(torch.nn.Linear):
     def __init__(self, in_features, out_features, beta=0.2, bias=True,
-                 bias_included=None):
+                 bias_included=None, relu=False, cos=False):
         """
 
         :param in_features:
@@ -18,6 +18,8 @@ class MaxTemperedOutFocused(torch.nn.Linear):
         """
         super().__init__(in_features, out_features, bias)
         self.beta = beta
+        self.relu_layer = torch.nn.ReLU()
+        self.relu_flag = relu
         self.id_in = torch.diag_embed(torch.ones(in_features)).to(c.DEVICE)
 
     def forward(self, input):
@@ -25,29 +27,43 @@ class MaxTemperedOutFocused(torch.nn.Linear):
                                        self.id_in, input)
         batchsize = input.size()[0]
         lineared_inputs = torch.einsum('oi, bi -> bo', self.weight, input)
-        return (1 - self.beta) * lineared_inputs \
+        x = (1 - self.beta) * lineared_inputs \
                + self.beta * torch.max(weighted_inputs, dim=-1).values \
                + self.bias.repeat(batchsize, 1)
+        if self.relu_flag:
+            return self.relu_layer(x)
+        return x
 
 
 class MaxTemperedInFocused(torch.nn.Linear):
     def __init__(self, in_features, out_features, beta=0.2,
-                 bias_included=False, bias=True):
+                 bias_included=False, bias=True, relu=False, cos=False):
         super().__init__(in_features, out_features, bias)
         self.beta = beta
+        self.relu_layer = torch.nn.ReLU()
+        self.relu_flag = relu
         self.id_in = torch.diag_embed(torch.ones(in_features)).to(c.DEVICE)
         self.bias_included = bias_included
+        self.cos_flag = cos  # This should work, but surely isn't that
+        # meaningful without a complex set up?
 
     def forward(self, input):
         batchsize = input.size()[0]
+        if self.cos_flag:
+            weight = torch.cos(self.weight)
+        else:
+            weight = self.weight
+        return self.max_in(weight, batchsize, input)
+
+    def max_in(self, weight, batchsize, input):
         summands = torch.max(
             torch.einsum(
                 'oj, ji, bi -> bio',
-                self.weight,
+                weight,
                 self.id_in,
                 input
             ) + self.bias_included * self.bias.repeat(batchsize,
-                                                          self.in_features, 1),
+                                                      self.in_features, 1),
             dim=-1
         )
         max_matrix = torch.zeros(
@@ -65,41 +81,43 @@ class MaxTemperedInFocused(torch.nn.Linear):
             summands.values.flatten()
         )
         bias_repeated = self.bias.repeat(batchsize, 1)
-        lineared_inputs = torch.einsum('oi, bi -> bo', self.weight, input) \
-            + bias_repeated
-        return (1 - self.beta) * lineared_inputs \
-               + self.beta * (
-                       torch.sum(max_matrix, dim=-1) \
-                       + (not self.bias_included) * bias_repeated
-               )
+        lineared_inputs = torch.einsum('oi, bi -> bo', weight, input) \
+                          + bias_repeated
+        x = (1 - self.beta) * lineared_inputs \
+            + self.beta * (
+                    torch.sum(max_matrix, dim=-1) \
+                    + (not self.bias_included) * bias_repeated
+            )
+        if self.relu_flag:
+            return self.relu_layer(x)
+        return x
 
 
-class Net(torch.nn.Module):
+class MaxNet(torch.nn.Module):
     def __init__(self, input_width, output_width, focus, layers, width,
-                 beta=0.2, bias_included=False):
+                 beta=0.2, bias_included=False, relu=False, cos=False):
         super().__init__()
         if focus == 'Out':
             MaxLayer = MaxTemperedOutFocused
         elif focus == 'In':
             MaxLayer = MaxTemperedInFocused
         self.beta = beta
-        self.relu = torch.nn.ReLU(inplace=True)
+        self.relu_flag = relu
         self.layer_first = MaxLayer(input_width, width, beta=beta,
-                                    bias_included=bias_included)
+                                    bias_included=bias_included, relu=relu,
+                                    cos=cos)
         self.hidden_layers = torch.nn.ModuleList(
             [MaxLayer(width, width, beta=beta,
-                      bias_included=bias_included)
+                      bias_included=bias_included, relu=relu, cos=cos)
              for _ in range(layers - 2)]
         )
         self.layer_last = MaxLayer(width, output_width, beta=beta,
-                                   bias_included=bias_included)
+                                   bias_included=bias_included, cos=cos)
 
     def forward(self, x):
         x = self.layer_first(x)
-        # x = self.relu(x)
         for layer in self.hidden_layers:
             x = layer(x)
-            # x = self.relu(x)
         return self.layer_last(x).squeeze(dim=-1)
 
 
@@ -171,7 +189,7 @@ if __name__ == '__main__':
     max_losses = list()
     max_times = list()
     for t in range(TRIES):
-        net = Net('In', 2, 10, beta=0.2)
+        net = MaxNet('In', 2, 10, beta=0.2)
         loss, time_taken = train(net, input)
         max_losses.append(loss)
         max_times.append(time_taken)

@@ -28,14 +28,17 @@ class FFs(torch.nn.Module):
         return self.ffs[-1](x)
 
 
-class MaxNet(src.lib.max_tempered_layers.Net):
+class MaxNet(src.lib.max_tempered_layers.MaxNet):
     def __init__(self, agent, focus, layers, width, beta=0.2,
-                 bias_included=False):
+                 bias_included=False, relu=False, cos=False):
         super().__init__(
             agent.play.input_width,
             agent.play.output_width,
             focus,
             layers,
             width,
-            beta)
+            beta,
+            relu,
+            cos
+        )
 
