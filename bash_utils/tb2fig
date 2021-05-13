@@ -8,4 +8,6 @@ if [ -e $tffile ]; then
   figfile="${HOME}/NLearn/latex/Fig_Mean_Rewards_${datetime}.pdf"
   rsvg-convert -f pdf -o $figfile ${HOME}/Downloads/Rewards.svg
   rm ${HOME}/Downloads/Rewards.svg
+else
+  echo "No Rewards.svg to copy"
 fi
