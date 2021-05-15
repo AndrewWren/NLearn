@@ -6,7 +6,8 @@ from src.lib.ml_utilities import c
 
 class MaxTemperedOutFocused(torch.nn.Linear):
     def __init__(self, in_features, out_features, beta=0.2, bias=True,
-                 bias_included=None, relu=False, cos=False):
+                 bias_included=None, relu=False, cos=False,
+                 dropout=0.):
         """
 
         :param in_features:
@@ -20,6 +21,8 @@ class MaxTemperedOutFocused(torch.nn.Linear):
         self.beta = beta
         self.relu_layer = torch.nn.ReLU()
         self.relu_flag = relu
+        self.dropout_layer = torch.nn.Dropout(p=dropout)
+        self.dropout_flag = bool(dropout)
         self.id_in = torch.diag_embed(torch.ones(in_features)).to(c.DEVICE)
 
     def forward(self, input):
@@ -31,17 +34,22 @@ class MaxTemperedOutFocused(torch.nn.Linear):
                + self.beta * torch.max(weighted_inputs, dim=-1).values \
                + self.bias.repeat(batchsize, 1)
         if self.relu_flag:
-            return self.relu_layer(x)
+            x = self.relu_layer(x)
+        if self.dropout_layer:
+            x = self.dropout_layer(x)
         return x
 
 
 class MaxTemperedInFocused(torch.nn.Linear):
     def __init__(self, in_features, out_features, beta=0.2,
-                 bias_included=False, bias=True, relu=False, cos=False):
+                 bias_included=False, bias=True, relu=False, cos=False,
+                 dropout=0.):
         super().__init__(in_features, out_features, bias)
         self.beta = beta
         self.relu_layer = torch.nn.ReLU()
         self.relu_flag = relu
+        self.dropout_layer = torch.nn.Dropout(p=dropout)
+        self.dropout_flag = bool(dropout)
         self.id_in = torch.diag_embed(torch.ones(in_features)).to(c.DEVICE)
         self.bias_included = bias_included
         self.cos_flag = cos  # This should work, but surely isn't that
@@ -89,13 +97,16 @@ class MaxTemperedInFocused(torch.nn.Linear):
                     + (not self.bias_included) * bias_repeated
             )
         if self.relu_flag:
-            return self.relu_layer(x)
+            x = self.relu_layer(x)
+        if self.dropout_layer:
+            x = self.dropout_layer(x)
         return x
 
 
 class MaxNet(torch.nn.Module):
     def __init__(self, input_width, output_width, focus, layers, width,
-                 beta=0.2, bias_included=False, relu=False, cos=False):
+                 beta=0.2, bias_included=False, relu=False, cos=False,
+                 dropout=0.):
         super().__init__()
         if focus == 'Out':
             MaxLayer = MaxTemperedOutFocused
@@ -105,10 +116,11 @@ class MaxNet(torch.nn.Module):
         self.relu_flag = relu
         self.layer_first = MaxLayer(input_width, width, beta=beta,
                                     bias_included=bias_included, relu=relu,
-                                    cos=cos)
+                                    cos=cos, dropout=dropout)
         self.hidden_layers = torch.nn.ModuleList(
             [MaxLayer(width, width, beta=beta,
-                      bias_included=bias_included, relu=relu, cos=cos)
+                      bias_included=bias_included, relu=relu, cos=cos,
+                      dropout=dropout)
              for _ in range(layers - 2)]
         )
         self.layer_last = MaxLayer(width, output_width, beta=beta,

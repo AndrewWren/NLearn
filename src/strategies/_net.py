@@ -30,7 +30,7 @@ class FFs(torch.nn.Module):
 
 class MaxNet(src.lib.max_tempered_layers.MaxNet):
     def __init__(self, agent, focus, layers, width, beta=0.2,
-                 bias_included=False, relu=False, cos=False):
+                 bias_included=False, relu=False, cos=False, dropout=0.):
         super().__init__(
             agent.play.input_width,
             agent.play.output_width,
@@ -39,6 +39,7 @@ class MaxNet(src.lib.max_tempered_layers.MaxNet):
             width,
             beta,
             relu,
-            cos
+            cos,
+            dropout
         )
 
