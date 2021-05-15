@@ -494,6 +494,68 @@ Now with $\num{70000}$ at \verb|21-05-13_14:17:04| compare feed forward with \ve
 
 Dropout instead of ReLU doesn't seem to help~--- see \verb|21-05-14_22:23:16|.
 
+So the best configuration appears to be that of \verb|21-05-09_17:56:02|
+\begin{lstlisting}
+{  #TODO enable dictionary-based choices for finer choosing
+	'N_ITERATIONS': 70 * (10 ** 3),   # 5 * (10 ** 5),
+	'RANDOM_SEEDS': [
+	(714844, 936892, 888616, 165835),
+	(508585, 487266, 751926, 247136),
+	(843402, 443788, 742412, 270619),
+	(420915, 961830, 723900, 510954)
+	],
+	'ALICE_NET': 'FFs(3, 50)',
+	'BOB_LAYERS': 3,
+	'BOB_WIDTH': 50,
+	'BATCHSIZE': 32,
+	'GAMESIZE': 32,
+	'BUFFER_CAPACITY': 32 * 20000,
+	'START_TRAINING': 20000,
+	'N_SELECT': 256,  #16,
+	'EPSILON_ONE_END': 2000,  #25000,  # 40000,
+	'EPSILON_MIN': 0.0,
+	'EPSILON_MIN_POINT': 20000,  #3 * (10 ** 5),
+	'ALICE_PLAY': 'QPerCode',
+	'ALICE_TRAIN': 'QPerCode',  # 'FromDecisions',
+	'BOB_STRATEGY': 'circular_vocab',
+	'ALICE_OPTIMIZER': [
+	'SGD(lr=0.01)'
+	],
+	'BOB_OPTIMIZER': [
+	('SGD', '{"lr": 0.01}')
+	],
+	'ALICE_LOSS_FUNCTION': [
+	'Huber(beta=0.1)'
+	],
+	'BOB_LOSS_FUNCTION': ('torch.nn.MSE', {}), # 'Same',
+	'ALICE_PROXIMITY_BONUS':  10 ** 8, # 30000 * (10 ** 3),
+	'ALICE_PROXIMITY_SLOPE_LENGTH': 10000,
+	'ALICE_LAST_TRAINING': 100 * (10 ** 5),
+	'NOISE_START': 30000,
+	'NOISE': 0.1,
+	'ALICE_DOUBLE': [None, 500],
+	'N_CODE': 8,
+	'N_NUMBERS': 256
+}
+\end{lstlisting}
+which got
+\begin{lstlisting}
+	 ---- Table of results ----
+	
+	code  hp_run  result
+	00000       1  (-0.986, 70000)
+	00001       2  (-0.987, 70000)
+	10000       3  (-0.978, 70000)
+	10001       4  (-0.985, 70000)
+	20000       5  (-0.984, 70000)
+	20001       6  (-0.973, 70000)
+	30000       7  (-0.990, 70000)
+	30001       8  (-0.979, 70000)
+\end{lstlisting}
+Abandon \verb|DOUBLE| on Occamist grounds.
+
+Dropping noise seems to worsen to low 0.90s~--- see \verb|21-05-15_07:57:53|.
+
 \section{Things to try}
 
 \begin{enumerate}
