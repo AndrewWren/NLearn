@@ -1,3 +1,4 @@
+import math
 from time import perf_counter
 import numpy as np
 import torch
@@ -103,27 +104,67 @@ class MaxTemperedInFocused(torch.nn.Linear):
         return x
 
 
+class ComplexLayer(torch.nn.Linear):
+    def __init__(self, in_features, out_features):
+        super().__init__(in_features, out_features, bias=False)
+        torch.nn.init.uniform_(self.weight, a= - np.pi, b=np.pi)
+
+    def forward(self, x):
+        """Note because sums over inputs doesn't preserve modulus
+        """
+        x_r, x_i = x.permute(2, 0, 1)
+        c_weight = torch.cos(self.weight)
+        print(f'{c_weight=}')
+        s_weight = torch.sin(self.weight)
+        print(f'{s_weight=}')
+        y_r = torch.nn.functional.linear(x_r, c_weight) \
+              - torch.nn.functional.linear(x_i, s_weight)
+        y_i = torch.nn.functional.linear(x_r, s_weight) \
+              + torch.nn.functional.linear(x_i, c_weight)
+        return torch.stack((y_r, y_i), dim=-1)
+
+
+
+
+
+class ComplexReLU(torch.nn.Module):
+    """
+    See arXiv:1802.08026, eq. 16
+    """
+    def forward(self, x):
+        x_r, x_i = x.permute(2, 0, 1)
+        y_r = torch.heaviside(x_i, torch.FloatTensor([1])) \
+              * torch.nn.functional.relu(x_r)
+        y_i = torch.heaviside(x_r, torch.FloatTensor([0])) \
+              * torch.nn.functional.relu(x_i)
+        return torch.stack((y_r, y_i), dim=-1)
+
+
 class MaxNet(torch.nn.Module):
     def __init__(self, input_width, output_width, focus, layers, width,
                  beta=0.2, bias_included=False, relu=False, cos=False,
                  dropout=0.):
         super().__init__()
+        self.input_width = input_width
+        self.output_width = output_width
+        self.layers = layers
+        self.width = width
         if focus == 'Out':
-            MaxLayer = MaxTemperedOutFocused
+            self.MaxLayer = MaxTemperedOutFocused
         elif focus == 'In':
-            MaxLayer = MaxTemperedInFocused
+            self.MaxLayer = MaxTemperedInFocused
         self.beta = beta
         self.relu_flag = relu
-        self.layer_first = MaxLayer(input_width, width, beta=beta,
+        self.layer_first = self.MaxLayer(input_width, width, beta=beta,
                                     bias_included=bias_included, relu=relu,
                                     cos=cos, dropout=dropout)
         self.hidden_layers = torch.nn.ModuleList(
-            [MaxLayer(width, width, beta=beta,
+            [self.MaxLayer(width, width, beta=beta,
                       bias_included=bias_included, relu=relu, cos=cos,
                       dropout=dropout)
              for _ in range(layers - 2)]
         )
-        self.layer_last = MaxLayer(width, output_width, beta=beta,
+        self.layer_last = self.MaxLayer(width, output_width, beta=beta,
                                    bias_included=bias_included, cos=cos)
 
     def forward(self, x):
@@ -194,32 +235,12 @@ def print_stats(x, name):
 
 
 if __name__ == '__main__':
-    TRIES = 10000
-    input = torch.empty(30, 32, 3)
-    input.uniform_(-1, to=1)
-
-    max_losses = list()
-    max_times = list()
-    for t in range(TRIES):
-        net = MaxNet('In', 2, 10, beta=0.2)
-        loss, time_taken = train(net, input)
-        max_losses.append(loss)
-        max_times.append(time_taken)
-        if t % 100 == 0:
-            print(f'{t=}')
-    print('\n')
-
-    lin_losses = list()
-    lin_times = list()
-    for _ in range(TRIES):
-        net = FFs(layers=2, width=10)
-        loss, time_taken = train(net, input)
-        lin_losses.append(loss)
-        lin_times.append(time_taken)
-    print('\n')
-
-    print('\n')
-    print_stats(max_losses, 'Max losses')
-    print_stats(max_times, 'Max times')
-    print_stats(lin_losses, 'Lin losses')
-    print_stats(lin_times, 'Lin times')
+    unitary_max = UnitaryMax(4, 5)
+    a = torch.randn(7, 4)
+    circular_map = lambda x: torch.stack((torch.cos(x), torch.sin(x)), dim=-1)
+    a = circular_map(a)
+    print(abs_sq(a))
+    print(a.size())
+    b = unitary_max(a)
+    print(b)
+    print(b.size())
