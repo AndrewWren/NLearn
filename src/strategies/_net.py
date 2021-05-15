@@ -38,8 +38,8 @@ class MaxNet(src.lib.max_tempered_layers.MaxNet):
             layers,
             width,
             beta,
+            bias_included,
             relu,
             cos,
             dropout
         )
-
