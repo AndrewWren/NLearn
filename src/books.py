@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import src.lib.ml_utilities as mlu
 from src.lib.ml_utilities import h, to_array, to_device_tensor
-from src.game_set_up import ElementCircular, NiceCode
+from src.game_set_up import Basic, NiceCode
 
 
 def log_book(codes, outputs=None, log_dict=True, log_full_dict=False,
@@ -33,7 +33,7 @@ def log_book(codes, outputs=None, log_dict=True, log_full_dict=False,
 @torch.no_grad()
 def code_book(alice, modulus, n_select, print_list=False,
               print_dict=True, print_full_dict=False):
-    elt = ElementCircular(modulus, n_select)
+    elt = Basic(modulus, n_select)
     alice.session.targets_t = to_device_tensor(elt.domain)
     outputs = to_array(alice.play().squeeze())
     codes = np.sign(outputs)
@@ -46,7 +46,7 @@ def code_decode_book(alice, bob, modulus, n_select):
     mlu.log()
     _, code_dict = code_book(alice, modulus, n_select)
     if (h.N_SELECT == h.N_NUMBERS) or (h.BOB_PLAY == 'CircularVocab'):
-        elt = ElementCircular(modulus, n_select)
+        elt = Basic(modulus, n_select)
         domain = to_device_tensor(elt.domain)
         decode_dict = dict()
         bob.session.size0 = 1

@@ -10,15 +10,15 @@ class BobPlay:
 
     def __call__(self):
         self.codes = self.bob.session.codes
-        self.selections = self.bob.session.selections
+        self.selections = self.bob.session.session_spec.spec.circle(
+            self.bob.session.selections
+        )
 
 
 class Circular(BobPlay):
     def __init__(self, bob):
         super().__init__(bob)
-        self.input_width = (h.N_SELECT *
-                                self.bob.session.tuple_specs.n_elements
-                                * 2 + h.N_CODE)
+        self.input_width = (h.N_SELECT * 2 + h.N_CODE)
         self.output_width = h.N_SELECT
 
     def __call__(self):
@@ -32,8 +32,7 @@ class Circular(BobPlay):
 class CircularVocab(BobPlay):
     def __init__(self, bob):
         super().__init__(bob)
-        self.input_width = self.bob.session.tuple_specs.n_elements * 2 \
-                               + h.N_CODE
+        self.input_width = 2 + h.N_CODE
         self.output_width = 1
 
     def __call__(self):
@@ -59,9 +58,7 @@ class CircularVocab(BobPlay):
 class QPerNumber(BobPlay):
     def __init__(self, bob):
         super().__init__(bob)
-        self.input_width = (h.N_SELECT *
-                            self.bob.session.tuple_specs.n_elements
-                            * 2 + h.N_CODE)
+        self.input_width = h.N_SELECT * 2 + h.N_CODE
         self.output_width = h.N_NUMBERS
 
     def __call__(self):

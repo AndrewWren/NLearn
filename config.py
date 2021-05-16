@@ -4,12 +4,12 @@ divisor = 2.8
 hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
     'N_ITERATIONS': int(70 * (10 ** 3) // divisor),   # 5 * (10 ** 5),
     'RANDOM_SEEDS': [
-        (789873, 935177, 972236, 435766),
-        (532334, 809631, 735618, 545983),
-        (321406, 416695, 885201, 467036),
-        (911011, 571019, 667157, 225093),
-        (335581, 265392, 137411, 842014),
-        (307035, 405050, 968633, 690674),
+        # (789873, 935177, 972236, 435766),
+        # (532334, 809631, 735618, 545983),
+        # (321406, 416695, 885201, 467036),
+        # (911011, 571019, 667157, 225093),
+        # (335581, 265392, 137411, 842014),
+        # (307035, 405050, 968633, 690674),
         (577683, 443890, 562139, 319257),
         (625084, 419126, 762692, 952720)
     ],
@@ -41,15 +41,13 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
     'NOISE': 0.1,
     'ALICE_DOUBLE': None,
     'N_CODE': 8,
-    'N_NUMBERS': 2 ** 14
+    'NUMBERS': 'Basic',
+    'N_NUMBERS': 2 ** 14,
+    'SHUFFLE': True
 }
 
 
 #  RANDOM_SEED = 42
-"""TUPLE_SPEC = (
-    (16,),
-)
-"""
 SMOOTHING_LENGTH = int(10000 // divisor)
 SAVE_PERIOD = 10 ** 5   # Also saves on the last iteration
 CODE_BOOK_PERIOD = int(10000 // divisor)

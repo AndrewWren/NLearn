@@ -12,25 +12,10 @@ class BobTrain:
         self.decision_nos = self.bob.session.decision_nos
         self.codes = self.bob.session.codes
         self.rewards = self.bob.session.rewards
-        self.selections = self.bob.session.selections
-        self.current_iteration = self.bob.session.current_iteration
-
-
-class Circular(BobTrain):
-    def __init__(self, bob):
-        super().__init__(bob)
-
-    def __call__(self):
-        super().__call__()
-        bob_input = torch.cat([torch.flatten(self.selections,
-                                        start_dim=1), self.codes], 1)
-        bob_q_estimates = self.bob.net(bob_input)
-        decision_qs = self.bob.session.gatherer(
-            bob_q_estimates,
-            self.decision_nos,
-            'Decision_Qs'
+        self.selections = self.bob.session.session_spec.spec.circle(
+            self.bob.session.selections
         )
-        return self.bob.loss_function(decision_qs, self.rewards)
+        self.current_iteration = self.bob.session.current_iteration
 
 
 class CircularVocab(BobTrain):

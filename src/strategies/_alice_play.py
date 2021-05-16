@@ -8,25 +8,14 @@ class AlicePlay:
         self.alice = alice
 
     def __call__(self):
-        self.targets = torch.flatten(self.alice.session.targets_t, start_dim=1)
-
-
-class Basic(AlicePlay):
-    def __init__(self, alice):
-        super().__init__(alice)
-        self.input_width = alice.session.tuple_specs.n_elements * 2
-        self.output_width = h.N_CODE
-
-    def __call__(self):
-        super().__call__()
-        alice_outputs = self.alice.net(self.targets)
-        return torch.sign(alice_outputs)
+        self.targets = self.alice.session.session_spec.spec.circle(
+            self.alice.session.targets_t)
 
 
 class QPerCode(AlicePlay):
     def __init__(self, alice):
         super().__init__(alice)
-        self.input_width = alice.session.tuple_specs.n_elements * 2
+        self.input_width = 2
         self.output_width = 2 ** h.N_CODE
         initialise_bin_dec()
 

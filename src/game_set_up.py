@@ -1,7 +1,7 @@
 import math
 from collections import deque, namedtuple
 import numpy as np
-
+import src.lib.ml_utilities as mlu
 from src.lib.ml_utilities import c, h
 
 
@@ -50,10 +50,10 @@ class Domain:
         return f'({self.type}, {self.range})'
 
 
-class ElementCircular:
-    def __init__(self, modulus: int, n_select=None):
+class Basic:
+    def __init__(self, modulus: int):
         self.modulus = modulus
-        self.n_select = n_select or h.N_SELECT
+        self.n_select = h.N_SELECT
         self.circular_map = lambda x: np.transpose((np.cos(x), np.sin(x)))
         self.domain = self.circular_map(
             np.arange(modulus) * 2 * np.pi / modulus
@@ -68,7 +68,15 @@ class ElementCircular:
                                                            self.n_select) \
             - self.mean_random_sq_distance ** 2
         self.factor = 1 / self.mean_random_sq_distance
-        pass
+        self.domain_t = mlu.to_device_tensor(self.domain)
+        try:
+            shuffle_flag = h.SHUFFLE
+        except:
+            shuffle_flag = False
+        self.numbers = np.arange(h.N_NUMBERS)
+        if shuffle_flag:
+            h.ne_rng.shuffle(self.numbers)
+        self.numbers_t = mlu.to_device_tensor(self.numbers).long()
 
     def rewards(self, grounds, guesses):
         """
@@ -78,12 +86,17 @@ class ElementCircular:
         :param guesses: np.array of size (self.size0, 2)
         :return: float
         """
+        grounds = self.numbers[grounds.long()] #TODO Work out rewards!!!
+        guesses = self.numbers[guesses.long()]
         return 1 - self.factor * np.sum(
             np.square(guesses - grounds),
             axis=-1)
 
+    def circle(self, numbers):
+        return self.domain_t[numbers.long()]
+
     def __repr__(self):
-        return f'ElementCircular({self.modulus}, {self.n_select})'
+        return f'Basic({self.modulus}, {self.n_select})'
 
 
 GameOrigin = namedtuple('GameOrigin', 'iteration target_nos selections')
@@ -113,16 +126,9 @@ class GameReports:
         return [GameReport(*report) for report in zip(*zipee)]
 
 
-class TupleSpecs:
-    def __init__(self, specs: list =None):
-        specs = specs or ((h.N_NUMBERS,),)
-        spec_list = list()
-        for spec in specs:
-            if not isinstance(spec, ElementCircular):
-                spec = ElementCircular(*spec)
-            spec_list.append(spec)
-        self.specs = tuple(spec_list)
-        self.n_elements = len(spec_list)
+class SessionSpec:
+    def __init__(self):
+        self.spec = eval(h.NUMBERS + '(' + str(h.N_NUMBERS) + ')')
         self.size0 = h.GAMESIZE
         self.selections = None
 
@@ -132,12 +138,11 @@ class TupleSpecs:
         :return: a np array of size (self.size0, h.N_SELECT,
         self.n_elements, 2)
         """
-        randoms = np.stack(
-            [[h.ne_rng.choice(spec.domain, size=h.N_SELECT, replace=False)
-              for spec in self.specs]
+        return np.stack(
+            [h.ne_rng.choice(self.spec.numbers, size=h.N_SELECT,
+                              replace=False)
              for _ in range(self.size0)]
-        )  # TODO in the choice consider setting shuffle=False
-        return np.transpose(randoms, (0, 2, 1, 3))
+        )
 
     def iter(self):
         for iteration in range(1, h.N_ITERATIONS + 1):
@@ -152,20 +157,16 @@ class TupleSpecs:
         :param guesses: numpy array, shape = (self.size0, self.n_elements)
         :return:  numpy array, shape = (self.size0, )
         """
-        to_stack = tuple(spec.rewards(grounds[:, s, ...], guesses[:, s, ...])
-                         for s, spec in enumerate(self.specs))
-        if len(to_stack) > 1:
-            rewards = np.dstack(to_stack)
-            return np.sum(rewards, axis=-1)
-        else:
-            return to_stack[0]
+        to_stack = self.spec.rewards(grounds, guesses)
+        rewards = np.dstack(to_stack)
+        return np.sum(rewards, axis=-1)
 
     def random_reward_sd(self):
-        return math.sqrt(sum([spec.var_random_sq_distance * (spec.factor ** 2)
-                              for spec in self.specs]))
+        return math.sqrt(self.spec.var_random_sq_distance * (
+                self.spec.factor ** 2))
 
     def __repr__(self):
-        return f'TupleSpecs({self.specs})'
+        return f'SessionSpec({self.specs})'
 
 
 # From github.com/PacktPublishing/Deep-Reinforcement-Learning-Hands-On-Second-Edition/Chapter06/02_dqn_pong.py

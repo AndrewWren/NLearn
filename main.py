@@ -4,7 +4,7 @@ import src.lib.ml_utilities as mlu
 from src.lib.ml_utilities import c, h
 from src.session import Session
 from src.game_set_up import ReplayBuffer,\
-    TupleSpecs
+    SessionSpec
 
 
 @mlu.over_hp
@@ -12,16 +12,16 @@ def train_ab():
     for key, value in h.items():
         if ('BOB' in key) and (value == 'Same'):
             h[key] = h[key.replace('BOB', 'ALICE')]
-    tuple_specs = TupleSpecs()
-    mlu.log(f'{tuple_specs.random_reward_sd()=}\n')
-    session = Session(tuple_specs)
+    session_spec = SessionSpec()
+    mlu.log(f'{session_spec.random_reward_sd()=}\n')
+    session = Session(session_spec)
     buffer = ReplayBuffer(h.BUFFER_CAPACITY)
     best_non_random_reward = - np.inf
     nrr_buffer = collections.deque(maxlen=c.SMOOTHING_LENGTH)
     best_nrr_iteration = None
     saved_alice_model_title = None
     saved_bob_model_title = None
-    for game_origins in tuple_specs.iter():
+    for game_origins in session_spec.iter():
         session.current_iteration = game_origins.iteration
         non_random_rewards, game_reports = session.play(game_origins)
         buffer.append(game_reports)
@@ -69,20 +69,6 @@ def understand():
     pass
 
 
-@mlu.over_hp
-def run_tuples():
-    tuple_specs = TupleSpecs()
-    for iteration, pick_no, current_tuples in tuple_specs.iter():
-        pick_tuple = current_tuples[np.arange(32), pick_no, :]
-        print(iteration, pick_no)
-        print(f'{pick_tuple.shape=}')
-        print(f'{current_tuples.shape=}')
-    return [None], 0
-
-
 if __name__ == '__main__':
-    #run_tuples()
-    pass
     full_results = train_ab()
-
     mlu.close_log()

@@ -6,7 +6,7 @@ import src.books as books
 import src.lib.ml_utilities as mlu
 from src.lib.ml_utilities import c, h, to_array, to_device_tensor, writer
 from src.game_set_up import GameOrigins, \
-    GameReports, TupleSpecs
+    GameReports, SessionSpec
 from src.noise import Noise
 import src.strategies._alice_play, src.strategies._alice_train
 import src.strategies._bob_play, src.strategies._bob_train
@@ -72,8 +72,8 @@ class Agent:
 
 class Session:
     # file name --- and for related classes
-    def __init__(self, tuple_specs: TupleSpecs):
-        self.tuple_specs = tuple_specs
+    def __init__(self, session_spec: SessionSpec):
+        self.session_spec = session_spec
         self.targets_t = None
         self.decisions = None
         self.game_reports = GameReports(GameOrigins(None, None, None), None,
@@ -81,7 +81,7 @@ class Session:
         self.current_iteration = None
         self.alice = Agent(self, 'alice')
         self.bob = Agent(self, 'bob')
-        self.selections = tuple_specs.selections
+        self.selections = session_spec.selections
         self.n_select = h.N_SELECT
         self.epsilon_slope = (1 - h.EPSILON_MIN) / (
                 h.EPSILON_MIN_POINT - h.EPSILON_ONE_END)
@@ -99,7 +99,7 @@ class Session:
         self.epsilon = self.epsilon_function(game_origins.iteration)
         targets = game_origins.selections[np.arange(self.size0),
                                           game_origins.target_nos]
-        self.targets_t = to_device_tensor(targets)
+        self.targets_t = to_device_tensor(targets).long()
         greedy_codes = self.alice.play()
         self.codes, chooser_a = self.alice_eps_greedy(greedy_codes)
         if (game_origins.iteration >= h.NOISE_START) and (
@@ -108,9 +108,10 @@ class Session:
         self.selections = to_device_tensor(game_origins.selections)
         bob_q_estimates_argmax = self.bob.play()
         decision_nos, chooser_b = self.bob_eps_greedy(bob_q_estimates_argmax)
-        decisions = self.gatherer(self.selections, decision_nos, 'Decisions')
-        rewards = self.tuple_specs.rewards(grounds=targets,
-                                           guesses=to_array(decisions))
+        decisions = self.selections[torch.arange(self.size0), decision_nos]
+        # self.gatherer(self.selections, decision_nos, 'Decisions')
+        rewards = self.session_spec.rewards(grounds=targets,
+                                            guesses=to_array(decisions))
         non_random_rewards = rewards[chooser_a & chooser_b]
         if non_random_rewards.shape[0]:
             non_random_rewards_0 = non_random_rewards
@@ -146,7 +147,7 @@ class Session:
                     np.arange(self.size0),
                     self.game_reports.target_nos
                 ]
-            )
+            ).long()
             self.decisions = torch.flatten(
                 to_device_tensor(self.game_reports.selections)[
                     torch.arange(self.size0), self.game_reports.decision_nos],
@@ -257,7 +258,8 @@ class Session:
                                                   ).unsqueeze(1)
         elif context == 'Decisions':
             indices = indices.unsqueeze(1).repeat(1, input.size()[-1]
-                                                  ).unsqueeze(1).unsqueeze(1)
+                                                  ).unsqueeze(1)
+            #.unsqueeze(1) #TODO This is the line to sort out!!
         elif context == 'Decision_Qs':
             indices = indices.unsqueeze(1)
         else:
