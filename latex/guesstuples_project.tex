@@ -572,7 +572,7 @@ With FFs in \verb|21-05-15_21:54:38| get $0.981$ in $\num{25000}$ iterations.  G
 
 At \verb|21-05-15_22:28:32|, compared MaxNet and FFs with 8 tuples of seeds, finding very similar mean rewards, MaxNet less (sample) SD (60\% of FFs) but much slower: $\SI{35}{min}$ v.  $\SI{24}{min}.$  See \verb| 21-05-15_22:28:32_MaxNet_v_FFs.ods| for mean and SD.
 
-
+At \verb|21-05-16_13:21:58| showed that again both MaxNet and FFs suceed if \verb|N_SELECT=16|, taking around 15 and $\SI{9}{min}$ respectively.
 
 \section{Things to try}
 
@@ -608,6 +608,37 @@ At \verb|21-05-15_22:28:32|, compared MaxNet and FFs with 8 tuples of seeds, fin
 \end{enumerate}
 
 \section{Modifying the environment}
+
+\begin{enumerate}
+
+\todo Large \verb|N_NUMBERS|.
+
+\todo Reward depends on being very close to the right answer.
+
+\todo Numbers are shuffled in a random way before reward is allocated~--- making the environment harder to understand.
+
+\todo Numbers translate into separate `streams' for rewards, e.g. using modulo.  An alternative is to use the multi--channel potential of the game set--up~--- but this keeps the environment relatively transparent. 
+
+\todo What's a meaningful way to turn this into a multi--episode game?
+
+\todo Is there an environment where Alice is guiding Bob through a graph?  (How does she know the best route?)
+
+\todo How would Alice's NN work if there were very many codes ($2^{16}$ doesn't work with \verb|QPerCode| but $2^{14}$ does).
+
+\todo After Alice sends Bob a code, he sends one back (trying for the same code book). Potential strategy for Alice:
+
+	\begin{enumerate}
+		
+		\item Alice (assuming \verb|N_NUMBERS| not too big) generates a code book ever so often (might go with \verb|DOUBLE|).
+		
+		\item She receives the code from Bob and uses the code book to find the closest code from a number.
+		
+		\item To play she uses that number.
+		
+		\item To train, she  runs this number through her NN getting a $Q$ for her version of the code.  Loss is MS difference between that $Q$ and the reward.  This assumes of course that the reward for this Bob to Alice episode of the game is calculated on the same basis as for the Alice to Bob episode.  (If not she'd need another NN, as would Bob, and these would really be two separate games.)
+		
+	\end{enumerate}
+\end{enumerate}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
