@@ -574,6 +574,18 @@ At \verb|21-05-15_22:28:32|, compared MaxNet and FFs with 8 tuples of seeds, fin
 
 At \verb|21-05-16_13:21:58| showed that again both MaxNet and FFs suceed if \verb|N_SELECT=16|, taking around 15 and $\SI{9}{min}$ respectively.
 
+At \verb|21-05-19_16:57:58|, using FFs, showed that even \verb|N_CODE=2 **14| (about the largest my GPU can handle) works well~--- including if shuffle the numbers so that the state numbers which Alice and Bob know are shuffled before measuring distances.
+
+\begin{lstlisting}
+	---- Table of results ----
+	
+	code  hp_run  result
+	00       1  (-0.987, 24997)		With no shuffling
+	01       2  (-0.989, 24997)		With shuffling
+	--------------------------
+\end{lstlisting}
+
+
 \section{Things to try}
 
 \begin{enumerate}
@@ -611,11 +623,11 @@ At \verb|21-05-16_13:21:58| showed that again both MaxNet and FFs suceed if \ver
 
 \begin{enumerate}
 
-\todo Large \verb|N_NUMBERS|.
+\todot Large \verb|N_NUMBERS|.
 
 \todo Reward depends on being very close to the right answer.
 
-\todo Numbers are shuffled in a random way before reward is allocated~--- making the environment harder to understand.
+\todot Numbers are shuffled in a random way before reward is allocated~--- making the environment harder to understand.
 
 \todo Numbers translate into separate `streams' for rewards, e.g. using modulo.  An alternative is to use the multi--channel potential of the game set--up~--- but this keeps the environment relatively transparent. 
 
@@ -638,6 +650,9 @@ At \verb|21-05-16_13:21:58| showed that again both MaxNet and FFs suceed if \ver
 		\item To train, she  runs this number through her NN getting a $Q$ for her version of the code.  Loss is MS difference between that $Q$ and the reward.  This assumes of course that the reward for this Bob to Alice episode of the game is calculated on the same basis as for the Alice to Bob episode.  (If not she'd need another NN, as would Bob, and these would really be two separate games.)
 		
 	\end{enumerate}
+
+\todo Multiple agents~--- perhaps relates to Graph Neural Networks.
+
 \end{enumerate}
 
 
