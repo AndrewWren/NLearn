@@ -12,7 +12,7 @@ class BobTrain:
         self.decision_nos = self.bob.session.decision_nos
         self.codes = self.bob.session.codes
         self.rewards = self.bob.session.rewards
-        self.selections = self.bob.session.session_spec.spec.circle(
+        self.selections = self.bob.session.session_spec.spec.circle_t(
             self.bob.session.selections
         )
         self.current_iteration = self.bob.session.current_iteration

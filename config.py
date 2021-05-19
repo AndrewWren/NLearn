@@ -1,8 +1,14 @@
 
-divisor = 2.8
+"""For debugging:
+divisor
+N_ITERATIONS
+CODE_BOOK_PERIOD
+"""
+
+divisor = 6  #2.8
 
 hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
-    'N_ITERATIONS': int(70 * (10 ** 3) // divisor),   # 5 * (10 ** 5),
+    'N_ITERATIONS': 5000,  #int(70 * (10 ** 3) // divisor),   # 5 * (10 ** 5),
     'RANDOM_SEEDS': [
         # (789873, 935177, 972236, 435766),
         # (532334, 809631, 735618, 545983),
@@ -50,7 +56,7 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
 #  RANDOM_SEED = 42
 SMOOTHING_LENGTH = int(10000 // divisor)
 SAVE_PERIOD = 10 ** 5   # Also saves on the last iteration
-CODE_BOOK_PERIOD = int(10000 // divisor)
+CODE_BOOK_PERIOD = 2000  #int(10000 // divisor)
 
 
 DEVICE = None

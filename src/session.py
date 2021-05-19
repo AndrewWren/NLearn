@@ -111,7 +111,8 @@ class Session:
         decisions = self.selections[torch.arange(self.size0), decision_nos]
         # self.gatherer(self.selections, decision_nos, 'Decisions')
         rewards = self.session_spec.rewards(grounds=targets,
-                                            guesses=to_array(decisions))
+                                            guesses=to_array(
+                                                decisions).astype(int))
         non_random_rewards = rewards[chooser_a & chooser_b]
         if non_random_rewards.shape[0]:
             non_random_rewards_0 = non_random_rewards
@@ -148,11 +149,8 @@ class Session:
                     self.game_reports.target_nos
                 ]
             ).long()
-            self.decisions = torch.flatten(
-                to_device_tensor(self.game_reports.selections)[
-                    torch.arange(self.size0), self.game_reports.decision_nos],
-                start_dim=1
-            )
+            self.decisions = to_device_tensor(self.game_reports.selections)[
+                    torch.arange(self.size0), self.game_reports.decision_nos]
             self.codes = to_device_tensor(self.game_reports.codes)
             self.rewards = to_device_tensor(self.game_reports.rewards)
             alice_loss = self.alice.train()
@@ -191,12 +189,7 @@ class Session:
             mlu.log(f'Iteration={current_iteration:>10} training nets give:',
                     backspaces=20)
             mlu.log(f'{alice_loss.item()=}\t{bob_loss.item()=}')
-            books.code_decode_book(
-                self.alice,
-                self.bob,
-                h.N_NUMBERS,
-                h.N_SELECT,
-            )
+            books.code_decode_book(self.alice, self.bob)
         elif current_iteration % 1000 == 0:
             print('\b' * 20 + f'Iteration={current_iteration:>10}', end='')
 

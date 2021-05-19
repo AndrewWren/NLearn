@@ -10,7 +10,7 @@ class BobPlay:
 
     def __call__(self):
         self.codes = self.bob.session.codes
-        self.selections = self.bob.session.session_spec.spec.circle(
+        self.selections = self.bob.session.session_spec.spec.circle_t(
             self.bob.session.selections
         )
 

@@ -31,38 +31,36 @@ def log_book(codes, outputs=None, log_dict=True, log_full_dict=False,
 
 
 @torch.no_grad()
-def code_book(alice, modulus, n_select, print_list=False,
+def code_book(alice, print_list=False,
               print_dict=True, print_full_dict=False):
-    elt = Basic(modulus, n_select)
-    alice.session.targets_t = to_device_tensor(elt.domain)
+    alice.session.targets_t = alice.session.session_spec.spec.numbers_t
     outputs = to_array(alice.play().squeeze())
     codes = np.sign(outputs)
     return codes, log_book(codes, outputs, print_dict, print_full_dict,
                         print_list)
 
 
-@torch.no_grad()  #TODO print to mlu
-def code_decode_book(alice, bob, modulus, n_select):
+@torch.no_grad()
+def code_decode_book(alice, bob):
     mlu.log()
-    _, code_dict = code_book(alice, modulus, n_select)
+    _, code_dict = code_book(alice)
     if (h.N_SELECT == h.N_NUMBERS) or (h.BOB_PLAY == 'CircularVocab'):
-        elt = Basic(modulus, n_select)
-        domain = to_device_tensor(elt.domain)
+        domain = bob.session.session_spec.spec.numbers_t
         decode_dict = dict()
         bob.session.size0 = 1
-        bob.session.n_select = modulus
+        bob.session.n_select = h.N_NUMBERS
         for nice_code in code_dict.keys():
-            #code_repeated = to_device_tensor(nice_code.raw()).repeat(modulus, 1)
             bob.session.codes = to_device_tensor(nice_code.raw()).unsqueeze(0)
 
-            bob.session.selections = domain.unsqueeze(1).unsqueeze(0)
+            bob.session.selections = domain.unsqueeze(0)
+            #domain.unsqueeze(1).unsqueeze(0)
             decode_dict[nice_code] = bob.play().squeeze().item()
         bob.session.n_select = h.N_SELECT
         mlu.log()
         for nice_code in decode_dict:
             decode = decode_dict[nice_code]
             status = (decode in code_dict[nice_code])
-            mlu.log(f'{nice_code}\t{decode}\t{status}')
+            mlu.log(f'{nice_code}\t{decode}\t\t{status}')
     mlu.log()
     mlu.log(f'Number of codes used={len(code_dict)}')
     mlu.log()

@@ -36,27 +36,13 @@ class NiceCode:
         return hash(str(self))
 
 
-class Domain:
-    def __init__(self, domain_type: type, domain_range):
-        self.type = domain_type
-        self.range = domain_range
-        if self.type == int:
-            self.range = int(self.range)
-
-    def __repr__(self):
-        return f'Domain({self.__str__()})'
-
-    def __str__(self):
-        return f'({self.type}, {self.range})'
-
-
 class Basic:
-    def __init__(self, modulus: int):
-        self.modulus = modulus
+    def __init__(self):
+        self.modulus = h.N_NUMBERS
         self.n_select = h.N_SELECT
         self.circular_map = lambda x: np.transpose((np.cos(x), np.sin(x)))
         self.domain = self.circular_map(
-            np.arange(modulus) * 2 * np.pi / modulus
+            np.arange(self.modulus) * 2 * np.pi / self.modulus
         )
         distinct_random_square_distances = np.sum(
             np.square(self.domain[1:, :] - self.domain[0, :]), axis=-1
@@ -86,14 +72,18 @@ class Basic:
         :param guesses: np.array of size (self.size0, 2)
         :return: float
         """
-        grounds = self.numbers[grounds.long()] #TODO Work out rewards!!!
-        guesses = self.numbers[guesses.long()]
-        return 1 - self.factor * np.sum(
+        grounds = self.circle(grounds) #.long()] #TODO Work out rewards!!!
+        guesses = self.circle(guesses) #.long()]
+        temp = 1 - self.factor * np.sum(
             np.square(guesses - grounds),
             axis=-1)
+        return temp
 
     def circle(self, numbers):
-        return self.domain_t[numbers.long()]
+        return self.domain[self.numbers[numbers]]
+
+    def circle_t(self, numbers):
+        return self.domain_t[self.numbers_t[numbers.long()]]
 
     def __repr__(self):
         return f'Basic({self.modulus}, {self.n_select})'
@@ -128,7 +118,7 @@ class GameReports:
 
 class SessionSpec:
     def __init__(self):
-        self.spec = eval(h.NUMBERS + '(' + str(h.N_NUMBERS) + ')')
+        self.spec = eval(h.NUMBERS + '()')
         self.size0 = h.GAMESIZE
         self.selections = None
 
@@ -157,9 +147,7 @@ class SessionSpec:
         :param guesses: numpy array, shape = (self.size0, self.n_elements)
         :return:  numpy array, shape = (self.size0, )
         """
-        to_stack = self.spec.rewards(grounds, guesses)
-        rewards = np.dstack(to_stack)
-        return np.sum(rewards, axis=-1)
+        return self.spec.rewards(grounds, guesses)
 
     def random_reward_sd(self):
         return math.sqrt(self.spec.var_random_sq_distance * (

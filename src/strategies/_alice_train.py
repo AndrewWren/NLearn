@@ -9,7 +9,7 @@ class AliceTrain:
         self.current_iteration = alice.session.current_iteration
 
     def __call__(self):
-        self.targets = self.alice.session.session_spec.spec.circle(
+        self.targets = self.alice.session.session_spec.spec.circle_t(
             self.alice.session.targets_t
         )
         self.decisions = self.alice.session.decisions

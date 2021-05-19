@@ -8,7 +8,7 @@ class AlicePlay:
         self.alice = alice
 
     def __call__(self):
-        self.targets = self.alice.session.session_spec.spec.circle(
+        self.targets = self.alice.session.session_spec.spec.circle_t(
             self.alice.session.targets_t)
 
 
