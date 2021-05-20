@@ -44,16 +44,29 @@ class Basic:
         self.domain = self.circular_map(
             np.arange(self.modulus) * 2 * np.pi / self.modulus
         )
-        distinct_random_square_distances = np.sum(
-            np.square(self.domain[1:, :] - self.domain[0, :]), axis=-1
-        )
-        self.mean_random_sq_distance = np.mean(
-            distinct_random_square_distances) * (1 - 1 / self.n_select)
-        self.var_random_sq_distance = np.mean(
-            np.square(distinct_random_square_distances)) * (1 - 1 /
-                                                           self.n_select) \
-            - self.mean_random_sq_distance ** 2
-        self.factor = 1 / self.mean_random_sq_distance
+        self.reward_type = h.REWARD_TYPE
+        if self.reward_type == 'Square distance':
+            distinct_random_square_distances = np.sum(
+                np.square(self.domain[1:, :] - self.domain[0, :]), axis=-1
+            )
+            mean_random_sq_distance = np.mean(
+                distinct_random_square_distances) * (1 - 1 / self.n_select)
+            self.var_random_guessing = np.mean(
+                np.square(distinct_random_square_distances)) * (1 - 1 /
+                                                               self.n_select) \
+                                       - mean_random_sq_distance ** 2
+            self.factor = 1 / mean_random_sq_distance
+        elif self.reward_type == 'Near misses only':
+            self.factor = self.modulus / ((self.modulus - 5) * 6 + 2 * 5 + 2
+                                          * 4 + 1 * 0)
+            self.var_random_guessing = ((self.modulus - 5) * 36 + 2 * 25 + 2
+                                          * 16 + 1 * 0) / self.modulus \
+                                       - 1 / (self.factor ** 2)
+            mlu.log(f'0 away is reward of 1')
+            mlu.log(f'1 away is reward of {1 - 4 * self.factor}')
+            mlu.log(f'2 away is reward of {1 - 5 * self.factor}')
+        else:
+            exit(f'Invalid REWARD_TYPE {self.reward_type}')
         self.domain_t = mlu.to_device_tensor(self.domain)
         try:
             shuffle_flag = h.SHUFFLE
@@ -72,12 +85,24 @@ class Basic:
         :param guesses: np.array of size (self.size0, 2)
         :return: float
         """
-        grounds = self.circle(grounds) #.long()] #TODO Work out rewards!!!
-        guesses = self.circle(guesses) #.long()]
-        temp = 1 - self.factor * np.sum(
-            np.square(guesses - grounds),
-            axis=-1)
-        return temp
+        if self.reward_type == 'Square distance':
+            grounds = self.circle(grounds)
+            guesses = self.circle(guesses)
+            return 1 - np.sum(
+                np.square(guesses - grounds),
+                axis=-1
+            ) * self.factor
+        elif self.reward_type == 'Near misses only':
+            grounds = self.numbers[grounds]
+            guesses = self.numbers[guesses]
+            separation = guesses - grounds
+            separation = separation % self.modulus
+            separation = np.minimum(separation, self.modulus - separation)
+            return 1 - (
+                    6 - np.maximum(3 - separation, 0)
+                    - 3 * (separation == 0)
+            ) * self.factor
+
 
     def circle(self, numbers):
         return self.domain[self.numbers[numbers]]
@@ -150,7 +175,7 @@ class SessionSpec:
         return self.spec.rewards(grounds, guesses)
 
     def random_reward_sd(self):
-        return math.sqrt(self.spec.var_random_sq_distance * (
+        return math.sqrt(self.spec.var_random_guessing * (
                 self.spec.factor ** 2))
 
     def __repr__(self):
