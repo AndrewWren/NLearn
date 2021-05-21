@@ -65,6 +65,12 @@ class Basic:
             mlu.log(f'0 away is reward of 1')
             mlu.log(f'1 away is reward of {1 - 4 * self.factor}')
             mlu.log(f'2 away is reward of {1 - 5 * self.factor}')
+        elif self.reward_type == 'Exact only':
+            self.factor = self.modulus / ((self.modulus - 1) * 1)
+            self.var_random_guessing = ((self.modulus - 1) * 1) / self.modulus\
+                                       - 1 / (self.factor ** 2)
+            mlu.log(f'0 away is reward of 1')
+            mlu.log(f'1 or more away is reward of {1 - 1 * self.factor}')
         else:
             exit(f'Invalid REWARD_TYPE {self.reward_type}')
         self.domain_t = mlu.to_device_tensor(self.domain)
@@ -102,7 +108,13 @@ class Basic:
                     6 - np.maximum(3 - separation, 0)
                     - 3 * (separation == 0)
             ) * self.factor
-
+        elif self.reward_type == 'Exact only':
+            grounds = self.numbers[grounds]
+            guesses = self.numbers[guesses]
+            separation = guesses - grounds
+            separation = separation % self.modulus
+            separation = np.minimum(separation, self.modulus - separation)
+            return 1 - (1 - (separation == 0)) * self.factor
 
     def circle(self, numbers):
         return self.domain[self.numbers[numbers]]

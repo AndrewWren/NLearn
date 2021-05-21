@@ -1,13 +1,15 @@
 
-divisor = 2.8
+divisor = 1.
 
 hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
-    'N_ITERATIONS': int(70 * (10 ** 3) // divisor),   # 5 * (10 ** 5),
+    'N_ITERATIONS': 100 * (10 ** 3),   # int(70 * (10 ** 3) // divisor),
+                  # 5 * (10 **
+    # 5),
     'RANDOM_SEEDS': [
-        (789873, 935177, 972236, 435766),
-        (532334, 809631, 735618, 545983),
-        (321406, 416695, 885201, 467036),
-        (911011, 571019, 667157, 225093),
+        # (789873, 935177, 972236, 435766),
+        # (532334, 809631, 735618, 545983),
+        # (321406, 416695, 885201, 467036),
+        # (911011, 571019, 667157, 225093),
         (335581, 265392, 137411, 842014),
         (307035, 405050, 968633, 690674),
         (577683, 443890, 562139, 319257),
@@ -36,12 +38,13 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
     'ALICE_LAST_TRAINING': 100 * (10 ** 5),
     'NOISE_START': int(30000 // divisor),
     'NOISE': 0.1,
+    'NOISE_END': 48000,  # None
     'ALICE_DOUBLE': None,
     'N_CODE': 8,
     'NUMBERS': 'Basic',
     'N_NUMBERS': 2 ** 14,
     'SHUFFLE': True,
-    'REWARD_TYPE': 'Near misses only'
+    'REWARD_TYPE': 'Exact only'  #'Near misses only'
 }
 
 

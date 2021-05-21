@@ -88,7 +88,8 @@ class Session:
         self.size0 = None
         self.last_alice_loss = None
         self.noise = Noise(h.NOISE)
-        self.noise_end = h.N_ITERATIONS - 1.1 * h.BUFFER_CAPACITY / h.GAMESIZE
+        self.noise_end = h.NOISE_END or (h.N_ITERATIONS - 1.1
+                                     * h.BUFFER_CAPACITY / h.GAMESIZE)
 
     @torch.no_grad()
     def play(self, game_origins: GameOrigins):

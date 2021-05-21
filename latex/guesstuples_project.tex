@@ -600,7 +600,26 @@ With `Near misses only' reward method at \verb|21-05-20_19:00:41| got
 	7       8  (-0.429, 24997)
 	--------------------------
 \end{lstlisting}
-with eight different seeds.  Not bad considering 1 away is around 0.33... and 2 away 0.166...\ .
+with eight different seeds.  Not bad considering 1 away is around 0.33... and 2 away 0.166...\ .  Re--proportioning from $\num{25000}$ to $\num{70000}$ iterations makes no difference.  In both cases, in the mid--to--late stages the loss {\em increases}.
+\begin{enumerate}
+	\todo How is this increasing loss possible?  Is it due to too high learning rate~--- although is successful learning~--- or is it something more intrinsic, for example that bigger losses and higher rewards are consistent {\em and} training somehow pushes that.  Suspect it's due to move to full greedy play and noise as seems to start when epsilon ends and end when noise stops.  And small plateau after buffer full of greedy and before noise fills it. Not sure that can be the full story as nonetheless loss at the end is greater than at the beginning!  Is it that when you start guessing better there's a bigger error??!!!??!??!  Also with \num{100000} iterations in total, loss is going up after all the buffer is full of noise!!
+\end{enumerate}
+
+...
+...
+...
+\begin{lstlisting}
+ ---- Table of results ----
+
+code  hp_run  result
+0       1  (-0.473, 80000)
+1       2  (-0.464, 100000)
+2       3  (-0.474, 90000)
+3       4  (-0.475, 90000)
+--------------------------
+\end{lstlisting}
+
+
 \section{Things to try}
 
 \begin{enumerate}
