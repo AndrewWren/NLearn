@@ -574,7 +574,7 @@ At \verb|21-05-15_22:28:32|, compared MaxNet and FFs with 8 tuples of seeds, fin
 
 At \verb|21-05-16_13:21:58| showed that again both MaxNet and FFs suceed if \verb|N_SELECT=16|, taking around 15 and $\SI{9}{min}$ respectively.
 
-At \verb|21-05-19_16:57:58|, using FFs, showed that even \verb|N_CODE=2 **14| (about the largest my GPU can handle) works well~--- including if shuffle the numbers so that the state numbers which Alice and Bob know are shuffled before measuring distances.
+At \verb|21-05-19_16:57:58|, using FFs, showed that even \verb|N_CODE=2**14| (about the largest my GPU can handle) works well~--- including if shuffle the numbers so that the state numbers which Alice and Bob know are shuffled before measuring distances.
 
 \begin{lstlisting}
 	---- Table of results ----
@@ -602,7 +602,9 @@ With `Near misses only' reward method at \verb|21-05-20_19:00:41| got
 \end{lstlisting}
 with eight different seeds.  Not bad considering 1 away is around 0.33... and 2 away 0.166...\ .  Re--proportioning from $\num{25000}$ to $\num{70000}$ iterations makes no difference.  In both cases, in the mid--to--late stages the loss {\em increases}.
 \begin{enumerate}
-	\todo How is this increasing loss possible?  Is it due to too high learning rate~--- although is successful learning~--- or is it something more intrinsic, for example that bigger losses and higher rewards are consistent {\em and} training somehow pushes that.  Suspect it's due to move to full greedy play and noise as seems to start when epsilon ends and end when noise stops.  And small plateau after buffer full of greedy and before noise fills it. Not sure that can be the full story as nonetheless loss at the end is greater than at the beginning!  Is it that when you start guessing better there's a bigger error??!!!??!??!  Also with \num{100000} iterations in total, loss is going up after all the buffer is full of noise!!
+	\todot How is this increasing loss possible?  Is it due to too high learning rate~--- although is successful learning~--- or is it something more intrinsic, for example that bigger losses and higher rewards are consistent {\em and} training somehow pushes that.  Suspect it's due to move to full greedy play and noise as seems to start when epsilon ends and end when noise stops.  And small plateau after buffer full of greedy and before noise fills it. Not sure that can be the full story as nonetheless loss at the end is greater than at the beginning!  Is it that when you start guessing better there's a bigger error??!!!??!??!  Also with \num{100000} iterations in total, loss is going up after all the buffer is full of noise!!
+	
+	I don't think it's to do with epsilon or noise as persists after those (e.g. \verb|21-05-22_21-18-59|).  It's because as the $Q$--values get pulled away from zero (training to improve a past call) this tends~--- at least in a (very long, end not yet seen) initial period~--- to make most subsequent calls have higher mean losses even though they also have higher mean rewards.  This is consistent as rewards occur in a relatively small proportion of good plays,  whereas losses occur in the (complementary, and therefore large, proportion of) the training from bad plays.
 \end{enumerate}
 
 At \verb|21-05-21_19:08:54| for exact only:
@@ -616,7 +618,30 @@ code  hp_run  result
 3       4  (-0.475, 90000)
 --------------------------
 \end{lstlisting}
+so that's pretty good too.
 
+However, at \verb|21-05-22_12:08:58|, change from \verb|N_NUMBERS=2**14| and \verb|N_SELECT=16| to \verb|N_NUMBERS=256| and \verb|N_SELECT=256| now it's much harder as there's the whole domain to choose from each time:
+\begin{lstlisting}
+	 ---- Table of results ----
+	
+	code  hp_run  result
+	0       1  (-0.023, 24997)
+	1       2  (-0.010, 21426)
+	2       3  (-0.026, 24997)
+	3       4  (-0.021, 24997)
+	--------------------------
+\end{lstlisting}
+compare with that run's
+\begin{lstlisting}
+	0 away is reward of 1
+	1 or more away is reward of -0.0039215686274509665
+	session_spec.random_reward_sd()=0.06262242910851405
+\end{lstlisting}
+I.e., it's much less than one SD above the mean of zero.
+
+At \verb|21-05-22_21-18-59| with \verb|N_NUMBERS=256| and \verb|N_SELECT=256|, \num{1000000} iterations and (non--minimal) noise lasting until \num{350000}, we see in the last \num{500000} an increase of smoothed 0.9 from \verb|0.01353| to \verb|0.06488| and still climbing at that rate or better.  So around \verb|0.01| per \num{100000} iterations!  And the whole \num{1000000} take \SI{21}{h} \SI{30}{min}.
+
+NOTE All in the above Alice uses \verb|codes| not, as she should \verb|greedy_codes|.  Now changed!
 
 \section{Things to try}
 
@@ -684,6 +709,8 @@ code  hp_run  result
 	\end{enumerate}
 
 \todo Multiple agents~--- perhaps relates to Graph Neural Networks.
+
+\todo Distribute values randomly in unit disc (or unit square or torus or sphere).  Let's do sphere: see  \href{https://stackoverflow.com/questions/33976911/generate-a-random-sample-of-points-distributed-on-the-surface-of-a-unit-sphere#33977530}{stackoverflow: generate a random sample of points distributed on the surface of a unit sphere}.
 
 \end{enumerate}
 
