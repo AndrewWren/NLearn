@@ -56,7 +56,8 @@ class Basic:
                                                                self.n_select) \
                                        - mean_random_sq_distance ** 2
             self.factor = 1 / mean_random_sq_distance
-        elif self.reward_type == 'Near misses only':
+        elif self.reward_type == 'Near misses only':  #TODO Take account of
+            # N_SELECT
             self.factor = self.modulus / ((self.modulus - 5) * 6 + 2 * 5 + 2
                                           * 4 + 1 * 0)
             self.var_random_guessing = ((self.modulus - 5) * 36 + 2 * 25 + 2
@@ -65,7 +66,8 @@ class Basic:
             mlu.log(f'0 away is reward of 1')
             mlu.log(f'1 away is reward of {1 - 4 * self.factor}')
             mlu.log(f'2 away is reward of {1 - 5 * self.factor}')
-        elif self.reward_type == 'Exact only':
+        elif self.reward_type == 'Exact only':  #TODO Take account of
+            # N_SELECT
             self.factor = self.modulus / ((self.modulus - 1) * 1)
             self.var_random_guessing = ((self.modulus - 1) * 1) / self.modulus\
                                        - 1 / (self.factor ** 2)
@@ -127,17 +129,19 @@ class Basic:
 
 
 GameOrigin = namedtuple('GameOrigin', 'iteration target_nos selections')
-GameReport = namedtuple('GameReport', 'iteration target_no selection code '
-                                      'decision_no reward')
+GameReport = namedtuple('GameReport', 'iteration target_no selection '
+                                      'greedy_code code decision_no reward')
 GameOrigins = namedtuple('GameOrigins', 'iteration target_nos selections')
 
 
 class GameReports:
-    def __init__(self, game_origins, codes, decision_nos, rewards):
+    def __init__(self, game_origins, codes, greedy_codes, decision_nos,
+                 rewards):
         self.iteration = game_origins.iteration
         self.target_nos = game_origins.target_nos
         self.selections = game_origins.selections
         self.codes = codes
+        self.greedy_codes = greedy_codes
         self.decision_nos = decision_nos
         self.rewards = rewards
 
@@ -147,6 +151,7 @@ class GameReports:
             self.target_nos,
             self.selections,
             self.codes,
+            self.greedy_codes,
             self.decision_nos,
             self.rewards
         ]
@@ -216,8 +221,10 @@ class ReplayBuffer:
         target_nos = np.array(target_nos)
         selections = np.stack(selections)
         game_origins = GameOrigins(iteration, target_nos, selections)
-        codes, decision_nos, rewards = game_reports_list[3:]
+        codes, greedy_codes, decision_nos, rewards = game_reports_list[3:]
         codes = np.vstack(codes)
+        greedy_codes = np.vstack(greedy_codes)
         decision_nos = np.array(decision_nos)
         rewards = np.array(rewards)
-        return GameReports(game_origins, codes, decision_nos, rewards)
+        return GameReports(game_origins, codes, greedy_codes, decision_nos,
+                           rewards)

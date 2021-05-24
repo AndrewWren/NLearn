@@ -23,7 +23,7 @@ class Circular(BobPlay):
 
     def __call__(self):
         super().__call__()
-        torch.flatten(self.selections, start_dim=1)
+        torch.flatten(self.selections, start_dim=1)  #TODO Check
         bob_input = torch.cat([self.selections, self.codes], 1)
         bob_q_estimates = self.bob.net(bob_input)
         return torch.argmax(bob_q_estimates, dim=1).long()

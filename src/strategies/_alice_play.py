@@ -23,3 +23,17 @@ class QPerCode(AlicePlay):
         super().__call__()
         alice_outputs = self.alice.net(self.targets)
         return dec_2_bin(torch.argmax(alice_outputs, dim=-1))
+
+
+class PGN(AlicePlay):
+    def __init__(self, alice):
+        super().__init__(alice)
+        self.input_width = 2
+        self.output_width = 2 ** h.N_CODE
+        initialise_bin_dec()
+
+    def __call__(self):
+        super().__call__()
+        alice_probabilities = self.alice.net(self.targets)
+
+        return dec_2_bin(torch.argmax(alice_outputs, dim=-1))

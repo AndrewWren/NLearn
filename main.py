@@ -27,6 +27,8 @@ def train_ab():
         buffer.append(game_reports)
         nrr_buffer.append(non_random_rewards)
         if game_origins.iteration < h.START_TRAINING:
+            session.logging(0, 0, game_origins.iteration,
+                 non_random_rewards)
             if game_origins.iteration % 1000 == 0:
                 print('\b' * 20 + f'Iteration={game_origins.iteration:>10}',
                       end='')
@@ -57,6 +59,8 @@ def train_ab():
                         > best_non_random_reward):
                     best_non_random_reward = smoothed_nrr
                     best_nrr_iteration = game_origins.iteration
+        session.logging(alice_loss, bob_loss,
+                        game_origins.iteration, non_random_rewards)
     return [(- best_non_random_reward, best_nrr_iteration),
             (saved_alice_model_title, saved_bob_model_title)], 0
 

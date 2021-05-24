@@ -21,7 +21,7 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
     'GAMESIZE': 32,
     'BUFFER_CAPACITY': int(32 * 20000 // divisor),
     'START_TRAINING': int(20000 // divisor),
-    'N_SELECT': 256,  #16,
+    'N_SELECT': 16,  #256,  #16,
     'EPSILON_ONE_END': 50000,  #int(2000 // divisor),  #25000,  # 40000,
     'EPSILON_MIN': 0.01,
     'EPSILON_MIN_POINT': 600000,  #int(20000 // divisor),  #3 * (10 **
@@ -43,7 +43,7 @@ hyperparameters = {  #TODO enable dictionary-based choices for finer choosing
     'ALICE_DOUBLE': None,
     'N_CODE': 8,
     'NUMBERS': 'Basic',
-    'N_NUMBERS': 256,  #2 ** 14,
+    'N_NUMBERS': 16,  #256,  #2 ** 14,
     'SHUFFLE': True,
     'REWARD_TYPE': 'Exact only'  #'Near misses only'
 }

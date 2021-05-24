@@ -1,5 +1,6 @@
 from collections import namedtuple
 import copy
+import math
 import numpy as np
 import torch
 import src.books as books
@@ -11,9 +12,6 @@ from src.noise import Noise
 import src.strategies._alice_play, src.strategies._alice_train
 import src.strategies._bob_play, src.strategies._bob_train
 import src.strategies._net, src.strategies._loss_function
-
-
-LossInfo = namedtuple('LossInfo', 'bob_loss iteration alice_loss')
 
 
 class Agent:
@@ -77,7 +75,7 @@ class Session:
         self.targets_t = None
         self.decisions = None
         self.game_reports = GameReports(GameOrigins(None, None, None), None,
-                                        None, None)
+                                        None, None, None)
         self.current_iteration = None
         self.alice = Agent(self, 'alice')
         self.bob = Agent(self, 'bob')
@@ -101,8 +99,8 @@ class Session:
         targets = game_origins.selections[np.arange(self.size0),
                                           game_origins.target_nos]
         self.targets_t = to_device_tensor(targets).long()
-        greedy_codes = self.alice.play()
-        self.codes, chooser_a = self.alice_eps_greedy(greedy_codes)
+        self.greedy_codes = self.alice.play()
+        self.codes, chooser_a = self.alice_eps_greedy(self.greedy_codes)
         if (game_origins.iteration >= h.NOISE_START) and (
                 game_origins.iteration < self.noise_end):
             self.codes = self.noise.inject(self.codes)
@@ -115,18 +113,9 @@ class Session:
                                             guesses=to_array(
                                                 decisions).astype(int))
         non_random_rewards = rewards[chooser_a & chooser_b]
-        if non_random_rewards.shape[0]:
-            non_random_rewards_0 = non_random_rewards
-        else:
-            non_random_rewards_0 = np.zeros(1)
-        writer.add_scalars(
-            'Rewards',
-            {f'Mean reward_{h.hp_run}': np.mean(non_random_rewards_0),
-             f'SD reward_{h.hp_run}': np.std(non_random_rewards_0)},
-            global_step=game_origins.iteration
-        )
         game_reports = GameReports(game_origins, to_array(self.codes),
-                                        to_array(decision_nos), rewards)
+                                   to_array(self.codes), to_array(
+                decision_nos), rewards)
         return non_random_rewards, game_reports
 
     def train(self, current_iteration, buffer):
@@ -159,9 +148,6 @@ class Session:
             alice_loss.backward()
             self.alice.optimizer.step()
             self.last_alice_loss = alice_loss
-            if self.alice.double_copy_period is not None:
-                if current_iteration % self.alice.double_copy_period == 0:
-                    self.alice.net = copy.deepcopy(self.alice.training_net)
         else:
             alice_loss = self.last_alice_loss
 
@@ -178,23 +164,42 @@ class Session:
         bob_loss.backward()
         self.bob.optimizer.step()
 
-        # logging of various sorts
+        if self.alice.double_copy_period is not None:
+            if current_iteration % self.alice.double_copy_period == 0:
+                self.alice.net = copy.deepcopy(self.alice.training_net)
+
+        return alice_loss.item(), bob_loss.item()
+
+    def logging(self, alice_loss, bob_loss, current_iteration,
+                non_random_rewards):
+        if non_random_rewards.shape == (0,):
+            writer.add_scalars(
+                'Rewards',
+                {f'Mean reward_{h.hp_run}': 0,
+                 f'SD reward_{h.hp_run}': 0},
+                global_step=current_iteration
+            )
+        else:
+            writer.add_scalars(
+                'Rewards',
+                {f'Mean reward_{h.hp_run}': np.mean(non_random_rewards),
+                 f'SD reward_{h.hp_run}': np.std(non_random_rewards)},
+                global_step=current_iteration
+            )
         writer.add_scalars(
             'Sqrt losses',
-            {f'Alice sqrt loss_{h.hp_run}': torch.sqrt(alice_loss),
-             f'Bob sqrt loss_{h.hp_run}': torch.sqrt(bob_loss)
-             },
+            {f'Alice sqrt loss_{h.hp_run}': math.sqrt(alice_loss),
+             f'Bob sqrt loss_{h.hp_run}': math.sqrt(bob_loss)},
             global_step=current_iteration
         )
         if current_iteration % c.CODE_BOOK_PERIOD == 0:
             mlu.log(f'Iteration={current_iteration:>10} training nets give:',
                     backspaces=20)
-            mlu.log(f'{alice_loss.item()=}\t{bob_loss.item()=}')
+            mlu.log(f'{alice_loss=}\t{bob_loss=}')
             books.code_decode_book(self.alice, self.bob)
         elif current_iteration % 1000 == 0:
             print('\b' * 20 + f'Iteration={current_iteration:>10}', end='')
 
-        return alice_loss.item(), bob_loss.item()
 
     def alice_eps_greedy(self, greedy_codes):
         """

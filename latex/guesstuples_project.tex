@@ -639,9 +639,26 @@ compare with that run's
 \end{lstlisting}
 I.e., it's much less than one SD above the mean of zero.
 
-At \verb|21-05-22_21-18-59| with \verb|N_NUMBERS=256| and \verb|N_SELECT=256|, \num{1000000} iterations and (non--minimal) noise lasting until \num{350000}, we see in the last \num{500000} an increase of smoothed 0.9 from \verb|0.01353| to \verb|0.06488| and still climbing at that rate or better.  So around \verb|0.01| per \num{100000} iterations!  And the whole \num{1000000} take \SI{21}{h} \SI{30}{min}.
+At \verb|21-05-22_21-18-59| with \verb|N_NUMBERS=256| and \verb|N_SELECT=256|, \num{1000000} iterations and (non--minimal) epsilon lasting until \num{600000}, we see in the last \num{500000} an increase of smoothed 0.9 from \verb|0.01353| to \verb|0.06488| and still climbing at that rate or better.  So around \verb|0.01| per \num{100000} iterations!  And the whole \num{1000000} take \SI{21}{h} \SI{30}{min}.
 
 NOTE All in the above Alice uses \verb|codes| not, as she should \verb|greedy_codes|.  Now changed!
+
+A run at \verb|21-05-23_21:13:27| with config as in \verb|21-05-22_21-18-59| but with \verb|N_NUMBERS=16| and \verb|N_SELECT=16| rapidly varying results~---see \fref{arg1}~--- with much better peaks but poor end points
+\begin{lstlisting}
+	 ---- Table of results ----
+	
+	code  hp_run  result
+	0       1  (-0.185, 740000)
+	1       2  (-0.176, 850000)
+	--------------------------
+\end{lstlisting}
+\begin{figure}
+	\centering
+	\includegraphics[width=1.\linewidth]{Fig_Mean_Rewards_21-05-23_21:13:27}
+	\cprotect\caption{From \verb|21-05-23_21:13:27|, with hp runs 1 (orange) and 2 (pink).  Smoothing 0.9.}
+	\label{fig:figmeanrewards21-05-23211327}
+\end{figure}
+
 
 \section{Things to try}
 
